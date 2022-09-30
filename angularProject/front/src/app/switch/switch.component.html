@@ -1,0 +1,11 @@
+
+<div>
+    <div class="switch">
+        <button id="ohillBtn" (click)="changeData($event)"> Observatory Hill Dining Hall </button>
+        <button id="newcombBtn" (click)="changeData($event)"> Newcomb Dining Hall </button>
+        <button id="runkBtn" (click)="changeData($event)"> Runk Dining Hall </button>
+    </div>
+    <app-dininghall text="Observatory Hill Dining Hall" short="ohill"></app-dininghall>
+    <app-dininghall text="Runk Dining Hall" show="hidden" short="runk" ></app-dininghall>
+    <app-dininghall text="Newcomb Dining Hall" show="hidden" short="newcomb" ></app-dininghall>
+</div>

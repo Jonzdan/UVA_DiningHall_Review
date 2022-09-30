@@ -1,0 +1,12 @@
+
+<!-- should be item name, div, etc-->
+<div *ngIf="short != 'runk'; else elseBlock" class="item" >
+    <h3 > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
+    <h4 > {{ item.itemDesc }} </h4>
+    <br>
+</div>
+<ng-template #elseBlock>
+    <h3>
+        {{ item.itemName }}
+    </h3>
+</ng-template>
