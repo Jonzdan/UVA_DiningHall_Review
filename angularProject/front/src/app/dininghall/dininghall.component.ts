@@ -26,20 +26,18 @@ export class DininghallComponent implements OnInit, AfterViewInit {
    }
 
   ngOnInit(): void {
-    if (this.show != 'hidden') {
-      this.appService.getData(this.short).subscribe((res: string) => {
-        this.stringVersion = res
-        this.data = JSON.parse(res)
-        this.setHeaders()
+    this.appService.getData(this.short).subscribe((res: string) => {
+      this.stringVersion = res
+      this.data = JSON.parse(res)
+      this.setHeaders()
 
-      }) //thi
-    }
+    }) //thi
+    
   }
 
 
   ngAfterViewInit(): void {
-    this.elementRef.nativeElement.querySelector("div > h2").addEventListener('click', this.changeStyling.bind(this))
-    //const b = document.querySelector(`#${this.short}`)?.setAttribute('style', 'display: hidden;')
+    //this.elementRef.nativeElement.querySelector("div > h2").addEventListener('click', this.changeStyling.bind(this))
   }
 
   //create interface that simulates runk/ohill/newcomb dining data api fetch content
@@ -51,14 +49,7 @@ export class DininghallComponent implements OnInit, AfterViewInit {
   } 
 
 
-  changeStyling(e:any): void {
-    console.log(e.target.parentNode)
-    const oldAttr = e.target.parentNode.getAttribute('style')
-    let temp:string = this.replaceDisplay(oldAttr)
-    console.log(temp)
-    e.target.parentNode.setAttribute('style', temp + ' display: none;')
 
-  }
 
   replaceDisplay(s:string): string{
     if (s == null) {

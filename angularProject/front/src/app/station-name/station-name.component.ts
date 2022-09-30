@@ -28,7 +28,6 @@ export class StationNameComponent implements OnInit {
           this.shopToItems[this.data[key].stationName].push(this.data[key].item)
         }
       }
-      console.log(this.shopToItems)
     }
     
     
