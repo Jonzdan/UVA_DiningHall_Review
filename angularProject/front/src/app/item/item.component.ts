@@ -9,7 +9,6 @@ export class ItemComponent implements OnInit {
 
   @Input() item!: any
   @Input() short!: string
-  @Input() head!: any
 
 
   constructor() { 
@@ -17,8 +16,6 @@ export class ItemComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    //console.log(this.item)
-    //console.log(this.item.stationId)
     if (this.short == 'ohill') {
       this.removeOhillShortDescription()
     }

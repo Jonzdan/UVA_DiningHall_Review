@@ -40,6 +40,11 @@ runkSchema.methods.returnReviewStars = function returnReviewStars() {
     return stars
 }
 
+runkSchema.methods.addReview = function addReview(obj) {
+    let reviewDesc = obj.itemReview.reviews
+    this.item.itemReview.reviews.append(reviewDesc)
+}
+
 runkSchema.methods.returnAllReviews = function returnAllReviews() {
     return this.item.itemReview.reviews
 }

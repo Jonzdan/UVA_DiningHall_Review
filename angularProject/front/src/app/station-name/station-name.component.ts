@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
+import { AppService } from '../app.service';
 
 @Component({
   selector: 'app-station-name',
@@ -7,27 +8,15 @@ import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
 })
 export class StationNameComponent implements OnInit {
 
-  @Input() headers = new Set<string>()
   @Input() short!: string
   shopToItems: any = {}
-  @Input() data!: any
+  headers: any
 
-  constructor() { }
+  constructor(private appService: AppService) { }
 
   ngOnInit(): void {
-    //create each stationName id\
-    //here we will create each shop after organizing items to each other
-    for (const elem of this.headers.values()) {
-      if (!(elem in this.shopToItems)) {
-        this.shopToItems[elem] = []
-      }
-    }
-
-      for (const key in this.data) {
-        if (this.data[key].stationName in this.shopToItems) {
-          this.shopToItems[this.data[key].stationName].push(this.data[key].item)
-        }
-      }
+      this.shopToItems = this.appService.getShopToItem(this.short)
+      this.headers = this.appService.getHeaders(this.short)
     }
     
     

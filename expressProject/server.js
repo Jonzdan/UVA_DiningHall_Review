@@ -25,7 +25,7 @@ db.once('open', () => console.log('Connected'))
 
 app.use(express.static('public'))
 app.use(express.json())
-app.use(session({ //change to db
+app.use(session({ //change secret to something more substantial later (dotenv)
     secret: "temp",
     name: 'session-id',
     saveUninitialized: false,
@@ -66,21 +66,3 @@ app.get("/signup", (req,res)=>{
 })
 
 app.listen(process.env.PORT || 4000)
-
-function removeSpecialChar(s) {
-    if (!(s)) {
-        return
-    }
-    if (s.indexOf("\\u0026") != -1) {
-        let first = s.indexOf("\\u0026")
-        let end = first + 7
-        s = s.slice(0, first) + '& ' + s.slice(end)
-    }
-    if (s.indexOf("\\u0027") != -1) {
-        let first = s.indexOf("\\u0027")
-        let end = first + 7
-        s = s.slice(0, first) + "'" + s.slice(end)
-    }
-
-    return s
-}

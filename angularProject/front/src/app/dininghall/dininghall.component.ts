@@ -11,27 +11,16 @@ import { Observable } from 'rxjs'
 export class DininghallComponent implements OnInit, AfterViewInit {
 
   @Input() text!: string
-  //placeholder, but its the data from later..
-  //listOfItems!: Array<ItemComponent>;
-  @Input() apiCall!: string
   @Input() show?: string
   @Input() short!: string
-  data!: any
-  stringVersion!: string;
-  headers: Set<string> = new Set()
 
 
-  constructor(private elementRef: ElementRef, public appService: AppService) {
+  constructor(private elementRef: ElementRef, private appService: AppService) {
 
    }
 
   ngOnInit(): void {
-    this.appService.getData(this.short).subscribe((res: string) => {
-      this.stringVersion = res
-      this.data = JSON.parse(res)
-      this.setHeaders()
-
-    }) //thi
+     //thi
     
   }
 
@@ -41,15 +30,6 @@ export class DininghallComponent implements OnInit, AfterViewInit {
   }
 
   //create interface that simulates runk/ohill/newcomb dining data api fetch content
-  setHeaders(): void {
-      for (const key in this.data) {
-        this.headers.add(this.data[key].stationName)
-      }
-    
-  } 
-
-
-
 
   replaceDisplay(s:string): string{
     if (s == null) {
