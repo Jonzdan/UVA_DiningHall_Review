@@ -10,12 +10,12 @@ export class AppService {
   constructor(private http: HttpClient) { }
 
   private runk!: any
-  private runkSet!: Set<string>
+  private runkSet = new Set<string>()
   private ohill!: any
-  private ohillSet!: Set<string>
+  private ohillSet = new Set<string>()
   private newcomb!: any
-  private newcombSet!: Set<string>
-  private datalist = [this.runk, this.ohill, this.newcomb]
+  private newcombSet = new Set<string>()
+  private datalist!: Array<any>
   private runkShopToItems: any = {}
   private ohillShopToItems: any = {}
   private newcombShopToItems: any = {}
@@ -32,24 +32,27 @@ export class AppService {
     }
   }
 
-  setData():void {
-    this.http.get(`http://localhost:4200/api/runk`).pipe(map((res: any) => this.runk = JSON.parse(res)))
-    this.http.get(`http://localhost:4200/api/ohill`).pipe(map((res: any) => this.ohill = JSON.parse(res) ))
-    this.http.get(`http://localhost:4200/api/newcomb`).pipe(map((res: any) => {
-      this.newcomb = JSON.parse(res)
-      this.setHeaders()
-    }))
+  setData(): void {
+    this.call('ohill').subscribe((data) => {this.ohill = data})
+    this.call('newcomb').subscribe((data) => { this.newcomb = data})
+    this.call('runk').subscribe((data) => { this.runk = data; this.setHeaders()})
+  }
+
+  call(target: string) {
+    return this.http.get(`http://localhost:4200/api/${target}`).pipe(map((res: any) => res))
   }
 
   setHeaders(): void {
     let iterator = 0
+    this.datalist = [this.ohill, this.runk, this.newcomb]
     for (const diningHall of this.datalist) {
+      console.log(diningHall)
       for (const key in diningHall) {
-        if (iterator === 0) { //runk
-          this.runkSet.add(diningHall[key].stationName)
+        if (iterator === 0) { //ohill
+          this.ohillSet.add(diningHall[key].stationName)
         }
         else if (iterator === 1) {
-          this.ohillSet.add(diningHall[key].stationName)
+          this.runkSet.add(diningHall[key].stationName)
         }
         else {
           this.newcombSet.add(diningHall[key].stationName)
@@ -57,6 +60,7 @@ export class AppService {
       }
       iterator+=1
     }
+    this.setShopToItem()
   
   } 
 
@@ -74,6 +78,7 @@ export class AppService {
 
   setShopToItem(): void {
     let l = [this.runkSet, this.ohillSet, this.newcombSet]
+    console.log(l)
     for (let i = 0; i < l.length; i++) {
       for (const elem of l[i].values()) {
         if (i === 0) {

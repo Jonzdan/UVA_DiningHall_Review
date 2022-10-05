@@ -23,6 +23,7 @@ router.get('/', async(req, res) => {
     try {
         let date = getCurDateAsString()
         let time = getOhillTimeFrame(new Date().getDay(), getCurHour())
+        console.log(date, time)
         const data = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0})
         if (data && Object.keys(data).length === 0) {
             let bol = await getData() //prob have to await the callback
@@ -109,6 +110,9 @@ function getOhillTimeFrame(date, time) {
         }
         else if (time >= 1700 && time < 2000) {
             return 'Dinner (5pm-8pm)'
+        }
+        else {
+            return 'Unavailable'
         }
     }
 }

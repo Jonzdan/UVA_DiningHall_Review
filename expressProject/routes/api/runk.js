@@ -85,11 +85,15 @@ async function getData() {
     axios.get("https://harvesttableuva.com/locations/runk-dining-hall/") //looks like when it comes to late night, it goes to tmrw
     .then(res => {
     //class toggle-menu-station-data is names
+    
+
     d = {} 
     let dateTime = new Date().toString();
     let firstcolon = dateTime.indexOf(":")
     let time = dateTime.slice(firstcolon-2, firstcolon) + dateTime.slice(firstcolon+1, firstcolon+3)
     l = []
+    //check if dinner, if so, then we need to get late dinner as well
+    
     let activeTime = res.data.indexOf("c-tab is-active") //this is what we want...
     if (!checkRunkTimeFrame(time)) {
         activeTime = -1
@@ -148,12 +152,64 @@ async function getData() {
             }
             //res.data = res.data.slice(lessthan+1)
         }
+
         }
     
         //console.log(d)
         //loop thru and follow model
-        
+    if (getRunkTimeFrame(time) === 'Dinner (4:30pm-8pm)') {
+        let b = res.data.indexOf("c-tab")
+        b = res.data.indexOf("c-tab", b+10)
+        b = res.data.indexOf("c-tab", b+10)
+        b = res.data.indexOf("c-tab", b +10)
+        let endTime = res.indexOf('class="bound-layout"')
+        let i = b
+        while(res.data.indexOf("toggle-menu-station-data", i)) {
+            let f = res.data.indexOf("toggle-menu-station-data", i)
+            let greaterthan = res.data.indexOf(">", f)
+            let lessthan = res.data.indexOf("<", greaterthan+1)
+            let name = res.data.slice(greaterthan+1, lessthan)
+            if (l.indexOf(name) == -1) {
+                let nextNameStart = res.data.indexOf("toggle-menu-station-data", f + 10)
+                if (nextNameStart === -1) {
+                    nextNameStart = res.data.length
+                }
+                let iterator = lessthan
+                while (res.data.indexOf("menu-item-li", iterator) != -1 && res.data.indexOf("menu-item-li", iterator) < nextNameStart) {
+                    let start = res.data.indexOf("menu-item-li", iterator)
+                    let end = res.data.indexOf("</a>", start + 1)
+                    let temp = res.data.indexOf("tabindex=", start + 1)
+                    let itemStart = res.data.indexOf(">", temp + 1) + 1
+                    let itemNames = res.data.slice(itemStart, end)
+                    itemNames = removeSpecialChar(itemNames)
+                    let val = getCurDateAsString()
+                    runkSchema.find({ item: { itemName: itemNames }}, (err, res) => {
+                        if (err) throw err
+                        if (res && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != val && res.item.timeFrame != getRunkTimeFrame(2101)) {
+                            runkSchema.updateOne( { _id: res._id}, {$push: { activeDate: val}})
+                        }
+                        else {
+                            const saveobj = {
+                                stationName: name,
+                                item: {
+                                    itemName: itemNames,
+                                    timeFrame: getRunkTimeFrame(2101)
+                                },
+                                activeDate: [val]
+                            }
+                            let runk1 = new runkSchema(saveobj)
+                            runk1.save()
+                        }
+                    })                 
+                    iterator = end+4
+
+                    } 
+                i = nextNameStart
+            }
+        } 
+    }    
     })
+    
 }
 
 
