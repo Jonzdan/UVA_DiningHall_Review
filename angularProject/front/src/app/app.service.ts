@@ -78,7 +78,6 @@ export class AppService {
 
   setShopToItem(): void {
     let l = [this.runkSet, this.ohillSet, this.newcombSet]
-    console.log(l)
     for (let i = 0; i < l.length; i++) {
       for (const elem of l[i].values()) {
         if (i === 0) {
