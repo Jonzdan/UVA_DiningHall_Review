@@ -37,6 +37,13 @@ router.get('/', async (req, res) => {
     catch (err) {
         res.status(500).json({msg: err.msg})
     }
+}).post('/', async (req, res) => {
+    try {
+        console.log('received')
+    }
+    catch (err) {
+        res.status(501).json({msg: err.msg})
+    }
 })
 
 
@@ -165,8 +172,11 @@ async function getData() {
                         },
                         activeDate: [curDate]
                     }
-                    let newcomb1 = new newcombSchema(obj)
-                    newcomb1.save()
+                    if (obj && obj.item.timeFrame !== 'Unavailable') {
+                        let newcomb1 = new newcombSchema(obj)
+                        newcomb1.save()
+                    }
+                    
                 }
             })
             iterator = sde + 1

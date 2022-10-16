@@ -21,7 +21,6 @@ export class DininghallComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
      //thi
-    console.log(this.appService.getData(this.short))
   }
 
 

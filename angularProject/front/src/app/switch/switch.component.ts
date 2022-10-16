@@ -12,6 +12,9 @@ export class SwitchComponent implements OnInit {
   @ViewChildren('change')
   public navBtnItems!: QueryList <ElementRef<HTMLLIElement>>
 
+  public name1:string = 'Observatory Hill Dining Hall'
+  public name2:string = 'Newcomb Dining Hall'
+  public name3:string = 'Runk Dining Hall'
   constructor(private elementRef: ElementRef) { }
 
   ngOnInit(): void {
@@ -22,34 +25,28 @@ export class SwitchComponent implements OnInit {
   
   changeData(event: any): void {
     let name = event.target.textContent
+    name = name.trim()
     for (let child of this.navBtnItems) {
       let children: HTMLCollection = child.nativeElement.children
-      for (let i = 0; i < children.length; i++) {
-        let old:string | null = children[i].getAttribute('style')
-        old = this.replaceDisplay(old)
-        if (children[i].querySelector("div > h2")?.textContent === name) {
-          children[i].setAttribute('style', old + 'display: block;')
-
-        }
-        else {
-          children[i].setAttribute('style', old + 'display: none;')
-        }
+      if (name === 'Newcomb Dining Hall') {
+        children[2].className = 'flex'
+        children[1].className = 'hidden'
+        children[0].className = 'hidden'
+      }
+      else if (name === 'Observatory Hill Dining Hall') {
+        children[0].className = 'flex'
+        children[1].className = 'hidden'
+        children[2].className = 'hidden'
+      }
+      else {
+        children[1].className = 'flex'
+        children[2].className = 'hidden'
+        children[0].className = 'hidden'
       }
     }
 
     
   }
 
-  replaceDisplay(s:string | null): string{
-    if (s == null) {
-      return ''
-    }
-    if (s != null && s.indexOf('display:') != -1) {
-      let end = s.indexOf('display:') + 8
-      let end1 = s.indexOf(';', end) + 1
-      s = s.slice(0,s.indexOf('display:')) + s.slice(end1)
-    }
-    return s
-  }
 
 }

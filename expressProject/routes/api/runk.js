@@ -24,6 +24,8 @@ function removeSpecialChar(s) {
 }
 
 router.get('/', async (req, res) => {
+    res.header('Access-Control-Allow-Methods', "GET, POST, PUT, OPTIONS")
+    res.header('Access-Control-Allow-Headers', "Origin, X-Requested-With, Content-Type, Accept") 
     try {
         let date = getCurDateAsString()
         let time = getRunkTimeFrame(getCurHour())
@@ -43,6 +45,29 @@ router.get('/', async (req, res) => {
         console.log(err)
         res.status(500).json({msg: err.msg})
     }
+})
+
+router.post('/', async(req, res) => {
+    try {
+        const review = req.body.content
+        const item = req.body.item
+        const star = req.body.star //implement later
+        const data = await runkSchema.find( { item: item})
+        if (data && Object.keys(data).length === 0) {
+            res.status(501).json('0')
+        }
+        else {
+            await runkSchema.updateOne( {item: item}, {$push: {item: {itemReview: {reviews: review, stars: star}}}})
+            res.json("1") 
+        }
+         
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({msg: err.msg})
+    }
+    
+    
 })
 
 
@@ -141,8 +166,11 @@ async function getData() {
                                 },
                                 activeDate: [val]
                             }
-                            let runk1 = new runkSchema(saveobj)
-                            runk1.save()
+                            if (saveobj && saveobj.item.timeFrame !== 'Unavailable') {
+                                let runk1 = new runkSchema(saveobj)
+                                runk1.save()
+                            }
+                            
                         }
                     })                 
                     iterator = end+4
@@ -162,9 +190,9 @@ async function getData() {
         b = res.data.indexOf("c-tab", b+10)
         b = res.data.indexOf("c-tab", b+10)
         b = res.data.indexOf("c-tab", b +10)
-        let endTime = res.indexOf('class="bound-layout"')
+        let endTime = res.data.indexOf('class="bound-layout"')
         let i = b
-        while(res.data.indexOf("toggle-menu-station-data", i)) {
+        while(res.data.indexOf("toggle-menu-station-data", i) < endTime) {
             let f = res.data.indexOf("toggle-menu-station-data", i)
             let greaterthan = res.data.indexOf(">", f)
             let lessthan = res.data.indexOf("<", greaterthan+1)

@@ -9,6 +9,7 @@ import { ItemComponent } from './item/item.component';
 import { NavComponent } from './nav/nav.component';
 import { SwitchComponent } from './switch/switch.component';
 import { StationNameComponent } from './station-name/station-name.component';
+import { AppButtonComponent } from './app-button/app-button.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { StationNameComponent } from './station-name/station-name.component';
     ItemComponent,
     NavComponent,
     SwitchComponent,
-    StationNameComponent
+    StationNameComponent,
+    AppButtonComponent
   ],
   imports: [
     BrowserModule,

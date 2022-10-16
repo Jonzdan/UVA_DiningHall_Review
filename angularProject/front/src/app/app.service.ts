@@ -44,14 +44,13 @@ export class AppService {
 
   setHeaders(): void {
     let iterator = 0
-    this.datalist = [this.ohill, this.runk, this.newcomb]
+    this.datalist = [this.runk, this.ohill, this.newcomb]
     for (const diningHall of this.datalist) {
-      console.log(diningHall)
       for (const key in diningHall) {
-        if (iterator === 0) { //ohill
+        if (iterator === 1) { //ohill
           this.ohillSet.add(diningHall[key].stationName)
         }
-        else if (iterator === 1) {
+        else if (iterator === 0) {
           this.runkSet.add(diningHall[key].stationName)
         }
         else {
@@ -117,7 +116,6 @@ export class AppService {
         }
     }
     }
-    
   }
 
   getShopToItem(target:string) {

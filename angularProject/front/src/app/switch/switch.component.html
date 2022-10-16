@@ -1,13 +1,13 @@
 
-<div>
-    <div class="switch">
-        <button id="ohillBtn" (click)="changeData($event)"> Observatory Hill Dining Hall </button>
-        <button id="newcombBtn" (click)="changeData($event)"> Newcomb Dining Hall </button>
-        <button id="runkBtn" (click)="changeData($event)"> Runk Dining Hall </button>
+<div class="w-full">
+    <div class="switch items-center justify-center text-center w-full ">
+        <app-button id="ohillBtn" [name]="name1" (click)="changeData($event)">  </app-button>
+        <app-button id="newcombBtn" [name]="name2" (click)="changeData($event)">  </app-button>
+        <app-button id="runkBtn" [name]='name3' (click)="changeData($event)">  </app-button>
     </div>
-    <div #change>
-        <app-dininghall text="Observatory Hill Dining Hall" short="ohill"></app-dininghall>
-        <app-dininghall text="Runk Dining Hall" show="hidden" short="runk" style="display: none"></app-dininghall>
-        <app-dininghall text="Newcomb Dining Hall" show="hidden" short="newcomb" style="display: none"></app-dininghall>
+    <div #change class=" w-full items-center justify-center text-center">
+        <app-dininghall class="flex" text="Observatory Hill Dining Hall" short="ohill"></app-dininghall>
+        <app-dininghall class="hidden" text="Runk Dining Hall" show="hidden" short="runk" ></app-dininghall>
+        <app-dininghall class="hidden" text="Newcomb Dining Hall" show="hidden" short="newcomb" ></app-dininghall>
     </div>
 </div>

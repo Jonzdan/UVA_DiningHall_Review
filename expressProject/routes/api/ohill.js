@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const ohillSchema = require('../../models/ohill')
 const axios = require('axios')
-let specialDays = []
 
 const ohillstations = {
     "22869": "Copper Hood",
@@ -23,11 +22,9 @@ router.get('/', async(req, res) => {
     try {
         let date = getCurDateAsString()
         let time = getOhillTimeFrame(new Date().getDay(), getCurHour())
-        console.log(date, time)
         const data = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0})
         if (data && Object.keys(data).length === 0) {
-            let bol = await getData() //prob have to await the callback
-            console.log(1)
+            await getData() //prob have to await the callback
             const data1 = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0})
             res.json(data1)
         }
@@ -155,8 +152,11 @@ async function getData() {
                         },
                         activeDate: [curDate]
                     }
-                    let ohill1 = new ohillSchema(obj)
-                    ohill1.save()
+                    if (obj && obj.item.timeFrame !== 'Unavailable') {
+                        let ohill1 = new ohillSchema(obj)
+                        ohill1.save()
+                    }
+                    
                 }
             })
             iterator = sde + 1

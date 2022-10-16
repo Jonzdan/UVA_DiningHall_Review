@@ -1,13 +1,22 @@
 
 <!-- should be item name, div, etc-->
-<div *ngIf="short != 'runk'; else elseBlock" class="item" >
+<div class="item" >
     <h3 > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
-    <h4 > {{ item.itemDesc }} </h4>
+    <h4 *ngIf="item.itemDesc" > {{ item.itemDesc }} </h4>
+    <br>
+    <div class="review" style="display: flex;">  
+        <div *ngIf="item.itemReview">
+            <h4 *ngIf="item.itemReview.stars; else elsBloc"> {{ item.itemReview.stars}} </h4>
+            <ng-template #elsBloc> N/A </ng-template>
+            <button class="seeMore" (click) = "showReviews($event)"> Click to see reviews... </button>
+        </div>
+        <div class="review1">
+            <label for="reviewBox"> Write a review... </label>
+            <input type="text" placeholder="Start review here..." #reviewBox>
+            <button id="submit" type="text" (click)="submitReview($event)"> Submit </button> <!-- add this in backend -->
+        </div>
+        
+    </div>
     <!-- add review if present... -->
     <br>
 </div>
-<ng-template #elseBlock>
-    <h3>
-        {{ item.itemName }}
-    </h3>
-</ng-template>

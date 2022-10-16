@@ -32,7 +32,7 @@ app.use(session({ //change secret to something more substantial later (dotenv)
     cookie: { maxAge: 1000*60*60*24 },
     resave: false
 }))
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({extended: false}))
 app.use(cookieParser())
 
 
