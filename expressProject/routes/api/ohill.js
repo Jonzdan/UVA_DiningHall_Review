@@ -122,7 +122,7 @@ async function getData() {
         const endInd = res.data.indexOf("/Cart", ind) + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... , Product":{ and more like Contains Fish or whatnot
         let data = res.data.slice(ind, endInd)
         iterator = ind
-        let curDate = getCurDateAsString()
+        let curDate = getCurDateAsString().trim()
         while (data.indexOf('"Product":', iterator) !== -1 && iterator < data.length) {
             let shopId = data.indexOf('"StationId":', iterator) + 13
             let end = data.indexOf('"', shopId)
@@ -137,10 +137,12 @@ async function getData() {
             let descriptionString = data.slice(begin, sde)
             descriptionString = removeSpecialChar(descriptionString)
             resultString = removeSpecialChar(resultString)
-            ohillSchema.find({ item: { itemName: resultString }}, (err, res) => {
+            ohillSchema.findOne({ "item.itemName" : resultString, "item.timeFrame": getOhillTimeFrame(curDate, getCurHour()), "stationName" : ohillstations[stationId]}, (err, res) => {
                 if (err) throw err
-                if (res && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != curDate && res.item.timeFrame != getOhillTimeFrame(curDate, getCurHour())) {
-                    ohillSchema.updateOne({ _id: res._id}, {$push: {activeDate: curDate}})
+                if (res != null && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != curDate) {
+                    ohillSchema.updateOne({_id: res._id}, {$push: {activeDate: curDate}}, (err, res ) => {
+                        if (err) console.error(err)
+                    })
                 }
                 else {
                     const obj = {

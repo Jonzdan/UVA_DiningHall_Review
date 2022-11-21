@@ -1,1 +1,7 @@
-<button class="leading-8 p-1 xl:text-4xl lg:text-2xl md:text-lg sm:text-base xl:m-5 lg:m-3 md:m-2 sm:m-1 border-solid border-slate-900 border-2 border-opacity-75 rounded-md bg-slate-400 text-rose-100"> {{ name }}</button>
+<span *ngIf="selected == true; else eb">
+    <button class="leading-8 pr-4 pl-4 pt-[3px] pb-[3px] xl:text-1xl lg:text-lg md:text-base sm:text-sm xl:mr-3 xl:ml-3  lg:ml-2 lg:mr-2 md:ml-1 md:mr-1 sm:ml-1 sm:mr-1 mt-[2px] mb-[2px] rounded-full text-rose-100 bg-slate-400"> {{ name }}</button>
+</span>
+<ng-template #eb>
+    <button class="leading-4 pr-4 pl-4 pt-[3px] pb-[3px] xl:text-1xl lg:text-lg md:text-base sm:text-sm xl:mr-3 xl:ml-3  lg:ml-2 lg:mr-2 md:ml-1 md:mr-1 sm:ml-1 sm:mr-1 mt-[2px] mb-[2px] rounded-full text-rose-100"> {{ name }}</button>
+</ng-template>
+

@@ -157,10 +157,12 @@ async function getData() {
             let descriptionString = data.slice(begin, sde)
             descriptionString = removeSpecialChar(descriptionString)
             resultString = removeSpecialChar(resultString)
-            newcombSchema.find({ item: { itemName: resultString }}, (err, res) => {
+            newcombSchema.findOne({"item.itemName" : resultString, "item.timeFrame": getNewcombTimeFrame(curDate, getCurHour()), "stationName" : newcombstations[stationId]}, (err, res) => {
                 if (err) throw err
-                if (res && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != curDate && res.item.timeFrame != getNewcombTimeFrame()) {
-                    newcombSchema.updateOne({ _id: res._id}, {$push: {activeDate: curDate}})
+                if (res != null && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != curDate) {
+                    newcombSchema.updateOne({_id: res._id}, {$push: {activeDate: curDate}}, (err, res) => {
+                        if (err) console.error(err)
+                    })
                 }
                 else {
                     const obj = {

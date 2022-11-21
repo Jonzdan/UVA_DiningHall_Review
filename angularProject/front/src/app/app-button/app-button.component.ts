@@ -8,6 +8,7 @@ import { Component, OnInit, Input } from '@angular/core';
 export class AppButtonComponent implements OnInit {
 
   @Input() name!: string
+  @Input() selected!: boolean
   constructor() { }
 
   ngOnInit(): void {

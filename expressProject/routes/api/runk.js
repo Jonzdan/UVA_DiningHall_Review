@@ -151,11 +151,11 @@ async function getData() {
                     let itemStart = res.data.indexOf(">", temp + 1) + 1
                     let itemNames = res.data.slice(itemStart, end)
                     itemNames = removeSpecialChar(itemNames)
-                    let val = getCurDateAsString()
-                    runkSchema.find({ item: { itemName: itemNames }}, (err, res) => {
+                    let val = getCurDateAsString().trim()
+                    runkSchema.find({"item.itemName" : itemNames, "item.timeFrame": getRunkTimeFrame(getCurHour()), "stationName" : name}, (err, res) => {
                         if (err) throw err
-                        if (res && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != val && res.item.timeFrame != getRunkTimeFrame(getCurHour())) {
-                            runkSchema.updateOne( { _id: res._id}, {$push: { activeDate: val}})
+                        if (res != null && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != val) {
+                            runkSchema.updateOne( {_id: res._id}, {$push: { activeDate: val}}, (err, res) => { if (err) console.error(err) })
                         }
                         else {
                             const saveobj = {
@@ -211,10 +211,10 @@ async function getData() {
                     let itemNames = res.data.slice(itemStart, end)
                     itemNames = removeSpecialChar(itemNames)
                     let val = getCurDateAsString()
-                    runkSchema.find({ item: { itemName: itemNames }}, (err, res) => {
+                    runkSchema.find({"item.itemName" : itemNames, "item.timeFrame": getRunkTimeFrame(getCurHour(2101)), "stationName" : name}, (err, res) => {
                         if (err) throw err
-                        if (res && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != val && res.item.timeFrame != getRunkTimeFrame(2101)) {
-                            runkSchema.updateOne( { _id: res._id}, {$push: { activeDate: val}})
+                        if (res != undefined && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != val) {
+                            runkSchema.updateOne( {_id: res._id}, {$push: { activeDate: val}}, (err, res) => {if (err) console.error(err) })
                         }
                         else {
                             const saveobj = {
