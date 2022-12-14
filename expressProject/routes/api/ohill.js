@@ -118,12 +118,14 @@ async function getData() {
     axios.get('https://virginia.campusdish.com/LocationsAndMenus/ObservatoryHillDiningRoom')
     .then(res => {
         //console.log(res.data.slice(80000,200000))
-        const ind = res.data.indexOf("model")
-        const endInd = res.data.indexOf("/Cart", ind) + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... , Product":{ and more like Contains Fish or whatnot
-        let data = res.data.slice(ind, endInd)
-        iterator = ind
+        //const ind = res.data.indexOf("model")
+        const endInd = res.data.indexOf("/Cart") + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... , Product":{ and more like Contains Fish or whatnot
+        //let data = res.data.slice(ind, endInd)
+        let data = res.data
+        let iterator = 0 //or ind
         let curDate = getCurDateAsString().trim()
-        while (data.indexOf('"Product":', iterator) !== -1 && iterator < data.length) {
+        const size = data.length;
+        while (data.indexOf('"Product":', iterator) !== -1 && iterator < size) {
             let shopId = data.indexOf('"StationId":', iterator) + 13
             let end = data.indexOf('"', shopId)
             let stationId = data.slice(shopId, end)
@@ -137,9 +139,11 @@ async function getData() {
             let descriptionString = data.slice(begin, sde)
             descriptionString = removeSpecialChar(descriptionString)
             resultString = removeSpecialChar(resultString)
+            //* There potentially could be an error in adding to existing ones* 
             ohillSchema.findOne({ "item.itemName" : resultString, "item.timeFrame": getOhillTimeFrame(curDate, getCurHour()), "stationName" : ohillstations[stationId]}, (err, res) => {
                 if (err) throw err
-                if (res != null && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != curDate) {
+                const objLength = Object.keys(res).length
+                if (res != null && objLength !== 0 && res[objLength-1].activeDate[res[objLength].activeDate.length-1]) {
                     ohillSchema.updateOne({_id: res._id}, {$push: {activeDate: curDate}}, (err, res ) => {
                         if (err) console.error(err)
                     })

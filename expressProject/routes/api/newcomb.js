@@ -138,10 +138,9 @@ async function getData() {
     axios.get('https://virginia.campusdish.com/LocationsAndMenus/FreshFoodCompany')
     .then(res => {
         //console.log(res.data.slice(100000,250000))
-        const ind = res.data.indexOf("model")
-        const endInd = res.data.indexOf("/Cart", ind) + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... and more like Contains Fish or whatnot
-        let data = res.data.slice(ind, endInd)
-        let iterator = ind
+        const endInd = res.data.indexOf("/Cart") + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... and more like Contains Fish or whatnot
+        let data = res.data
+        let iterator = 0
         let curDate = getCurDateAsString()
         while (data.indexOf('"Product":', iterator) !== -1 && iterator < data.length) {
             let shopId = data.indexOf('"StationId":', iterator) + 13
@@ -159,7 +158,8 @@ async function getData() {
             resultString = removeSpecialChar(resultString)
             newcombSchema.findOne({"item.itemName" : resultString, "item.timeFrame": getNewcombTimeFrame(curDate, getCurHour()), "stationName" : newcombstations[stationId]}, (err, res) => {
                 if (err) throw err
-                if (res != null && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != curDate) {
+                const objLength = Object.keys(res).length
+                if (res != null && objLength !== 0 && res[objLength-1].activeDate[res[objLength].activeDate.length-1] != curDate) {
                     newcombSchema.updateOne({_id: res._id}, {$push: {activeDate: curDate}}, (err, res) => {
                         if (err) console.error(err)
                     })

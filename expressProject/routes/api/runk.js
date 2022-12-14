@@ -106,6 +106,8 @@ function getCurHour() {
     return a.slice(start, se) + a.slice(ss, sse)
 }
 
+
+//this currently webscrapes the wrong infomation.
 async function getData() {
     axios.get("https://harvesttableuva.com/locations/runk-dining-hall/") //looks like when it comes to late night, it goes to tmrw
     .then(res => {
@@ -154,8 +156,12 @@ async function getData() {
                     let val = getCurDateAsString().trim()
                     runkSchema.find({"item.itemName" : itemNames, "item.timeFrame": getRunkTimeFrame(getCurHour()), "stationName" : name}, (err, res) => {
                         if (err) throw err
-                        if (res != null && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != val) {
-                            runkSchema.updateOne( {_id: res._id}, {$push: { activeDate: val}}, (err, res) => { if (err) console.error(err) })
+                        const objLength = Object.keys(res).length
+                        if (res != null && objLength !== 0) {
+                            const arrLength = res[objLength-1].activeDate.length
+                            if (res[objLength-1].activeDate[arrLength-1] != val) {
+                                runkSchema.updateOne( {_id: res._id}, {$push: { activeDate: val}}, (err, res) => { if (err) console.error(err) })
+                            }
                         }
                         else {
                             const saveobj = {
