@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { AppReviewService } from '../app-review.service';
 import  { map } from 'rxjs'
 
@@ -12,6 +12,8 @@ export class ItemComponent implements OnInit {
   @Input() item!: any
   @Input() short!: string
   @ViewChild('reviewBox') r!: ElementRef
+  @ViewChildren('dropdown')
+  public dropdown!: QueryList<ElementRef<HTMLLIElement>>
 
   constructor(private appReview: AppReviewService, private elementRef: ElementRef) { 
 
@@ -19,6 +21,23 @@ export class ItemComponent implements OnInit {
 
   ngOnInit(): void {
     //console.log(this.item);
+  }
+
+  openReviewBox(e:any): void {
+    let target = this.dropdown.first.nativeElement.className
+    if (target.indexOf("hidden") != -1) {
+      const firstInd = target.indexOf("hidden")
+      const secondInd = firstInd + 6
+      target = target.slice(0, firstInd) + target.slice(secondInd)+1 + " relative "
+      this.dropdown.first.nativeElement.className = target
+    }
+    else {
+      const firstInd = target.indexOf("relative")
+      const secondInd = firstInd + 8
+      target = target.slice(0, firstInd) + target.slice(secondInd)+1 + " hidden "
+      this.dropdown.first.nativeElement.className = target
+    }
+
   }
 
   showReviews(e:any): void {

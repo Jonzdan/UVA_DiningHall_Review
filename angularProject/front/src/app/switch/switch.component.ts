@@ -44,6 +44,12 @@ export class SwitchComponent implements OnInit {
         let c = children[i]
         while (c.firstElementChild != null) {
           c = c.firstElementChild
+          let tempClassInd = c.className.indexOf(this.bgEdges)
+          if (tempClassInd !== -1 && c.textContent?.trim() !== name) {
+            c.className = c.className.slice(0, tempClassInd) + c.className.slice(tempClassInd+this.bgEdges.length)
+            tempClassInd = c.className.indexOf(this.bgColor)
+            c.className = c.className.slice(0, tempClassInd) + c.className.slice(tempClassInd+this.bgColor.length)
+          }
         }
         let tempClass = c.textContent?.trim()
         if (tempClass !== name) {

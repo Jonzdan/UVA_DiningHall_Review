@@ -1,19 +1,19 @@
 
 <!-- should be item name, div, etc-->
-<div class="item" >
+<div class="item min-w-[200px]" >
     <h3 > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
     <h4 *ngIf="item.itemDesc" > {{ item.itemDesc }} </h4>
     <br>
-    <div class="review" style="display: flex;">  
+    <div class="review flex flex-col">  
         <div *ngIf="item.itemReview">
-            <h4 *ngIf="item.itemReview.stars; else elsBloc"> {{ item.itemReview.stars}} </h4>
-            <ng-template #elsBloc> N/A </ng-template>
-            <button class="seeMore" (click) = "showReviews($event)"> Click to see reviews... </button>
+            <h4 *ngIf="item.itemReview.stars; else elsBloc" (click) = "showReviews($event)"> <a href="#">{{ item.itemReview.stars}} </a> / 5.000 </h4>
+            <ng-template #elsBloc> N/A / 5.000 </ng-template>
         </div>
-        <div class="review1">
-            <label for="reviewBox"> Write a review... </label>
-            <input type="text" placeholder="Start review here..." #reviewBox>
-            <button id="submit" type="text" (click)="submitReview($event)"> Submit </button> <!-- add this in backend -->
+        <button (click) = "openReviewBox($event)"> Write a review --- v </button>
+        <div #dropdown class="review1 hidden flex-wrap ">
+            <label for="reviewBox">  </label>
+            <input type="text" placeholder="Start review here..." #reviewBox class="min-w-[100px] min-h-[50px] text-center rounded-sm" >
+            <button id="submit" type="text" (click)="submitReview($event)" class="bg-green-600 pr-1 pl-1 rounded-2xl"> Submit </button> <!-- add this in backend -->
         </div>
         
     </div>

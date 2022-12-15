@@ -140,11 +140,12 @@ async function getData() {
             descriptionString = removeSpecialChar(descriptionString)
             resultString = removeSpecialChar(resultString)
             //* There potentially could be an error in adding to existing ones* 
-            ohillSchema.findOne({ "item.itemName" : resultString, "item.timeFrame": getOhillTimeFrame(curDate, getCurHour()), "stationName" : ohillstations[stationId]}, (err, res) => {
+            ohillSchema.find({ "item.itemName" : resultString, "item.timeFrame": getOhillTimeFrame(curDate, getCurHour()), "stationName" : ohillstations[stationId]}, (err, res) => {
                 if (err) throw err
+                //console.log(res, resultString, stationId, curDate, getOhillTimeFrame(curDate, getCurHour()))
                 const objLength = Object.keys(res).length
-                if (res != null && objLength !== 0 && res[objLength-1].activeDate[res[objLength].activeDate.length-1]) {
-                    ohillSchema.updateOne({_id: res._id}, {$push: {activeDate: curDate}}, (err, res ) => {
+                if (res != undefined && res != null && objLength !== 0 && res[objLength-1].activeDate[res[objLength-1].activeDate.length-1]) {
+                    ohillSchema.updateOne({_id: res[objLength-1]._id, "item.timeFrame" : getOhillTimeFrame(curDate, getCurHour())}, {$push: {activeDate: curDate}}, (err, res ) => {
                         if (err) console.error(err)
                     })
                 }
