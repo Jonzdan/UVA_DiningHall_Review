@@ -1,10 +1,5 @@
-<div class="stars_container flex-row flex">
-    <div class="star" id="star1">
-        <input type="radio" name="stars" id="star-a" class="hidden">
-        <label for="star-a" class="w-[30px] h-[30px] font-[Verdana] bg-ornage-300 text-lg before:content-['\2606'] before:position-[absolute] before:top-[0px] before:line-height-[26px] "></label>
-    </div>
-    <div class="star" id="star2"></div>
-    <div class="star" id="star3"></div>
-    <div class="star" id="star4"></div>
-    <div class="star" id="star5"></div>
+<div class="flex flex-row w-max align-middle self-center m-auto ">
+    <div *ngFor="let star of idList; let i=index" (click)="updateStars(i+1)" (mouseenter)="updateStarsTemp(i+1)" (mouseleave)="updateStarsTemp(0)" >
+        <span title="⭐" [id]="star" class="relative m-auto min-w-[15px] min-h-[15px] text-transparent before:absolute before:content-[attr(title)] before:text-transparent star-border" [ngClass]="{' before:active-star-fill before:scale-105': i < permRating || i < tempRating, 'before:inactive-star-fill ' : i >= permRating && i >= tempRating}"> ⭐ </span>
+    </div>  
 </div>

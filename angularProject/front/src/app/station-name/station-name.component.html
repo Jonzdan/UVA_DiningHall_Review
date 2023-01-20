@@ -1,9 +1,9 @@
 <div *ngFor="let head of headers" class="justify-center">
-    <h3 class="block font-medium lg:text-lg sm:text-sm align-middle self-center"> {{ head }} </h3>
+    <h3 class="block font-medium lg:text-xl sm:text-md md:text-lg align-middle text-s self-center mt-auto"> {{ head }} </h3>
     <br>
-    <div class="itemCat flex-row flex p-2" >
+    <div class="itemCat flex-row flex p-2 overflow-auto " >
         <div *ngFor="let item of shopToItems[head] | keyvalue">
-            <app-item [short] = 'short' [item] = 'item.value' class="block outline-double outline-4 outline-rose-100" >
+            <app-item [short] = 'short' [item] = 'item.value' [stationName]="head" class="block outline-double outline-4 outline-rose-100" >
             </app-item>
         </div>
     </div>

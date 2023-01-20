@@ -19,7 +19,7 @@ export class SwitchComponent implements OnInit {
   public name3:string = 'Runk Dining Hall'
   public b1: boolean = true
   public b2: boolean = false
-  private bgColor = 'bg-slate-400'
+  private bgColor = 'bg-green-300/20'
   private bgEdges = 'rounded-full'
 
   constructor(private elementRef: ElementRef) { }
@@ -31,7 +31,7 @@ export class SwitchComponent implements OnInit {
     
   }
   
-  changeData(event: any): void { //add changing colors
+  changeData(event: any): void { //add changing colors ** DELETE THIS IN FUTURE, AND JUST ADD NGCLASS CONDITIONALS**
     let name = event.target.textContent
     name = name.trim()
     let classes = event.target.className

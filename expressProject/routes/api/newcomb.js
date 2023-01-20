@@ -165,6 +165,7 @@ async function getData() {
                     })
                 }
                 else {
+                    if (!(stationId in newcombstations)) { console.log(stationId); return}
                     const obj = {
                         stationName: newcombstations[stationId],
                         item: {

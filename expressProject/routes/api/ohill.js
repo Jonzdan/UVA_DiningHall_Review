@@ -3,10 +3,10 @@ const router = express.Router()
 const ohillSchema = require('../../models/ohill')
 const axios = require('axios')
 
-const ohillstations = {
+const ohillstations = { //tentative -- seems to change
     "22869": "Copper Hood",
-    "22868": "The Iron Skillet/Umami",
-    "22867": "Stir-Fry/Omelet Line",
+    "22868": "The Iron Skillet", //Was also Umami
+    "22867": "The Iron Skillet", //was Umami/Stir-Fry
     "22871": "Trattoria - Pizza",
     "22866": "Under the Hood",
     "22878": "Trattoria - Pasta",
@@ -15,8 +15,12 @@ const ohillstations = {
     "22873": "Greens & Grains",
     "22875": "Greens & Grains",
     "22872": "Savory Stack",
-    "39894": "Hummus Vegetable Wrap" //22875, 
+    "39894": "Hummus Vegetable Wrap",
+    "22876": "Umami"
 }
+
+//22876 is for breakfast UMAMI....
+//22868/22867 change for lunch/dinner (only ironskillet for breakrfast, then it is both)
 
 router.get('/', async(req, res) => {
     try {
@@ -37,6 +41,24 @@ router.get('/', async(req, res) => {
         res.status(500).json({msg: err.msg})
     }
 })
+
+router.post('/', async(req, res) => {
+    const dataObj = req.data
+    console.log(dataObj)
+    try { //add validation later
+        let date = getCurDateAsString(); let time = getOhillTimeFrame(new Date().getDay(), getCurHour())
+        await ohillSchema.findOneAndUpdate({stationName: dataObj[stationName], activeDate: date, "item.timeFrame":time}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}}, (err) => {
+            if (err) {
+                console.error(err) //later add to log of errors
+            }
+        })
+        res.json("Updated")
+    }
+    catch (err) {
+        res.status(501).json({msg: err.msg})
+    }
+})
+
 
 function removeSpecialChar(s) {
     if (!(s)) {
@@ -139,10 +161,10 @@ async function getData() {
             let descriptionString = data.slice(begin, sde)
             descriptionString = removeSpecialChar(descriptionString)
             resultString = removeSpecialChar(resultString)
-            //* There potentially could be an error in adding to existing ones* 
+            //* There potentially could be an error in adding to existing ones* fixed** 
             ohillSchema.find({ "item.itemName" : resultString, "item.timeFrame": getOhillTimeFrame(curDate, getCurHour()), "stationName" : ohillstations[stationId]}, (err, res) => {
                 if (err) throw err
-                //console.log(res, resultString, stationId, curDate, getOhillTimeFrame(curDate, getCurHour()))
+                //console.log(resultString, stationId, ohillstations[stationId])
                 const objLength = Object.keys(res).length
                 if (res != undefined && res != null && objLength !== 0 && res[objLength-1].activeDate[res[objLength-1].activeDate.length-1]) {
                     ohillSchema.updateOne({_id: res[objLength-1]._id, "item.timeFrame" : getOhillTimeFrame(curDate, getCurHour())}, {$push: {activeDate: curDate}}, (err, res ) => {
@@ -150,6 +172,7 @@ async function getData() {
                     })
                 }
                 else {
+                    if (!(stationId in ohillstations)) { /* We should audit this, and then stop the process */ return }
                     const obj = {
                         stationName: ohillstations[stationId],
                         item: {

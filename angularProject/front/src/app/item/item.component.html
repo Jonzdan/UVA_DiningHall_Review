@@ -1,20 +1,30 @@
 
 <!-- should be item name, div, etc-->
-<div class="item min-w-[200px]" >
-    <h3 > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
-    <h4 *ngIf="item.itemDesc" > {{ item.itemDesc }} </h4>
+<div class="item min-w-[200px] m-auto" >
+    <h3 class="m-2" > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
+    <h4 *ngIf="item.itemDesc" class="m-1 p-1 sm:m-[2px]"> {{ item.itemDesc }} </h4>
     <br>
-    <div class="review flex flex-col">  
+    <div class="review flex flex-col h-full">  
         <div *ngIf="item.itemReview">
             <h4 *ngIf="item.itemReview.stars; else elsBloc" (click) = "showReviews($event)"> <a href="#">{{ item.itemReview.stars}} </a> / 5.000 </h4>
             <ng-template #elsBloc> N/A / 5.000 </ng-template>
         </div>
-        <button (click) = "openReviewBox($event)"> Write a review --- v </button>
-        <div #dropdown class="review1 hidden flex-wrap ">
-            <label for="reviewBox">  </label>
-            <input type="text" placeholder="Start review here..." #reviewBox class="min-w-[100px] min-h-[50px] text-center rounded-sm" >
-            <button id="submit" type="text" (click)="submitReview($event)" class="bg-green-600 pr-1 pl-1 rounded-2xl"> Submit </button> <!-- add this in backend -->
+        <button (click) = "openReviewBox($event)" class="font-medium underline bg-teal-500 w-fit m-auto rounded-lg lg:p-[6px] p-[2px] lg:text-base text-sm "> Write a review --- ↓ </button>
+        <div class="flex flex-col flex-wrap relative z-1000 lg:px-4 px-2 py-[2px]  ">
+            <div #dropdown class="review1 hidden fixed lg:px-1 px-[2px] py-[2px] lg:mx-2 mx-1 z-100 self-center border-[1px] border-cyan-700/70 m-auto rounded-md bg-white">
+                <app-stars class="block top-full w-full left-0 border-b-[1px] border-b-gray-400 bg-slate-200"></app-stars>
+                <textarea rows="4" cols="25" placeholder="Start review here..." #reviewBox class="text-black border-none outline-none block self-center justify-center text-left m-auto h-[100%] indent-[2px] z-auto md:indent-1 min-w-[70px] min-h-[25px] lg:min-w-[150px] lg:min-h-[60px] rounded-md" ></textarea>
+                <div class="border-t-[1px] border-gray-400 w-full ">
+                    <div class="bg-blue-400 flex flex-row w-fit self-center text-center justify-center m-auto pr-1 pl-1 rounded-2xl lg:my-1 my-[2px] shadow:sm hover:shadow-lg shadow-blue-400 hover:scale(101) "> <!-- Add a delete option later? -->
+                        <button id="submit" type="text" (click)="submitReview($event)" class=" text-white lg:px-2 px-[3px] lg:py-[2px] py-[1px]"> Submit </button> <!-- add this in backend -->
+                    </div>
+                    
+                </div>
+                
+            
+            </div>
         </div>
+        
         
     </div>
     <!-- add review if present... -->

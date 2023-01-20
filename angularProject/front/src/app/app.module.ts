@@ -11,6 +11,7 @@ import { SwitchComponent } from './switch/switch.component';
 import { StationNameComponent } from './station-name/station-name.component';
 import { AppButtonComponent } from './app-button/app-button.component';
 import { StarsComponent } from './stars/stars.component';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { StarsComponent } from './stars/stars.component';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    CommonModule
   ],
   providers: [],
   bootstrap: [AppComponent]
