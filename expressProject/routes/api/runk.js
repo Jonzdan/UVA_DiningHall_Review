@@ -45,29 +45,19 @@ router.get('/', async (req, res) => {
         console.log(err)
         res.status(500).json({msg: err.msg})
     }
-})
-
-router.post('/', async(req, res) => {
-    try {
-        const review = req.body.content
-        const item = req.body.item
-        const star = req.body.star //implement later
-        const data = await runkSchema.find( { item: item})
-        if (data && Object.keys(data).length === 0) {
-            res.status(501).json('0')
-        }
-        else {
-            await runkSchema.updateOne( {item: item}, {$push: {item: {itemReview: {reviews: review, stars: star}}}})
-            res.json("1") 
-        }
-         
+}).post('/', async (req, res) => {
+    const dataObj = req.body
+    try { //add validation later
+        let date = getCurDateAsString(); let time = getRunkTimeFrame(getCurHour())
+        if (dataObj["Content"].length < 50 || dataObj["Content"] === undefined || dataObj["APP-STARS"] <= 0 || dataObj["APP-STARS"] > 5) { res.status(400).json({msg: "unknown parameters"}); return }
+        const temp = await runkSchema.findOneAndUpdate({stationName: dataObj.stationName, activeDate: date, "item.timeFrame": {$in: [time]}, "item.itemName": dataObj.itemName}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}}, {returnOriginal: false})
+        //console.log("TEMP: \n", temp)
+        res.json("Updated")
     }
     catch (err) {
         console.log(err)
-        res.status(500).json({msg: err.msg})
+        res.status(503).json({msg: err.msg})
     }
-    
-    
 })
 
 

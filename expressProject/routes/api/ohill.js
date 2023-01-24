@@ -42,20 +42,18 @@ router.get('/', async(req, res) => {
     }
 })
 
-router.post('/', async(req, res) => {
-    const dataObj = req.data
-    console.log(dataObj)
+router.post('/', async (req, res) => {
+    const dataObj = req.body
     try { //add validation later
         let date = getCurDateAsString(); let time = getOhillTimeFrame(new Date().getDay(), getCurHour())
-        await ohillSchema.findOneAndUpdate({stationName: dataObj[stationName], activeDate: date, "item.timeFrame":time}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}}, (err) => {
-            if (err) {
-                console.error(err) //later add to log of errors
-            }
-        })
+        if (dataObj["Content"].length < 50 || dataObj["Content"] === undefined || dataObj["APP-STARS"] <= 0 || dataObj["APP-STARS"] > 5) { res.status(400).json({msg: "unknown parameters"}); return }
+        const temp = await ohillSchema.findOneAndUpdate({stationName: dataObj.stationName, activeDate: date, "item.timeFrame": {$in: [time]}, "item.itemName": dataObj.itemName, "item.itemDesc": dataObj.itemDesc}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}}, {returnOriginal: false})
+        //console.log("TEMP: \n", temp)
         res.json("Updated")
     }
     catch (err) {
-        res.status(501).json({msg: err.msg})
+        console.log(err)
+        res.status(503).json({msg: err.msg})
     }
 })
 

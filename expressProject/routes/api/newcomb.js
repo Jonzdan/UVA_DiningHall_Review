@@ -38,11 +38,17 @@ router.get('/', async (req, res) => {
         res.status(500).json({msg: err.msg})
     }
 }).post('/', async (req, res) => {
-    try {
-        console.log('received')
+    const dataObj = req.body
+    try { //add validation later
+        let date = getCurDateAsString(); let time = getNewcombTimeFrame()
+        if (dataObj["Content"].length < 50 || dataObj["Content"] === undefined || dataObj["APP-STARS"] <= 0 || dataObj["APP-STARS"] > 5) { res.status(400).json({msg: "unknown parameters"}); return }
+        const temp = await newcombSchema.findOneAndUpdate({stationName: dataObj.stationName, activeDate: date, "item.timeFrame": {$in: [time]}, "item.itemName": dataObj.itemName, "item.itemDesc": dataObj.itemDesc}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}}, {returnOriginal: false})
+        //console.log("TEMP: \n", temp)
+        res.json("Updated")
     }
     catch (err) {
-        res.status(501).json({msg: err.msg})
+        console.log(err)
+        res.status(503).json({msg: err.msg})
     }
 })
 

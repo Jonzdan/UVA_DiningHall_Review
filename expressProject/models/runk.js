@@ -16,7 +16,7 @@ const runkSchema = new mongoose.Schema({
         },
         itemReview: {
             stars: {
-                type: Number,
+                type: Array,
                 required: false
             },
             reviews: {

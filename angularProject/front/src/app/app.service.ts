@@ -20,6 +20,7 @@ export class AppService {
   private ohillShopToItems: any = {}
   private newcombShopToItems: any = {}
 
+
   getData(target:string) {
     if (target === 'runk') {
       return this.runk
@@ -118,6 +119,7 @@ export class AppService {
     }
   }
 
+  //short version of dininghall is taken in
   getShopToItem(target:string) {
     if (target === 'runk') {
       return this.runkShopToItems

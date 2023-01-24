@@ -2,6 +2,7 @@ import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, 
 import { AppReviewService } from '../app-review.service';
 import  { map } from 'rxjs'
 import { StarsComponent } from '../stars/stars.component';
+import { AppService } from '../app.service';
 
  interface objectPair {
     [key: string]: any
@@ -14,70 +15,62 @@ import { StarsComponent } from '../stars/stars.component';
 })
 export class ItemComponent implements OnInit {
 
-  @Input() item!: any
   @Input() short!: string
   @Input() stationName!: string
+  @Input() indicator!: number
   @ViewChild(StarsComponent) child!:StarsComponent
-  @ViewChildren('dropdown')
-  public dropdown!: QueryList<ElementRef<HTMLLIElement>>
+  textContent:string = ""
+  numStars:number = 0
+  openOrNot:boolean = false
+  public item!: any 
 
-  constructor(private appReview: AppReviewService, private elementRef: ElementRef) { 
+  constructor(private appReview: AppReviewService, private elementRef: ElementRef, private appService: AppService) { 
 
   }
 
   ngOnInit(): void {
-    //console.log(this.item);
+    this.item = this.appService.getShopToItem(this.short)[this.stationName][this.indicator]
   }
 
   openReviewBox(e:any): void { //change to supported way
-    let target = this.dropdown.first.nativeElement.className
-    if (target.indexOf("hidden") != -1) {
-      const firstInd = target.indexOf("hidden")
-      const secondInd = firstInd + 6
-      target = target.slice(0, firstInd) + target.slice(secondInd+1) + " block "
-      this.dropdown.first.nativeElement.className = target
-    }
-    else {
-      const firstInd = target.indexOf("block")
-      const secondInd = firstInd + 5
-      target = target.slice(0, firstInd) + target.slice(secondInd+1) + " hidden "
-      this.dropdown.first.nativeElement.className = target
-    }
-
+    this.openOrNot = !this.openOrNot
   }
 
   showReviews(e:any): void {
-    console.log("Show reviews:")
-    console.log(this.item.itemReview.reviews)
   }
 
- 
+  updateStars(e:any): void {
+    if (e.target.id <= 0 || e.target.id > 5) return
+    this.numStars = e.target.id
+  }
+
+  textArea(e:any):void {
+    this.textContent = e.target.value
+  }
+
+  sumOfStars(starArr:any):number {
+    let count = 0
+    for(let i = 0; i < starArr.length; i++) {
+      count += parseInt(starArr[i])
+    }
+    return Number((count/starArr.length).toFixed(3))
+  }
+
+
   
   //content should be an json object of 1: content 2: itemname 3: stationname: 4: stars 5: 
   async submitReview(e: any) { //add stars
-
-    let content:objectPair = {stationName: this.stationName,item: this.item, diningHall: this.short}
-    this.dropdown.forEach((element) => { 
-      if (this.dropdown === null || this.dropdown === undefined) { return }
-        const temp = element.nativeElement.children
-        for (let i = 0; i < temp.length; ++i) {
-          switch (temp[i].nodeName) {
-            case "APP-STARS":
-              if (this.child.getStars() === 0) { return }
-              content[temp[i].nodeName] = this.child.getStars()
-              break
-            case "TEXTAREA":
-              if (temp[i]!.textContent!.length <= 120) {
-                return
-              }
-              content["Content"] = temp[i].textContent
-              break
-          }
-         }
-         console.log(content)
-       })
-       let temp = await this.appReview.sendReview(this.short, content)
-       temp.subscribe((res) => { console.log(res) })
+    let content:objectPair = {stationName: this.stationName, itemName: this.item.itemName,itemDesc: this.item.itemDesc, "Content": this.textContent, "APP-STARS": this.numStars}
+    if (content["Content"] === null || content["Content"] === undefined || content["Content"].length < 50) {  //put pop-up showcasing limit
+      alert("Msg too short!") //temporary
+      return
+    }
+    if (content["APP-STARS"] > 5 || content["APP-STARS"] <= 0) {
+      alert("Invalid Star Range") //temp
+      return
+    }
+    let temp = await this.appReview.sendReview(this.short, content) //add spinner while loading
+    temp.subscribe((res) => { console.log(res) })
        //
       //console.log(responseBody)
       //pop a little alert that says thx for submitting
