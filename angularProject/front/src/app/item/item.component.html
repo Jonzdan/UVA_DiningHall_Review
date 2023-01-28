@@ -6,7 +6,7 @@
     <br>
     <div class="review flex flex-col h-full">  
         <div *ngIf="item.itemReview">
-            <h4 *ngIf="item.itemReview.stars.length > 0; else elsBloc" (click) = "showReviews($event)"> <a href="#"> {{ sumOfStars(item.itemReview.stars) }} </a> / 5 </h4>
+            <h4 *ngIf="item.itemReview.stars.length > 0; else elsBloc"  > <a href="#" (click) = "showReviews($event)" class="font-semibold underline"> {{ sumOfStars(item.itemReview.stars) }} </a> / 5 </h4>
             <ng-template #elsBloc> N/A / 5 </ng-template>
         </div>
         <button (click) = "openReviewBox($event)" class="font-medium underline bg-teal-500 w-fit m-auto rounded-lg lg:p-[6px] p-[2px] lg:text-base text-sm "> Write a review --- ↓ </button>

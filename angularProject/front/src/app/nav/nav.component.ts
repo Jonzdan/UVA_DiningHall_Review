@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, AfterViewInit, ElementRef} from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, ElementRef, Output, EventEmitter} from '@angular/core';
 
 @Component({
   selector: 'app-nav',
@@ -6,6 +6,7 @@ import { Component, OnInit, Input, AfterViewInit, ElementRef} from '@angular/cor
   styleUrls: ['./nav.component.css']
 })
 export class NavComponent implements OnInit {
+
 
   private id:any  = {
     "Observatory Hill Dining Hall": "ohill",
@@ -20,15 +21,10 @@ export class NavComponent implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    this.elementRef.nativeElement.addEventListener("click", this.showMenu)
+
     
   }
 
-  //just use ngIf with a boolean to hide certain parts of variables.
-  showMenu(e:any) {
-    console.log(e.target)
-    let menu:string = e.target.textContent
-    const thing = document.querySelector(`#${this.id[menu]}`)
-    //change styles to show;
-  }
+
+  
 }

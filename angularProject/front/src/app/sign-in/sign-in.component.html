@@ -1,0 +1,40 @@
+<div class="bg-gradient-to-bl from-red-500 via-orange-400/90 to-yellow-400/70 w-[100vw] h-[100vh] fixed overflow-hidden">
+    <div class="h-full w-full m-auto flex relative">
+        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] flex flex-col align-middle justify-center m-auto z-30 min-w-fit min-h-[500px]">
+            <div class="lg:my-20 md:my-16 my-10 align-top">
+               <h2 class="font-bold text-4xl  text-gray-800 text-center" appTextShadow> Login </h2> 
+            </div>
+            <div class="lg:px-16 md:px-12 px-6 h-full my-auto flex flex-col relative align-middle overflow-auto ">
+                
+                <div class="inline-flex flex-col w-full h-fit align-middle">
+                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-2 pt-1 align-middle"> Username </label>
+                    <input type="text" name="user" placeholder="Type your username" class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1" required>
+                </div>
+                <br>
+                <label for="pass" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-3 pt-2"> Password </label>
+                <div class="inline-flex flex-col w-full">
+                    <input type="password" name="user" placeholder="Type your password" class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1" required>
+                    <a routerLink="" class="text-right text-sm p-1 mt-1 mb-4 max-h-fit text-gray-800 hover:text-red-400 hover:transition-colors align-middle my-auto  "> Forgot Password? </a>
+                </div>
+                
+                <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left block font-semibold bg-[length:300%] bg-gradient-to-l md:my-50  from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 align-bottom rounded-full"> LOGIN </button>
+            </div>
+            <span class="text-center w-full hidden"> *Implement Other Logins Here </span>
+            <div class="align-bottom flex flex-grow flex-col my-auto">
+                <h4 class="text-center font-normal lg:text-base text-sm text-gray-800 lg:px-2 lg:mb-4 m-1 px-1 align-bottom "> Or Sign Up:</h4>
+                <a routerLink="../register" class="hover:text-red-400 hover:transition-colors text-center flex flex-col font-normal lg:text-base text-sm text-gray-800 lg:px-2 px-1 align-bottom "> SIGN UP </a>
+            </div>
+
+            <h6 class="invisible"> TEMP </h6>
+        </div>
+    </div>
+    
+    <!-- box on right side -->
+    <span class="bg-gradient-to-r from-black/10 to-black/5 rotate-[45deg] w-[50vw] h-[50vh] absolute top-[0vh] right-[-20vw] rounded-lg shadow-md"></span>
+    <span class="bg-gradient-to-tr from-yellow-50/10 to-yellow-100/15 w-[25vw] h-[25vh] absolute bottom-[-15vh] left-[20vw] rounded-lg rotate-[60deg] shadow-md"> <!-- box on bottom left--></span>
+    <span class="bg-gradient-to-tr from-orange-50/10 to-orange-100/20 w-[30vw] h-[30vh] absolute top-[-5vh] left-[-10vw] rotate-[150deg] rounded-xl shadow-md"></span>
+    <div>
+        
+    </div>
+</div>
+

@@ -1,0 +1,120 @@
+<div class="bg-gradient-to-bl from-red-500 via-orange-400/90 to-yellow-400/70 w-[100vw] h-[100vh] fixed overflow-hidden">
+    <div class="h-full w-full m-auto flex relative">
+        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[600px]">
+            <div class="lg:my-10 md:my-8 my-6 min-h-max pt-5 flex-col justify-end flex flex-grow w-full text-center">
+               <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Register </h2> 
+            </div>
+            <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
+                <div class="flex flex-col w-full h-fit align-middle flex-grow justify-center">
+                    <label for="email" class="text-left font-[450] lg:text-base text-sm mb-0 align-middle text-gray-800 block lg:pt-3 pt-2"> Email Address </label>
+                    <input type="email" name="email" placeholder="Type your email" id="email" appNoAutocompleteBg formControlName="email" class="lg:text-lg focus:placeholder:text-transparent text-base border-b-2 my-2 mt-0 align-middle text-gray-800 rounded-sm font-medium border-gray-300 outline-none lg:py-3 py-1" >
+                    <div class="relative mb-2 mt-1" >
+                        <div *ngIf="(email?.dirty || email?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': emailLoading, 'hidden': !emailLoading}">
+                                <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
+                                    <!-- implement check later -->
+                                </div>
+                            </div>
+                            <div *ngIf="email?.invalid">
+                                <h3 *ngIf="email?.errors?.['required']" class=""> Required Field </h3>
+                                <h3 *ngIf="email?.errors?.['email']" class=""> Invalid Email </h3>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="inline-flex flex-col w-full h-fit align-middle flex-grow justify-center">
+                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-2 pt-1 align-middle"> New Username </label>
+                    <input type="text" name="user" placeholder="Type your username" id="user" appNoAutocompleteBg formControlName="user"   class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1 focus:placeholder:text-transparent">
+                    <div class="relative mb-2 mt-1">
+                        <div *ngIf="(user?.dirty || user?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
+                                <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
+                                    <!-- implement check later -->
+                                </div>
+                            </div>
+                            <div *ngIf="user?.invalid" class="">
+                                <div *ngIf="user?.errors?.['required']" > Required Field </div>
+                                <div *ngIf="user?.errors?.['minlength']"> Username Length Must Be At Least 5 Characters</div>
+                                <h3 *ngIf="user?.errors?.['maxlength']" > Username Length Must Be Less Than 17 Characters </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <ng-container [formGroup]="passGroup" class="flex-grow">
+                    <div class="inline-flex flex-col w-full flex-grow justify-center">
+                        <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-3 pt-2"> New Password </label>
+                        <input type="password" name="pass1" placeholder="Type your password" formControlName="firstPass" appNoAutocompleteBg class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1 focus:placeholder:text-transparent" >
+                        <div class="relative mb-2 mt-1" >
+                            
+                            <div *ngIf="(firstPass?.dirty || firstPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': firstPassLoading, 'hidden': !firstPassLoading}">
+                                    <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
+                                        <!-- implement check later -->
+                                    </div>
+                                </div>
+                                <div *ngIf="firstPass?.invalid">
+                                    <h3 *ngIf="firstPass?.errors?.['required']; else minLengthValid"> Required Field </h3>
+                                    <ng-template #minLengthValid>
+                                        <h3 *ngIf="firstPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #maxLengthValid>
+                                        <h3 *ngIf="firstPass?.errors?.['maxlength']; else matchingPasswords" > Password Length Must Be Less Than 32 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #matchingPasswords>
+                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']"> Passwords Must Match </h3>
+                                    </ng-template>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="inline-flex flex-col w-full flex-grow justify-center">
+                        <label for="pass2" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-3 pt-2"> Re-enter Password </label>
+                        <input type="password" name="pass2" placeholder="Re-enter your password" formControlName="secondPass" appNoAutocompleteBg class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1 focus:placeholder:text-transparent" >
+                        <div class="relative mb-2 mt-1" >
+                            <div *ngIf="(secondPass?.dirty || secondPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': secondPassLoading, 'hidden': !secondPassLoading}">
+                                    <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
+                                        <!-- implement check later -->
+                                    </div>
+                                </div>
+                                <div *ngIf="secondPass?.invalid" >
+                                    <h3 *ngIf="secondPass?.errors?.['required']; else minLengthValid" > Required Field </h3>
+                                    <ng-template #minLengthValid>
+                                        <h3 *ngIf="secondPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #maxLengthValid>
+                                        <h3 *ngIf="secondPass?.errors?.['maxlength']; else matchingPasswords" > Password Length Must Be Less Than 32 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #matchingPasswords>
+                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']"> Passwords Must Match </h3>
+                                    </ng-template>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </ng-container>
+                
+                <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50  from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 align-bottom rounded-full"> REGISTER </button>
+            </form>
+            <span class="text-center w-full hidden"> *Implement Other Logins Here </span>
+            <div class="align-bottom flex flex-grow flex-col my-auto">
+                <h4 class="text-center font-normal lg:text-base text-sm text-gray-800 lg:px-2 lg:mb-4 m-1 px-1 align-bottom "> Already have an account?</h4>
+                <a routerLink="../login" class="hover:text-red-400 hover:transition-colors text-center flex flex-col font-normal lg:text-base text-sm text-gray-800 lg:px-2 px-1 align-bottom "> Login </a>
+            </div>
+
+            <h6 class="invisible"> TEMP </h6>
+        </div>
+    </div>
+    
+    <!-- box on right side -->
+    <span class="bg-gradient-to-r from-black/10 to-black/5 rotate-[45deg] w-[50vw] h-[50vh] absolute top-[0vh] right-[-20vw] rounded-lg shadow-md"></span>
+    <span class="bg-gradient-to-tr from-yellow-50/10 to-yellow-100/15 w-[25vw] h-[25vh] absolute bottom-[-15vh] left-[20vw] rounded-lg rotate-[60deg] shadow-md"> <!-- box on bottom left--></span>
+    <span class="bg-gradient-to-tr from-orange-50/10 to-orange-100/20 w-[30vw] h-[30vh] absolute top-[-5vh] left-[-10vw] rotate-[150deg] rounded-xl shadow-md"></span>
+    <div>
+        
+    </div>
+</div>
+

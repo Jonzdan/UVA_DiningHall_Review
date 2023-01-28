@@ -9,6 +9,8 @@ type NewType = ElementRef;
 })
 export class SwitchComponent implements OnInit {
 
+  //change this to default angular supported
+
   @ViewChildren('swi')
   public navSwi!: QueryList<ElementRef<HTMLLIElement>>
   @ViewChildren('change')

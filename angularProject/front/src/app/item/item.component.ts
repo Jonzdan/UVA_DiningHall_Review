@@ -22,7 +22,7 @@ export class ItemComponent implements OnInit {
   textContent:string = ""
   numStars:number = 0
   openOrNot:boolean = false
-  public item!: any 
+  public item!: any //should probably leave out reviews, since they can get long
 
   constructor(private appReview: AppReviewService, private elementRef: ElementRef, private appService: AppService) { 
 
