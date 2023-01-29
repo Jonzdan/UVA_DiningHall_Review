@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators, ReactiveFormsModule, FormsModule, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, Subject, filter, Observable, Subscription, switchMap, tap } from 'rxjs';
+import { FormGroup, FormControl, Validators, ReactiveFormsModule, FormsModule, ValidatorFn,Validator, AbstractControl, ValidationErrors, Form } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -13,6 +13,8 @@ export class RegisterComponent implements OnInit {
   inputForm!: FormGroup
   userLoading:boolean = false; firstPassLoading:boolean = false; secondPassLoading:boolean = false; emailLoading:boolean = false;
   goodMsg!:string
+  hideErrorText:boolean = false;
+  hideUserErrorText:boolean = false;
 
   constructor() { }
 
@@ -27,8 +29,19 @@ export class RegisterComponent implements OnInit {
       passGroup: new FormGroup({
         firstPass: new FormControl('', []),
         secondPass: new FormControl('', []),
-      }),
-    })
+      }, this.matchingPasswords()),
+    }
+    )
+
+    this.email.statusChanges.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+    ).subscribe((res)=> {
+      if (this.email.status === "INVALID") {
+        this.email?.setErrors({'email':Validators.email(this.email), 'required':Validators.required(this.email)})
+      }
+      
+  })
 
     this.email?.valueChanges.pipe(
       tap(()=> this.emailLoading = true),
@@ -40,16 +53,17 @@ export class RegisterComponent implements OnInit {
     })
 
     this.passGroup?.valueChanges.pipe(
-      tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true}),
-      debounceTime(1000),
+      tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true; this.hideErrorText = true}),
+      debounceTime(500),
       distinctUntilChanged(),
     ).subscribe((res)=> {
-      this.firstPassLoading = false; this.secondPassLoading = false;
-      this.passGroup?.setErrors({'matchingPasswords':this.matchingPasswords()})
+      this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false;
+      //this.passGroup?.setErrors(this.matchingPasswords())
+      
     })
 
     this.firstPass?.valueChanges.pipe(
-      tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true}),
+      //tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true}),
       debounceTime(500),
       distinctUntilChanged(),
     ).subscribe((res)=>{
@@ -63,12 +77,12 @@ export class RegisterComponent implements OnInit {
       if (this.firstPass.value.length === 0) {
         obj['required'] = true
       }
-      this.firstPassLoading = false; this.secondPassLoading = false
       this.firstPass?.setErrors(obj)
+      //this.firstPassLoading = false; this.secondPassLoading = false
     })
 
     this.secondPass?.valueChanges.pipe(
-      tap(()=> {this.secondPassLoading = true; this.firstPassLoading = true}),
+      //tap(()=> {this.secondPassLoading = true; this.firstPassLoading = true}),
       debounceTime(500),
       distinctUntilChanged(),
     ).subscribe((res)=>{
@@ -82,7 +96,7 @@ export class RegisterComponent implements OnInit {
       if (this.secondPass.value.length === 0) {
         obj['required'] = true
       }
-      this.secondPassLoading = false; this.firstPassLoading = false
+      //this.secondPassLoading = false; this.firstPassLoading = false
       this.secondPass?.setErrors(obj)
     })
 
@@ -121,19 +135,103 @@ export class RegisterComponent implements OnInit {
   }
 
   onSubmit(e:any) {
-    console.log(e.target)
+    if (this.validate(this.inputForm)) {
+      //submit form
+      //use a service to submit to backend
+    }
+    else {
+      //incorrect form or something
+      //* Review Later about this */
+      this.emailLoading = true; this.userLoading = true; this.firstPassLoading = true; this.secondPassLoading = true; this.hideErrorText = true; this.hideUserErrorText = true;
+      setTimeout(()=>{
+        this.emailLoading = false; this.userLoading = false; this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false; this.hideUserErrorText = false;
+      }, 500)
+      
+    }
+  }
 
     //validate all input fields again...
     //actually just check if any errors -- long ass if statement
-    if (!this.email.dirty && !this.email.touched && !this.user.dirty && !this.user.touched /* continue on... */) { return }
+    
+ 
+  helper(field:string, control:AbstractControl) {
+    const obj: {[index:string]:any} = {}
+    switch (field) {
+      case "user": {
+        if (control.value.length < 6 && control.value.length > 0) {
+        obj['minlength'] = true
+        }
+        if (control.value.length > 16) { 
+          obj['maxlength'] = true
+        }
+        if (control.value.length === 0) {
+          obj['required'] = true
+        }
+        break
+      }
+      case "email": {
+        return {'email':Validators.email(control), 'required':Validators.required(control)}
+        break
+      }
+      case "firstPass": {
+        if (control.value.length < 8 && control.value.length > 0) {
+          obj['minlength'] = true
+        }
+        if (control.value.length > 32) { 
+          obj['maxlength'] = true
+        }
+        if (control.value.length === 0) {
+          obj['required'] = true
+        }
+        break
+      }
+      case "secondPass": {
+        if (control.value.length < 8 && control.value.length > 0) {
+          obj['minlength'] = true
+        }
+        if (control.value.length > 32) { 
+          obj['maxlength'] = true
+        }
+        if (control.value.length === 0) {
+          obj['required'] = true
+        }
+        break
+      }
+      
+    }
+    return obj
   }
+
+  validate(fg: FormGroup) {
+    let error:boolean = true
+    Object.keys(fg.controls).forEach(field => {
+      const control = fg.get(field)
+      if (control instanceof FormControl) {
+        if (!control.touched || !control.dirty) {
+          control.markAsTouched({onlySelf:true})
+          control.markAsDirty({onlySelf:true})
+        }
+        const obj = this.helper(field, control)
+        if (Object.keys(obj).length > 0) error = false
+        control.setErrors(obj) 
+        
+      }
+      else if (control instanceof FormGroup) {
+        this.validate(control)
+      }
+    })
+    return error
+  }
+
 
   ngOnDestroy(): void {
     
   }
+
   matchingPasswords():ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    return control.get('firstPass')==control.get('secondPass') ? {matchingPasswords: {value: control.value}} : null
+    return (control: AbstractControl): ValidationErrors | null => {
+      const password = control.get('firstPass')?.value; const confirmPassword = control.get('secondPass')?.value
+      return password === confirmPassword ? null : { matchingPasswords: true}
   }
 }
 }

@@ -1,7 +1,7 @@
 <div class="bg-gradient-to-bl from-red-500 via-orange-400/90 to-yellow-400/70 w-[100vw] h-[100vh] fixed overflow-hidden">
     <div class="h-full w-full m-auto flex relative">
         <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[600px]">
-            <div class="lg:my-10 md:my-8 my-6 min-h-max pt-5 flex-col justify-end flex flex-grow w-full text-center">
+            <div class="lg:mt-10 md:mt-8 my-6 min-h-max pt-5 flex-col justify-end flex flex-grow w-full text-center">
                <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Register </h2> 
             </div>
             <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
@@ -15,7 +15,7 @@
                                     <!-- implement check later -->
                                 </div>
                             </div>
-                            <div *ngIf="email?.invalid">
+                            <div *ngIf="email?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}">
                                 <h3 *ngIf="email?.errors?.['required']" class=""> Required Field </h3>
                                 <h3 *ngIf="email?.errors?.['email']" class=""> Invalid Email </h3>
                             </div>
@@ -33,7 +33,7 @@
                                     <!-- implement check later -->
                                 </div>
                             </div>
-                            <div *ngIf="user?.invalid" class="">
+                            <div *ngIf="user?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="">
                                 <div *ngIf="user?.errors?.['required']" > Required Field </div>
                                 <div *ngIf="user?.errors?.['minlength']"> Username Length Must Be At Least 5 Characters</div>
                                 <h3 *ngIf="user?.errors?.['maxlength']" > Username Length Must Be Less Than 17 Characters </h3>
@@ -53,7 +53,7 @@
                                         <!-- implement check later -->
                                     </div>
                                 </div>
-                                <div *ngIf="firstPass?.invalid">
+                                <div *ngIf="firstPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
                                     <h3 *ngIf="firstPass?.errors?.['required']; else minLengthValid"> Required Field </h3>
                                     <ng-template #minLengthValid>
                                         <h3 *ngIf="firstPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
@@ -79,7 +79,7 @@
                                         <!-- implement check later -->
                                     </div>
                                 </div>
-                                <div *ngIf="secondPass?.invalid" >
+                                <div *ngIf="secondPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
                                     <h3 *ngIf="secondPass?.errors?.['required']; else minLengthValid" > Required Field </h3>
                                     <ng-template #minLengthValid>
                                         <h3 *ngIf="secondPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
@@ -96,8 +96,10 @@
                         </div>
                     </div>
                 </ng-container>
+                <div class="w-full flex flex-grow flex-col">
+                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}"(mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 align-bottom rounded-full"> REGISTER </button>
+                </div>
                 
-                <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50  from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 align-bottom rounded-full"> REGISTER </button>
             </form>
             <span class="text-center w-full hidden"> *Implement Other Logins Here </span>
             <div class="align-bottom flex flex-grow flex-col my-auto">
