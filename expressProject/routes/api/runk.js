@@ -103,9 +103,7 @@ async function getData() {
     .then(res => {
     //class toggle-menu-station-data is names
     d = {} 
-    let dateTime = new Date().toString();
-    let firstcolon = dateTime.indexOf(":")
-    let time = dateTime.slice(firstcolon-2, firstcolon) + dateTime.slice(firstcolon+1, firstcolon+3)
+    let time = getCurHour()
     l = []
     //check if dinner, if so, then we need to get late dinner as well
     
@@ -210,7 +208,7 @@ async function getData() {
                     let itemNames = res.data.slice(itemStart, end)
                     itemNames = removeSpecialChar(itemNames)
                     let val = getCurDateAsString()
-                    runkSchema.find({"item.itemName" : itemNames, "item.timeFrame": getRunkTimeFrame(getCurHour(2101)), "stationName" : name}, (err, res) => {
+                    runkSchema.find({"item.itemName" : itemNames, "item.timeFrame": getRunkTimeFrame(2101), "stationName" : name}, (err, res) => {
                         if (err) throw err
                         if (res != undefined && Object.keys(res).length !== 0 && res.activeDate[res.activeDate.length-1] != val) {
                             runkSchema.updateOne( {_id: res._id}, {$push: { activeDate: val}}, (err, res) => {if (err) console.error(err) })
@@ -240,7 +238,7 @@ async function getData() {
 }
 
 
-function getRunkTimeFrame(num) {
+function getRunkTimeFrame(num) { //num is time
     let d = new Date().getDay()
     if (d === 0 || d === 6) {
         //brunch 10-2

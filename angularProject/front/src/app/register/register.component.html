@@ -7,7 +7,7 @@
             <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
                 <div class="flex flex-col w-full h-fit align-middle flex-grow justify-center">
                     <label for="email" class="text-left font-[450] lg:text-base text-sm mb-0 align-middle text-gray-800 block lg:pt-3 pt-2"> Email Address </label>
-                    <input type="email" name="email" placeholder="Type your email" id="email" appNoAutocompleteBg formControlName="email" class="lg:text-lg focus:placeholder:text-transparent text-base border-b-2 my-2 mt-0 align-middle text-gray-800 rounded-sm font-medium border-gray-300 outline-none lg:py-3 py-1" >
+                    <input type="email" name="email" placeholder="Type your email" id="email" appNoAutocompleteBg formControlName="email"  class="lg:text-lg focus:placeholder:text-transparent text-base border-b-2 my-2 mt-0 align-middle text-gray-800 rounded-sm font-medium border-gray-300 outline-none lg:py-3 py-1" >
                     <div class="relative mb-2 mt-1" >
                         <div *ngIf="(email?.dirty || email?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
                             <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': emailLoading, 'hidden': !emailLoading}">
@@ -16,8 +16,14 @@
                                 </div>
                             </div>
                             <div *ngIf="email?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}">
-                                <h3 *ngIf="email?.errors?.['required']" class=""> Required Field </h3>
-                                <h3 *ngIf="email?.errors?.['email']" class=""> Invalid Email </h3>
+                                <h3 *ngIf="email?.errors?.['required']; else e1" class=""> Required Field </h3>
+                                <ng-template #e1>
+                                    <h3 *ngIf="email?.errors?.['email']; else e2" class=""> Invalid Email </h3>
+                                </ng-template>
+                                <ng-template #e2>
+                                    <h3 *ngIf="invalidEmailSubmit"> Email Already Registered </h3>
+                                </ng-template>
+                                
                             </div>
                         </div>
                         
@@ -25,7 +31,7 @@
                 </div>
                 <div class="inline-flex flex-col w-full h-fit align-middle flex-grow justify-center">
                     <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-2 pt-1 align-middle"> New Username </label>
-                    <input type="text" name="user" placeholder="Type your username" id="user" appNoAutocompleteBg formControlName="user"   class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1 focus:placeholder:text-transparent">
+                    <input type="text" name="user" placeholder="Type your username" id="user" appNoAutocompleteBg formControlName="user"  class="lg:text-lg text-base border-b-2 rounded-sm align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none  lg:py-3 py-1 focus:placeholder:text-transparent">
                     <div class="relative mb-2 mt-1">
                         <div *ngIf="(user?.dirty || user?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
                             <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
@@ -34,9 +40,16 @@
                                 </div>
                             </div>
                             <div *ngIf="user?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="">
-                                <div *ngIf="user?.errors?.['required']" > Required Field </div>
-                                <div *ngIf="user?.errors?.['minlength']"> Username Length Must Be At Least 5 Characters</div>
-                                <h3 *ngIf="user?.errors?.['maxlength']" > Username Length Must Be Less Than 17 Characters </h3>
+                                <div *ngIf="user?.errors?.['required']; else u1" > Required Field </div>
+                                <ng-template #u1>
+                                    <div *ngIf="user?.errors?.['minlength']; else u2"> Username Length Must Be At Least 6 Characters</div>
+                                </ng-template>
+                                <ng-template #u2>
+                                    <h3 *ngIf="user?.errors?.['maxlength']; else u3" > Username Length Must Be Less Than 17 Characters </h3>
+                                </ng-template>
+                                <ng-template #u3>
+                                    <h3 *ngIf="invalidUserSubmit"> Username Already Taken </h3>
+                                </ng-template> 
                             </div>
                         </div>
                     </div>
@@ -97,7 +110,7 @@
                     </div>
                 </ng-container>
                 <div class="w-full flex flex-grow flex-col">
-                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}"(mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 align-bottom rounded-full"> REGISTER </button>
+                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 shadow-black shadow-inner align-bottom rounded-full"> {{regButtonText}} </button>
                 </div>
                 
             </form>
@@ -109,6 +122,7 @@
 
             <h6 class="invisible"> TEMP </h6>
         </div>
+
     </div>
     
     <!-- box on right side -->

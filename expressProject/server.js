@@ -14,6 +14,7 @@ const { remove } = require('./models/runk.js')
 const apirunk = require('./routes/api/runk') //add again when db is rdy to go
 const apiohill = require('./routes/api/ohill')
 const apinewcomb = require('./routes/api/newcomb')
+const userAuth = require('./routes/user')
 
 mongoose.connect(process.env.DATABASE_URL)
 const db = mongoose.connection
@@ -35,16 +36,6 @@ app.use(session({ //change secret to something more substantial later (dotenv)
 app.use(express.urlencoded({extended: false}))
 app.use(cookieParser())
 
-
-const runktimeStations = {
-    "7am-10:30am" : ["Copper Hood", "Entree", "Sustainable World", "Street Food Grill","Juicery","Chobani Creations", "Delicatessen", "Grit and Oatmeal Bar"],
-    "11am-2pm" : ["Copper Hood", "Entree", "Sustainable World", "Oven", "Plant Power", "Plant Power Grill", "Street Food Grill", "Self-Serve Grill Toppings", "Juicery", "Chobani Creations", "Delicatessen", "Produce Market"],
-    "2pm-4:30pm" : ["Sustainable World", "Oven", "Plant Power", "Plant Power Grill", "Juicery", "Chobani Creations", "Delicatessen", "Produce Market"],
-    "4:30pm-8pm" : ["Copper Hood", "Entree", "Sustainable World", "Oven", "Plant Power", "Plant Power Grill", "Street Food Grill", "Self-Serve Grill Toppings", "Juicery", "Chobani Creations", "Delicatessen", "Produce Market"],
-    "9pm-12am" : ["Late Night Grill"]
-}
-
-
 app.get("/", (req, res) => {
     //console.log(req.cookies)
     if (req.cookies.length == 0) {
@@ -60,6 +51,7 @@ app.get("/", (req, res) => {
 app.use('/api/runk', apirunk)
 app.use('/api/ohill', apiohill)
 app.use('/api/newcomb', apinewcomb)
+app.use('/user', userAuth)
 
 app.get("/signup", (req,res)=>{
     res.sendFile('./views/signup.html', {root: __dirname})

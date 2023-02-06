@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule, FormsModule, ValidatorFn,Validator, AbstractControl, ValidationErrors, Form } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, tap, Subject } from 'rxjs';
+import { AccountService } from '../account.service';
+import { Router } from '@angular/router'
 
 @Component({
   selector: 'app-register',
@@ -15,8 +17,12 @@ export class RegisterComponent implements OnInit {
   goodMsg!:string
   hideErrorText:boolean = false;
   hideUserErrorText:boolean = false;
+  regButtonText: string = "REGISTER"
+  showPopup:boolean = false
+  invalidEmailSubmit:boolean = false; invalidUserSubmit:boolean = false;
+  private currentSubmission: boolean = false;
 
-  constructor() { }
+  constructor(private as: AccountService, private route: Router) { }
 
   ngOnInit(): void {
 
@@ -32,23 +38,14 @@ export class RegisterComponent implements OnInit {
       }, this.matchingPasswords()),
     }
     )
-
-    this.email.statusChanges.pipe(
-      debounceTime(500),
-      distinctUntilChanged(),
-    ).subscribe((res)=> {
-      if (this.email.status === "INVALID") {
-        this.email?.setErrors({'email':Validators.email(this.email), 'required':Validators.required(this.email)})
-      }
       
-  })
 
     this.email?.valueChanges.pipe(
       tap(()=> this.emailLoading = true),
       debounceTime(500),
       distinctUntilChanged(),
     ).subscribe((res)=> {
-      this.emailLoading = false
+      this.emailLoading = false; this.invalidEmailSubmit = false; 
       this.email?.setErrors({'email':Validators.email(this.email), 'required':Validators.required(this.email)})
     })
 
@@ -57,7 +54,7 @@ export class RegisterComponent implements OnInit {
       debounceTime(500),
       distinctUntilChanged(),
     ).subscribe((res)=> {
-      this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false;
+      this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false; 
       //this.passGroup?.setErrors(this.matchingPasswords())
       
     })
@@ -115,7 +112,7 @@ export class RegisterComponent implements OnInit {
       if (this.user.value.length === 0) {
         obj['required'] = true
       }
-      this.userLoading = false
+      this.userLoading = false; this.invalidUserSubmit = false;
       this.user?.setErrors(obj)
       
     },
@@ -134,25 +131,76 @@ export class RegisterComponent implements OnInit {
     this.first = !this.first
   }
 
-  onSubmit(e:any) {
+  async onSubmit(e:any) {
+    //Pretty shit solution, change to rxjs subject later...
+    if (this.userLoading || this.emailLoading || this.firstPassLoading || this.secondPassLoading) {
+      setTimeout(()=>{
+        this.onSubmit(e)
+      },500)
+      return
+    }
+      
+    if (this.invalidEmailSubmit || this.invalidUserSubmit || this.currentSubmission) {
+      return
+    }
+    
     if (this.validate(this.inputForm)) {
       //submit form
-      //use a service to submit to backend
+      this.as.eventMsg.subscribe((res)=> { //* Good Enough For Now*
+        switch (res) {
+          case "Submitting...":{
+            this.regButtonText = res; this.currentSubmission = true
+            break
+          }
+          case "Done!": {
+            this.regButtonText = res
+            setTimeout(()=>{
+              //prefetch maybe -- Def add transition later **IMPORTANT** --perhaps disable input fields
+              this.route.navigateByUrl('/login')
+              this.regButtonText = "REGISTER"
+              this.currentSubmission = false
+            },500) 
+            break
+          }
+          case "110": {
+            setTimeout(()=>{
+              this.invalidEmailSubmit = true; this.invalidUserSubmit = true; this.currentSubmission = false;
+              this.regButtonText = "REGISTER"
+            },500)
+            
+            break
+          }
+          case "001": {
+            setTimeout(()=>{
+              this.invalidEmailSubmit = true; this.invalidUserSubmit = false; this.currentSubmission = false;
+              this.regButtonText = "REGISTER"
+            },500)
+            break
+          }
+          case "010": {
+            setTimeout(()=>{
+              this.invalidUserSubmit = true; this.invalidEmailSubmit = false; this.currentSubmission = false;
+              this.regButtonText = "REGISTER"
+            })
+            break
+          }
+        }
+
+      })
+      const msg = await this.as.createAccount(this.inputForm)
+
+      
     }
     else {
       //incorrect form or something
       //* Review Later about this */
       this.emailLoading = true; this.userLoading = true; this.firstPassLoading = true; this.secondPassLoading = true; this.hideErrorText = true; this.hideUserErrorText = true;
       setTimeout(()=>{
-        this.emailLoading = false; this.userLoading = false; this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false; this.hideUserErrorText = false;
+        this.emailLoading = false; this.userLoading = false; this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false; this.hideUserErrorText = false; this.currentSubmission = false;
       }, 500)
-      
     }
   }
-
-    //validate all input fields again...
-    //actually just check if any errors -- long ass if statement
-    
+  
  
   helper(field:string, control:AbstractControl) {
     const obj: {[index:string]:any} = {}
@@ -212,7 +260,8 @@ export class RegisterComponent implements OnInit {
           control.markAsDirty({onlySelf:true})
         }
         const obj = this.helper(field, control)
-        if (Object.keys(obj).length > 0) error = false
+        if (Object.keys(obj).length > 0 && obj['email'] === undefined) {error = false; }
+        else if (obj['email'] !== undefined && obj['email']!==null) { error = false;  }
         control.setErrors(obj) 
         
       }
@@ -225,7 +274,7 @@ export class RegisterComponent implements OnInit {
 
 
   ngOnDestroy(): void {
-    
+    this.as.eventMsg.unsubscribe()
   }
 
   matchingPasswords():ValidatorFn {
