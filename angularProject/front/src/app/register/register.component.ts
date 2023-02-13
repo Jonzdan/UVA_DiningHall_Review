@@ -103,7 +103,7 @@ export class RegisterComponent implements OnInit {
       distinctUntilChanged(),
     ).subscribe((res)=>{
       const obj: {[index:string]:any} = {}
-      if (this.user.value.length < 6 && this.user.value.length > 0) {
+      if (this.user.value.length < 6 && this.user.value.length > 0) { //change to just helper function
         obj['minlength'] = true
       }
       if (this.user.value.length > 16) { 
@@ -274,7 +274,6 @@ export class RegisterComponent implements OnInit {
 
 
   ngOnDestroy(): void {
-    this.as.eventMsg.unsubscribe()
   }
 
   matchingPasswords():ValidatorFn {

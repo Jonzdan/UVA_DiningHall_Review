@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, AfterViewInit, ElementRef, Output, EventEmitter} from '@angular/core';
+import { AccountService } from '../account.service';
 
 @Component({
   selector: 'app-nav',
@@ -14,7 +15,7 @@ export class NavComponent implements OnInit {
     "Newcomb Dining Hall": "newcomb"
   }
 
-  constructor(private elementRef: ElementRef) { }
+  constructor(private elementRef: ElementRef, private as: AccountService) { }
 
   ngOnInit(): void {
 
@@ -24,6 +25,18 @@ export class NavComponent implements OnInit {
 
     
   }
+
+  showAccountOptions(e:any) {
+    if (!this.as.signedIn) { //not available
+      return
+    }
+    //else show options *dropdown*
+    
+  }
+
+  get accountText() { return this.as.accountText }
+  get signedIn() { return this.as.signedIn }
+
 
 
   

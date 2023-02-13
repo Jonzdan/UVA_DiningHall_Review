@@ -1,24 +1,57 @@
 <div id="navbar" class="flex align-middle justify-center w-full shadow-md" routerLinkActive="hidden">
-    <h1 class="font-bold xl:text-6xl lg:text-4xl sm:text-lg md:text-lg text-base align-center first-letter:text-amber-400 hover:shadow-md "> HooFood </h1> 
+    <h1 class="font-extralight xl:text-6xl lg:text-4xl sm:text-lg md:text-lg text-base align-center justify-center self-center first-letter:text-amber-400  " appTextShadow> HooFood </h1> 
     <ul class="font-medium xl:text-lg lg:text-lg sm:text-base md:text-base text-sm flex justify-end items-center w-full flex-1 shadow-inner">
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105" routerLink="../reviews">
+            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105" routerLink="../reviews" appTextShadow>
                 Reviews
             </button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 "  routerLink="../aboutus"> About us</button>
+            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 "  routerLink="../aboutus"  appTextShadow> About us</button>
             
 
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 " routerLink="../login">  Sign in  </button>
+            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 " routerLink="../login" appTextShadow>  Sign in  </button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 " routerLink="../register">  Register  </button>
+            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 " routerLink="../register" appTextShadow>  Register  </button>
             
+        </li>
+        <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 relative overflow-hidden flex flex-row items-center z-50" >
+            <!-- Written by Treer (gitlab.com/Treer) -->
+            <div class="flex flex-col flex-grow relative m-1"> <!-- fix height later (when screen size is small)-->
+                <svg class="scale-[.4] lg:scale-[.5] m-0 " (click)="showAccountOptions($event)"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg" 
+                xmlns:xlink="http://www.w3.org/1999/xlink" 
+                width="50" 
+                height="50"
+                fill="white">
+        
+                <title>User</title>
+                
+                <defs>
+                    <clipPath id="circular-border">
+                    <circle cx="25" cy="25" r="23.33" />
+                    </clipPath>
+                    <clipPath id="avoid-antialiasing-bugs">
+                    <rect width="100%" height="41.5" />
+                    </clipPath>
+                </defs>
+                
+                <circle cx="25" cy="25" r="23.33" fill="black" clip-path="url(#avoid-antialiasing-bugs)" />
+                <circle cx="25" cy="19.17" r="9.58" />
+                <circle cx="25" cy="45.83" r="17.1" clip-path="url(#circular-border)" />
+                
+                </svg>
+                <div class="" [ngClass]="{'flex ': signedIn, 'hidden': !signedIn}" > <!-- figure out how to do a dropdown -->
+                </div>
+            </div>
+            
+            <h3 class="lg:text-sm text-xs font-light hover:scale-[1.02] " appTextShadow > {{ accountText }} </h3>
         </li>
     </ul>
 </div>

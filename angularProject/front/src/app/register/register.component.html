@@ -2,7 +2,7 @@
     <div class="h-full w-full m-auto flex relative">
         <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[500px]">
             <div class="lg:mt-8 md:mt-6 my-4 min-h-max flex-col justify-end flex flex-grow w-full text-center">
-               <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Register </h2> 
+               <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Register </h2> <!-- worry about scrollbar showing when screen is stretched -->
             </div>
             <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow-[3] w-full">
                 <div class="flex flex-col w-full align-middle flex-grow justify-center">

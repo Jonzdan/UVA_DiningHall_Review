@@ -1,32 +1,74 @@
 <div class="bg-gradient-to-bl from-red-500 via-orange-400/90 to-yellow-400/70 w-[100vw] h-[100vh] fixed overflow-hidden">
     <div class="h-full w-full m-auto flex relative">
-        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] flex flex-col align-middle justify-center m-auto z-30 min-w-fit min-h-[500px]">
-            <div class="lg:my-20 md:my-16 my-10 align-top">
-               <h2 class="font-bold text-4xl  text-gray-800 text-center" appTextShadow> Login </h2> 
+        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[500px]">
+            <div class="h-[25%] my-auto min-h-max flex-col justify-end flex flex-grow-[4] w-full text-center">
+               <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Login </h2> 
             </div>
-            <div class="lg:px-16 md:px-12 px-6 h-full my-auto flex flex-col relative align-middle overflow-auto ">
-                
-                <div class="inline-flex flex-col w-full h-fit align-middle">
-                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-2 pt-1 align-middle"> Username </label>
-                    <input type="text" name="user" placeholder="Type your username" class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1" required>
+            <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
+                <div class="flex flex-col w-full align-middle flex-grow justify-center">
+                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 align-middle"> Username </label>
+                    <input type="text" name="user" placeholder="Type your username" id="user" appNoAutocompleteBg formControlName="user"  class="lg:text-xl text-lg pb-2 pt-2 border-b-2 rounded-sm align-middle mb-0 text-gray-800 font-medium border-gray-300 outline-none focus:placeholder:text-transparent">
+                    <div class="relative mb-2 mt-1">
+                        <div *ngIf="(user?.dirty || user?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic my-2">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
+                                <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
+                                    <!-- implement check later -->
+                                </div>
+                            </div>
+                            <div *ngIf="user?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="">
+                                <div *ngIf="user?.errors?.['required']; else u1" > Required Field </div>
+                                <ng-template #u1>
+                                    <div *ngIf="user?.errors?.['minlength']; else u2"> Username Length Must Be At Least 6 Characters</div>
+                                </ng-template>
+                                <ng-template #u2>
+                                    <h3 *ngIf="user?.errors?.['maxlength']; else invalidUser" > Username Length Must Be Less Than 17 Characters </h3>
+                                </ng-template>
+                                <ng-template #invalidUser> 
+                                    <h3 *ngIf="invalidUserSubmit"> Invalid Username </h3> <!-- start here next time-->
+                                </ng-template>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <br>
-                <label for="pass" class="text-left font-[450] lg:text-base text-sm text-gray-800 block lg:pt-3 pt-2"> Password </label>
-                <div class="inline-flex flex-col w-full">
-                    <input type="password" name="user" placeholder="Type your password" class="lg:text-lg text-base border-b-2  align-middle my-2 text-gray-800 font-medium border-gray-300 outline-none lg:py-3 py-1" required>
-                    <a routerLink="" class="text-right text-sm p-1 mt-1 mb-4 max-h-fit text-gray-800 hover:text-red-400 hover:transition-colors align-middle my-auto  "> Forgot Password? </a>
+                <ng-container class="flex flex-grow">
+                    <div class="flex flex-col w-full flex-grow justify-center">
+                        <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1"> Password </label>
+                        <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="lg:text-xl text-lg border-b-2  align-middle mb-0 text-gray-800 font-medium border-gray-300 outline-none py-2 focus:placeholder:text-transparent" >
+                        <div class="relative mb-2 mt-1" >   
+                            <div *ngIf="(password?.dirty || password?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': passLoading, 'hidden': !passLoading}">
+                                    <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
+                                        <!-- implement check later -->
+                                    </div>
+                                </div>
+                                <div *ngIf="password?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
+                                    <h3 *ngIf="password?.errors?.['required']; else minLengthValid"> Required Field </h3>
+                                    <ng-template #minLengthValid>
+                                        <h3 *ngIf="password?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #maxLengthValid>
+                                        <h3 *ngIf="password?.errors?.['maxlength']" > Password Length Must Be Less Than 32 Characters </h3>
+                                    </ng-template>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </ng-container>
+                <div class="w-full flex flex-grow flex-col">
+                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 shadow-black shadow-inner align-bottom rounded-full"> {{loginButtonText}} </button>
                 </div>
                 
-                <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left block font-semibold bg-[length:300%] bg-gradient-to-l md:my-50  from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 align-bottom rounded-full"> LOGIN </button>
-            </div>
+            </form>
             <span class="text-center w-full hidden"> *Implement Other Logins Here </span>
-            <div class="align-bottom flex flex-grow flex-col my-auto">
-                <h4 class="text-center font-normal lg:text-base text-sm text-gray-800 lg:px-2 lg:mb-4 m-1 px-1 align-bottom "> Or Sign Up:</h4>
-                <a routerLink="../register" class="hover:text-red-400 hover:transition-colors text-center flex flex-col font-normal lg:text-base text-sm text-gray-800 lg:px-2 px-1 align-bottom "> SIGN UP </a>
+            <div class="align-bottom flex flex-col flex-shrink">
+                <h4 class="text-center font-normal lg:text-base text-sm text-gray-800 lg:px-2 px-1 align-bottom "> Don't have an account?</h4>
+                <a routerLink="../register" class="hover:text-red-400 hover:transition-colors text-center flex flex-col font-normal lg:text-base text-sm text-gray-800 lg:px-2 px-1 align-bottom "> Register Here </a>
             </div>
 
-            <h6 class="invisible"> TEMP </h6>
+            <span class="invisible"> TEMP </span>
         </div>
+
     </div>
     
     <!-- box on right side -->

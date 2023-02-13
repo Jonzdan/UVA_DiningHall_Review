@@ -2,6 +2,7 @@ const express = require('express')
 const { db } = require('../models/user')
 const router = express.Router()
 const userSchema = require('../models/user')
+const crypto = require('crypto')
 
 router.get('/', async(req, res)=> {
     //get account info from url param - or decide later
@@ -48,16 +49,15 @@ router.post('/register', async(req,res)=>{
     
 })
 
-router.post('./login', async(req, res)=>{
+router.post('/login', async(req, res)=>{
     const data = req.body
-    console.log(data)
     authenticate(data)
-    const foundUser$ = await userSchema.find({})
-    if (foundUser$) {
-        const obj = { //extract important info
-
-        }
-        res.status(200).json(obj)
+    const foundUser$ = await userSchema.find({username: data.user, password: data.password})
+    if (foundUser$ && Object.keys(foundUser$).length === 1) {
+        res.setHeader("Access-Control-Expose-Headers", "AuthToken") //seems unnecessary
+        res.setHeader("Access-Control-Allow-headers", "AuthToken")
+        res.header('AuthToken', crypto.randomBytes(64).toString('hex'))
+        res.status(200).json({username: foundUser$[0].username}) //instead of using authtoken, or cookie, to validate requests coming in, or use an JWT
     }
     else {
         res.status(401).json({code:"01101111011101"})
@@ -67,10 +67,9 @@ router.post('./login', async(req, res)=>{
 
 
 function authenticate(infoObj) {
-    csrf(); validFields()
 }
 
-function csrf() {
+function csrf(req, res) { //check req and res tokens match?
 
 }
 
