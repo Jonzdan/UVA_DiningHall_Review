@@ -14,8 +14,8 @@ const newcombSchema = new mongoose.Schema({ //maybe combine this into one collec
             type: String,
             required: true
         },
-        itemReview: { //this should be embedded document ** change later ** --we can link different documents together
-            stars: {
+        itemReview: { //this should be embedded document ** change later ** --we can link different documents together. So make a different collection of only reviews tied by say id
+            stars: { //have only maybe the 5 most recent reviews
                 type: Array,
                 required: false
             },

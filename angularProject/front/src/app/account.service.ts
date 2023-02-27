@@ -120,8 +120,7 @@ export class AccountService {
   
     //** NEXT STEP::: FINISH INVALID FORM APPEARNCE */
     req.subscribe((res: HttpResponse<Object>)=> {
-      if (res.headers.get('AuthToken') != null) { //change authToken
-          this.accountInfo['AuthToken'] = res.headers.get('AuthToken')
+      if (res.body != null) { //change authToken
           this.accountInfo['username'] = (res.body as loginResponse)?.username
           this.accountText = (res.body as loginResponse)?.username
           this._signedIn = true

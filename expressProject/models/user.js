@@ -12,14 +12,6 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    csrfToken: {
-        type:String,
-        required:false //change later
-    },
-    sessionId: {
-        type:String,
-        required: false
-    }
     //potentially add logs
 })
 
