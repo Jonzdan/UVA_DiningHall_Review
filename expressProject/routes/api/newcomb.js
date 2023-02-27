@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
         let time = getNewcombTimeFrame()
         const data = await newcombSchema.find( { activeDate: { $in: [ date ]} , 'item.timeFrame': time}, {_id: 0} )
         if (data && Object.keys(data).length === 0) {
-            let bol = await getData()
+            let bol = await new Promise(resolve => resolve(getData()))
             let data1 = await newcombSchema.find( {activeDate: { $in: [date]}, 'item.timeFrame': time}, {_id: 0})
             res.json(data1)
         }

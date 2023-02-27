@@ -20,6 +20,11 @@
         "target": "http://localhost:4000",
         "secure": false,
         "logLevel": "debug"
+    },
+    "/getCSRFToken/*": {
+        "target": "http://localhost:4000",
+        "secure": false,
+        "logLevel": "debug"
     }
 
 }

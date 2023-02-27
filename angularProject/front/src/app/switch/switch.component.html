@@ -1,6 +1,6 @@
 
 <div class="w-full">
-    <div #swi class="switch items-center justify-center text-center w-full bg-orange-500/75 flex-shrink-0  lg:top-[40px] xl:top-[60px] md:top-[28px] sm:top-[28px] top-[24px] sticky xl:text-2xl lg:text-lg sm:text-sm md:text-base text-xs border-none outline-none p-0">
+    <div #swi class="switch items-center justify-center text-center w-full bg-orange-500/75 flex-shrink-0  lg:top-[40px] xl:top-[60px] md:top-[28px] sm:top-[28px] top-[24px] sticky xl:text-2xl lg:text-lg sm:text-sm md:text-base text-xs border-none z-50 outline-none p-0">
         <app-button class="" id="ohillBtn" [name]="name1" (click)="changeData($event)" [selected]="b1" >  </app-button> <!-- add like no outline/bg for this button if not selected-->
         <app-button class="" id="newcombBtn" [name]="name2" (click)="changeData($event)" [selected]="b2">  </app-button>
         <app-button class="" id="runkBtn" [name]='name3' (click)="changeData($event)" [selected]="b2">  </app-button>

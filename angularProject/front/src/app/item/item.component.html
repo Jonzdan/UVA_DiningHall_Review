@@ -1,35 +1,46 @@
 
 <!-- should be item name, div, etc-->
-<div class="item min-w-[200px] m-auto bg-neutral-100 rounded-md shadow-lg border-gray-900" >
-    <h3 class=" bg-orange-500/40 rounded-t-sm bg-blend-lighten p-1 text-neutral-800 font-light font-serif shadow-md" > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
-    <h4 *ngIf="item.itemDesc" class="m-1 p-1 sm:m-[2px] text-neutral-800 font-extralight"> {{ item.itemDesc }} </h4>
-    <br>
-    <div class="review flex flex-col h-full">  
-        <div *ngIf="item.itemReview">
-            <h4 *ngIf="item.itemReview.stars.length > 0; else elsBloc"  > <a href="#" (click) = "showReviews($event)" class="font-semibold underline"> {{ sumOfStars(item.itemReview.stars) }} </a> / 5 </h4>
-            <ng-template #elsBloc> N/A / 5 </ng-template>
+<div class="w-full h-full perp pb-2">
+    <div class="transform duration-1000 style relative w-full h-full" [ngClass]="{'flip-horizontal': flip}">
+        <div class="front item min-w-[250px] bg-neutral-100 absolute hide-backface rounded-md shadow-lg border-gray-900 h-full w-full"   #front>
+            <h3 class=" bg-orange-500/40 rounded-t-sm bg-blend-lighten p-1 text-neutral-800 font-light font-serif shadow-md" > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
+            <h4 *ngIf="item.itemDesc" class="m-1 p-1 sm:m-[2px] text-neutral-800 font-extralight"> {{ item.itemDesc }} </h4>
+            <div class="review flex flex-col">  
+                <div *ngIf="item.itemReview">
+                    <h4 *ngIf="item.itemReview.stars.length > 0; else elsBloc"  > <a href="#" (click) = "showReviews($event)" class="font-semibold underline"> {{ starsReview }} </a> / 5 </h4>
+                    <ng-template #elsBloc> N/A / 5 </ng-template>
+                    <div class="flex flex-row w-max align-middle self-center m-auto ">
+                        <div *ngFor="let star of [1,2,3,4,5]; let i=index">
+                            <span title="⭐" class=" m-auto min-w-[15px] min-h-[15px] text-transparent before:absolute before:content-[attr(title)] before:text-transparent star-border" [ngClass]="{'before:active-star-fill': i <= starsReview, 'before:inactive-star-fill': i > starsReview || NaN(starsReview)  }"> ⭐ </span>
+                        </div>  
+                    </div>
+                </div>
+                <button (click) = "openReviewBox($event)" class="font-serif font-light underline w-fit m-auto rounded-lg lg:p-[6px] hover:scale-[1.02] p-[2px] lg:text-base text-sm justify-end"> Write a review...</button>
+            </div>
         </div>
-        <button (click) = "openReviewBox($event)" class="font-serif font-light underline bg-gradient-to-r from-yellow-400/40 to-yellow-300/70 w-fit m-auto rounded-lg lg:p-[6px] p-[2px] lg:text-base text-sm justify-end h-full"> Write a review --- ↓ </button>
-    </div>
-    <div [ngClass]="">
-        <div class="flex flex-col flex-wrap relative z-1000 lg:px-4 px-2 py-[2px]  ">
-            <div [ngClass]="{'hidden': !openOrNot, 'block': openOrNot}"  class="review1 fixed lg:px-1 px-[2px] py-[2px] lg:mx-2 mx-1 z-100 self-center border-[1px] border-cyan-700/70 m-auto rounded-md bg-white">
-                <app-stars (click)="updateStars($event)" class="block top-full w-full left-0 border-b-[1px] border-b-gray-400 bg-slate-200"></app-stars>
-                <textarea rows="4" cols="25" (input)="textArea($event)" placeholder="Start review here..." #reviewBox class="text-black border-none outline-none block self-center justify-center text-left m-auto h-[100%] indent-[2px] z-auto md:indent-1 min-w-[70px] min-h-[25px] lg:min-w-[150px] lg:min-h-[60px] rounded-md" ></textarea>
-                <div class="border-t-[1px] border-gray-400 w-full "> <!-- change dropdown to flipping card -->
-                    <div class="bg-blue-400 flex flex-row w-fit self-center text-center justify-center m-auto pr-1 pl-1 rounded-2xl lg:my-1 my-[2px] shadow:sm hover:shadow-lg shadow-blue-400 hover:scale(101) "> <!-- Add a delete option later? -->
+        <div class="back flex-col item min-w-[250px] h-full absolute hide-backface w-full bg-neutral-100 rounded-md shadow-lg border-gray-900 flip-horizontal">
+            <div class="flex flex-col relative z-1000 ">
+                <div class="flex flex-row bg-slate-200">
+                    <!-- https://pixlok.com/icons/back-arrow-svg-icon-free-download/ -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13.496" height="11.21" viewBox="0 0 13.496 11.21" class="justify-start my-auto cursor-pointer border-none ml-[2px] bg-transparent" (click)="openReviewBox($event)">
+                        <g id="Arrow_Icon" data-name="Arrow Icon" transform="translate(0 -41.674)">
+                        <g id="Group_7" data-name="Group 7" transform="translate(0 41.674)">
+                            <path id="Path_21" data-name="Path 21" d="M12.737,46.22l.021,0H3.727L6.566,43.38a.746.746,0,0,0,0-1.048l-.442-.442a.739.739,0,0,0-1.043,0L.215,46.755a.744.744,0,0,0,0,1.047l4.867,4.867a.74.74,0,0,0,1.043,0l.442-.442a.731.731,0,0,0,.215-.521.709.709,0,0,0-.215-.512L3.7,48.332h9.052a.765.765,0,0,0,.749-.757V46.95A.75.75,0,0,0,12.737,46.22Z" transform="translate(0 -40.674)"/>
+                        </g>
+                        </g>
+                    </svg>
+                    <app-stars (click)="updateStars($event)" class="block p-1 top-full w-full left-0 border-b-[1px] z-10 border-b-gray-400 justify-center "></app-stars>
+                </div>
+                
+                <textarea rows="6" cols="25" (input)="textArea($event)" placeholder="Start review here..." #reviewBox class="text-black border-none p-1 outline-none block self-center justify-center text-left indent-[2px] z-auto md:indent-1 min-w-[70px] min-h-[25px] w-full h-full lg:min-w-[150px] lg:min-h-[60px] flex-grow rounded-md" ></textarea>
+                <div class="border-t-[1px] border-gray-400 w-full h-full"> <!-- change dropdown to flipping card -->
+                    <div class="bg-blue-400 flex flex-row w-fit self-center text-center justify-center m-auto pr-1 pl-1 rounded-2xl shadow:sm hover:shadow-lg shadow-blue-400 hover:scale-[1.02] "> <!-- Add a delete option later? -->
                         <button id="submit" type="text" (click)="submitReview($event)" class=" text-white lg:px-2 px-[3px] lg:py-[2px] py-[1px]"> Submit </button> <!-- add this in backend -->
                     </div>
                     
-                </div>
-                
-            
-            </div>
+                </div>      
             <div>
-
-            </div>
         </div>
     </div>
-    <!-- add review if present... -->
-    <br>
+    
 </div>

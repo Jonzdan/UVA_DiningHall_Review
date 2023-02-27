@@ -3,6 +3,9 @@ const { db } = require('../models/user')
 const router = express.Router()
 const userSchema = require('../models/user')
 const crypto = require('crypto')
+const { csrf } = require('../auth')
+
+router.use(csrf)
 
 router.get('/', async(req, res)=> {
     //get account info from url param - or decide later
@@ -13,6 +16,7 @@ router.get('/', async(req, res)=> {
 router.post('/register', async(req,res)=>{
     const data = req.body //should be reg form
     /* Validation Here */
+    //console.log(req.cookies, req.cookies.CSRF_TOKEN)
     //authenticate(data)
     /* Saving to DB */
     try {
@@ -51,13 +55,12 @@ router.post('/register', async(req,res)=>{
 
 router.post('/login', async(req, res)=>{
     const data = req.body
-    authenticate(data)
     const foundUser$ = await userSchema.find({username: data.user, password: data.password})
-    if (foundUser$ && Object.keys(foundUser$).length === 1) {
-        res.setHeader("Access-Control-Expose-Headers", "AuthToken") //seems unnecessary
-        res.setHeader("Access-Control-Allow-headers", "AuthToken")
-        res.header('AuthToken', crypto.randomBytes(64).toString('hex'))
-        res.status(200).json({username: foundUser$[0].username}) //instead of using authtoken, or cookie, to validate requests coming in, or use an JWT
+    if (foundUser$ && Object.keys(foundUser$).length === 1) { //send sessionID, authentication Token
+        await userSchema.findOneAndUpdate({username: foundUser$[0].username, password: foundUser$[0].password}, {csrfToken: req.headers.h_csrf_token}) //fix sessionId
+        res.status(200).json({username: foundUser$[0].username}) //instead of using authtoken, or cookie, to validate requests coming in, or use an JWT... associate CSRF with user upon login
+        //we use the sessionid to determine if its from the right csrf, which is why we link the csrf to a user
+        //so if there is a sessionid, we remove this login path, same with register
     }
     else {
         res.status(401).json({code:"01101111011101"})
@@ -67,11 +70,10 @@ router.post('/login', async(req, res)=>{
 
 
 function authenticate(infoObj) {
-}
-
-function csrf(req, res) { //check req and res tokens match?
 
 }
+
+
 
 function validFields() {
 

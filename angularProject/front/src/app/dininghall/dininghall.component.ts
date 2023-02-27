@@ -13,6 +13,7 @@ export class DininghallComponent implements OnInit, AfterViewInit {
   @Input() text!: string
   @Input() show?: string
   @Input() short!: string
+  headers: any
 
 
   constructor(private elementRef: ElementRef, private appService: AppService) {
@@ -21,6 +22,8 @@ export class DininghallComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
      //thi
+    this.headers = this.appService.getHeaders(this.short)
+    
   }
 
 

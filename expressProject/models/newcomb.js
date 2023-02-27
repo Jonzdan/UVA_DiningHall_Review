@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const newcombSchema = new mongoose.Schema({
+const newcombSchema = new mongoose.Schema({ //maybe combine this into one collection?
     
     stationName: {
         type: String,
@@ -14,7 +14,7 @@ const newcombSchema = new mongoose.Schema({
             type: String,
             required: true
         },
-        itemReview: {
+        itemReview: { //this should be embedded document ** change later ** --we can link different documents together
             stars: {
                 type: Array,
                 required: false

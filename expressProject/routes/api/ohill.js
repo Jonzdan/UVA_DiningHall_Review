@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const ohillSchema = require('../../models/ohill')
 const axios = require('axios')
+const { csrf } = require('../../auth')
 
 const ohillstations = { //tentative -- seems to change
     "22869": "Copper Hood",
@@ -42,7 +43,7 @@ router.get('/', async(req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', csrf ,async (req, res) => {
     const dataObj = req.body
     try { //add validation later
         let date = getCurDateAsString(); let time = getOhillTimeFrame(new Date().getDay(), getCurHour())

@@ -14,7 +14,11 @@ export class AccountService {
   public eventMsg:BehaviorSubject<string> = new BehaviorSubject("")
   public eventLoginMsg:BehaviorSubject<string> = new BehaviorSubject("")
   public accountText:string = "Not Signed In"
-  public signedIn:boolean = false
+  private _signedIn:boolean = false
+
+  get signedIn() {
+    return this._signedIn
+  }
 
   constructor(private http: HttpClient) { }
 
@@ -116,15 +120,20 @@ export class AccountService {
   
     //** NEXT STEP::: FINISH INVALID FORM APPEARNCE */
     req.subscribe((res: HttpResponse<Object>)=> {
-      if (res.headers.get('AuthToken') != null) {
+      if (res.headers.get('AuthToken') != null) { //change authToken
           this.accountInfo['AuthToken'] = res.headers.get('AuthToken')
           this.accountInfo['username'] = (res.body as loginResponse)?.username
           this.accountText = (res.body as loginResponse)?.username
-          this.signedIn = true
+          this._signedIn = true
           //redirect to signed in navigation...
           //remove sign-in option/register when signed in
           //add sign-out option
         }
+      else {
+        console.log(res.headers)
+        //invalid request
+        alert("invalid request")
+      }
       setTimeout(() => {
         this.eventLoginMsg.next("Done!")
         setTimeout(()=>{

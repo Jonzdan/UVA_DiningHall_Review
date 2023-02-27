@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
@@ -46,7 +46,11 @@ import { NoAutocompleteBgDirective } from './no-autocomplete-bg.directive'
     AppRoutingModule,
     HttpClientModule,
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'CSRF_TOKEN',
+      headerName: 'H_CSRF_TOKEN'
+    })
     
   ],
   providers: [],

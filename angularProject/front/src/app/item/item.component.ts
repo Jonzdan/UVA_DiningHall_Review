@@ -1,8 +1,9 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { AppReviewService } from '../app-review.service';
-import  { map } from 'rxjs'
+import  { BehaviorSubject, map } from 'rxjs'
 import { StarsComponent } from '../stars/stars.component';
 import { AppService } from '../app.service';
+import { AccountService } from '../account.service';
 
  interface objectPair {
     [key: string]: any
@@ -19,21 +20,29 @@ export class ItemComponent implements OnInit {
   @Input() stationName!: string
   @Input() indicator!: number
   @ViewChild(StarsComponent) child!:StarsComponent
+  @ViewChild('front') mainCard!: any
+  height: BehaviorSubject<string> = new BehaviorSubject(""); width: BehaviorSubject<string> = new BehaviorSubject("") //of item
   textContent:string = ""
   numStars:number = 0
-  openOrNot:boolean = false
+  flip:boolean = false
+  starsReview!: number 
   public item!: any //should probably leave out reviews, since they can get long
 
-  constructor(private appReview: AppReviewService, private elementRef: ElementRef, private appService: AppService) { 
+  //load viewport items first, lazy load other components later
+  constructor(private appReview: AppReviewService, private elementRef: ElementRef, private appService: AppService, private as: AccountService) { 
 
   }
 
   ngOnInit(): void {
     this.item = this.appService.getShopToItem(this.short)[this.stationName][this.indicator]
+    this.starsReview = this.sumOfStars(this.item.itemReview.stars)
+  }
+
+  ngAfterViewInit(): void {
   }
 
   openReviewBox(e:any): void { //change to supported way
-    this.openOrNot = !this.openOrNot
+    this.flip = !this.flip
   }
 
   showReviews(e:any): void {
@@ -48,7 +57,11 @@ export class ItemComponent implements OnInit {
     this.textContent = e.target.value
   }
 
-  sumOfStars(starArr:any):number {
+  NaN(i:any) {
+    return (isNaN(i))
+  }
+
+  private sumOfStars(starArr:any):number {
     let count = 0
     for(let i = 0; i < starArr.length; i++) {
       count += parseInt(starArr[i])
@@ -60,6 +73,10 @@ export class ItemComponent implements OnInit {
   
   //content should be an json object of 1: content 2: itemname 3: stationname: 4: stars 5: 
   async submitReview(e: any) { //add stars
+    if (!this.as.signedIn) {
+      alert('Must be signed in to leave a review!')
+      return
+    }
     let content:objectPair = {stationName: this.stationName, itemName: this.item.itemName,itemDesc: this.item.itemDesc, "Content": this.textContent, "APP-STARS": this.numStars}
     if (content["Content"] === null || content["Content"] === undefined || content["Content"].length < 50) {  //put pop-up showcasing limit
       alert("Msg too short!") //temporary

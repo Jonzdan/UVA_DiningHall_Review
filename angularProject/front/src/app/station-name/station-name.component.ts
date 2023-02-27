@@ -8,19 +8,22 @@ import { AppService } from '../app.service';
 })
 export class StationNameComponent implements OnInit {
 
+  @Input() head!: string
   @Input() short!: string
+  hideStation:boolean = false
   shopToItems: any = {}
-  headers: any
+  flipArrow: boolean = false
 
   constructor(private appService: AppService) { }
 
   ngOnInit(): void {
-      this.shopToItems = this.appService.getShopToItem(this.short)
-      this.headers = this.appService.getHeaders(this.short)
-    }
+    this.shopToItems = this.appService.getShopToItem(this.short)
+  }
     
     
-  
+  hideStationFunc(e:any) {
+    this.hideStation = !this.hideStation;
+  }
 
   ngAfterViewInit(): void {
   }

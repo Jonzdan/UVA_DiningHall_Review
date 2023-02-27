@@ -1,0 +1,17 @@
+
+.flip-horizontal {
+  transform: rotateY(180deg);
+  
+}
+
+.perp {
+  perspective: 500px;
+}
+
+.style {
+  transform-style: preserve-3d;
+}
+
+.hide-backface {
+  backface-visibility: hidden;
+}
