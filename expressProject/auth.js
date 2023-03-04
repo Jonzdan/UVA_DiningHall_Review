@@ -1,7 +1,6 @@
 const express = require('express')
 const userSchema = require('./models/user')
 const identifierSchema = require('./models/token')
-const csrfIdentifier = "150234"
 
 
 async function csrf(req, res, next) { //checks if there is a csrf token
@@ -25,6 +24,7 @@ async function csrf(req, res, next) { //checks if there is a csrf token
 
 async function validateFields(req, res, next) {
     const email = req.body.email; const username = req.body.user; const password = req.body.password; const firstPass = req.body.firstPass; const secondPass = req.body.secondPass
+    if (await hasWhiteSpace([email, password, firstPass, secondPass, username])) { res.status(403).end(); return }
     if (Object.keys(req.body).length === 4) {
         if (!email || ! username || !secondPass || !firstPass) { res.status(400).json({msg: "Invalid Input"}).end(); return}
         let codes = []
@@ -48,6 +48,31 @@ async function validateFields(req, res, next) {
     next()
 }
 
+async function hasWhiteSpace(array) {
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] !== undefined && /\s/.test(array[i])) {
+            return false
+        }
+    }
+    return true
+}
+
+async function loggedIn_Or_Not(req, res, next) {
+    if (req.cookies.SESSION_ID !== undefined) {
+        const response = await identifierSchema.find({session_token: req.cookies.SESSION_ID})
+        if (response && Object.keys(response).length > 1) {res.status(504).end(); return }
+        if (response && Object.keys(response).length === 1) {
+            if (response[0].userID !== undefined) { //associated user, so authenticated session token
+                res.status(400).json({msg: "Already Logged In"}); return
+            }
+            next()
+        }
+        else {
+            res.status(504).end(); return
+        }
+    }
+}
 
 
-module.exports = { csrf, validateFields } 
+
+module.exports = { csrf, validateFields, loggedIn_Or_Not } 

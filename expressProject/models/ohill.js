@@ -14,12 +14,16 @@ const ohillSchema = new mongoose.Schema({
             type: String,
             required: true
         },
-        itemReview: {
+        itemReview: { //did i figure out how to match stars and reviews?
             stars: {
                 type: Array,
-                required: false
+                required: true
             },
-            reviews: {
+            starsLength: {
+                type: Number,
+                required: true
+            },
+            reviews: { //prob add date and shit done...
                 type: Array,
                 required: false
             }

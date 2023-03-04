@@ -1,10 +1,13 @@
 <div class="relative px-2 mt-2 mb-0 border border-neutral-600/10 shadow-sm ">
     <h3 class="block font-medium lg:text-2xl sm:text-lg md:text-xl align-middle text-base self-center mt-auto" appTextShadow> {{ head }} <button (click)="hideStationFunc($event)"> ↓ </button> </h3>
     <br>
-    <div class="itemCat flex-row flex flex-wrap w-full" *ngIf="!hideStation">
-        <div *ngFor="let item of shopToItems[head] | keyvalue; let i = index" class="flex mx-auto">
-            <app-item [short] = 'short' [indicator]="i"  [stationName]="head" class="min-h-[220px] min-w-[250px] max-w-[250px] max-h-[220px] " >
+    <div class="itemCat grid grid-flow-row xl:grid-cols-4 md:grid-cols-2 grid-cols-1 grid-rows-1 w-full" *ngIf="!hideStation">
+        <div *ngFor="let item of shopToItems[head] | keyvalue; let i = index" class="flex flex-wrap mx-auto">
+            <app-item [short] = 'short' [indicator]="i"  [stationName]="head" class="min-h-[220px] min-w-[320px] max-w-[250px] max-h-[320px]" [ngClass]="{'hidden': i > 3 && !showRestOfItems, 'block': i <= 3 || showRestOfItems}" >
             </app-item>
         </div>
+        <button class="min-h-[20px] min-w-[20px]" (click)="revealItems($event)">
+            +
+        </button>
     </div>
 </div>

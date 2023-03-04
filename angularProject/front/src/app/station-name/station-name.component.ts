@@ -13,6 +13,7 @@ export class StationNameComponent implements OnInit {
   hideStation:boolean = false
   shopToItems: any = {}
   flipArrow: boolean = false
+  showRestOfItems: boolean = false;
 
   constructor(private appService: AppService) { }
 
@@ -28,6 +29,10 @@ export class StationNameComponent implements OnInit {
   ngAfterViewInit(): void {
   }
 
-  
+  revealItems(e:any) {
+    this.showRestOfItems = !this.showRestOfItems
+    if (!this.showRestOfItems) e.target.textContent = "+"
+    else e.target.textContent="-"
+  }
 
 }

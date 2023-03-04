@@ -3,19 +3,17 @@ const { db } = require('../models/user')
 const router = express.Router()
 const userSchema = require('../models/user')
 const crypto = require('crypto')
-const { csrf, validateFields } = require('../auth')
+const { csrf, validateFields, loggedIn_Or_Not } = require('../auth')
 const tokenSchema = require('../models/token')
-const csrfIdentifier = "150234"
-const sessionIdentifier = "551234"
 
 router.use(csrf)
 router.use(validateFields)
+router.use(loggedIn_Or_Not)
 
 
 router.post('/register', async(req,res)=>{
     const data = req.body //should be reg form
     /* Validation Here */
-    //console.log(req.cookies, req.cookies.CSRF_TOKEN)
     //authenticate(data)
     /* Saving to DB */
     try {
@@ -23,9 +21,9 @@ router.post('/register', async(req,res)=>{
         const existingUser$ = await userSchema.find({$or: [{email: data.email},{username: data.user}]})
         if (existingUser$ && Object.keys(existingUser$).length === 0) {
             const obj = {
-                email: data.email,
-                username: data.user,
-                password: data.firstPass,
+                email: existingUser$[0].email,
+                username: existingUser$[0].user,
+                password: existingUser$[0].firstPass,
             }
             const newUser = new userSchema(obj)
             newUser.save()
@@ -70,7 +68,7 @@ router.post('/login', async(req, res)=>{ //make sure login is only possible if n
         }
         if (userQuery && userQuery.equals(foundUser$[0]._id)) { //if the id's match? only match for a day (this could be sketch)
             await tokenSchema.findOneAndUpdate({userID: foundUser$[0]._id, csrf_token: req.headers.h_csrf_token}, {session_token: session})
-            res.cookie('SESSION-ID', session, {sameSite: 'strict', httpOnly: true, maxAge: 1000*60*60*24, signed: true})
+            res.cookie('SESSION_ID', session, {sameSite: 'strict', httpOnly: true, maxAge: 1000*60*60*24, signed: true})
             res.status(200).json({username: foundUser$[0].username})
             
         }
@@ -80,7 +78,7 @@ router.post('/login', async(req, res)=>{ //make sure login is only possible if n
         else {
             //now we need to associate this csrf with a userid
             await tokenSchema.findOneAndUpdate({csrf_token: req.headers.h_csrf_token}, {session_token: session, userID: foundUser$[0]._id})
-            res.cookie('SESSION-ID', session, {sameSite: 'strict', httpOnly: true, maxAge: 1000*60*60*24, signed: true})
+            res.cookie('SESSION_ID', session, {sameSite: 'strict', httpOnly: true, maxAge: 1000*60*60*24, expires: 1000*60*60*24, signed: true})
             res.status(200).json({username: foundUser$[0].username})
             
         }

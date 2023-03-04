@@ -27,9 +27,11 @@ router.get('/', async(req, res) => {
     try {
         let date = getCurDateAsString()
         let time = getOhillTimeFrame(new Date().getDay(), getCurHour())
-        const data = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0})
+        const data = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0}).sort({
+            "item.itemReview.starsLength": -1,
+        })
         if (data && Object.keys(data).length === 0) {
-            await getData() //prob have to await the callback
+            await getData() //this works, but data isn't loading...
             const data1 = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0})
             res.json(data1)
         }
@@ -48,7 +50,7 @@ router.post('/', csrf ,async (req, res) => {
     try { //add validation later
         let date = getCurDateAsString(); let time = getOhillTimeFrame(new Date().getDay(), getCurHour())
         if (dataObj["Content"].length < 50 || dataObj["Content"] === undefined || dataObj["APP-STARS"] <= 0 || dataObj["APP-STARS"] > 5) { res.status(400).json({msg: "unknown parameters"}); return }
-        const temp = await ohillSchema.findOneAndUpdate({stationName: dataObj.stationName, activeDate: date, "item.timeFrame": {$in: [time]}, "item.itemName": dataObj.itemName, "item.itemDesc": dataObj.itemDesc}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}}, {returnOriginal: false})
+        const temp = await ohillSchema.findOneAndUpdate({stationName: dataObj.stationName, activeDate: date, "item.timeFrame": {$in: [time]}, "item.itemName": dataObj.itemName, "item.itemDesc": dataObj.itemDesc}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}, $inc: {"item.itemReview.starsLength": 1}}, {returnOriginal: false})
         //console.log("TEMP: \n", temp)
         res.json("Updated")
     }
@@ -135,65 +137,66 @@ function getOhillTimeFrame(date, time) {
     }
 }
 
-async function getData() {
-    axios.get('https://virginia.campusdish.com/LocationsAndMenus/ObservatoryHillDiningRoom')
-    .then(res => {
-        //console.log(res.data.slice(80000,200000))
-        //const ind = res.data.indexOf("model")
-        const endInd = res.data.indexOf("/Cart") + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... , Product":{ and more like Contains Fish or whatnot
-        //let data = res.data.slice(ind, endInd)
-        let data = res.data
-        let iterator = 0 //or ind
-        let curDate = getCurDateAsString().trim()
-        let timeFrame = getOhillTimeFrame(new Date().getDay(), getCurHour())
-        const size = data.length;
-        while (data.indexOf('"Product":', iterator) !== -1 && iterator < size) {
-            let shopId = data.indexOf('"StationId":', iterator) + 13
-            let end = data.indexOf('"', shopId)
-            let stationId = data.slice(shopId, end)
-            let start = data.indexOf('"Product":{', end)
-            let mn = data.indexOf("MarketingName", start) + 16
-            let mne = data.indexOf('"', mn)
-            let resultString = data.slice(mn, mne)
-            let begin = data.indexOf("ShortDescription", mne+1)
-            begin = data.indexOf('"', begin + 18) + 1
-            let sde = data.indexOf('"', begin+3)
-            let descriptionString = data.slice(begin, sde)
-            descriptionString = removeSpecialChar(descriptionString)
-            resultString = removeSpecialChar(resultString)
-            //* There potentially could be an error in adding to existing ones* fixed** 
-            ohillSchema.find({ "item.itemName" : resultString, "item.timeFrame": timeFrame, "stationName" : ohillstations[stationId]}, (err, res) => {
-                if (err) throw err
-                //console.log(resultString, stationId, ohillstations[stationId])
-                const objLength = Object.keys(res).length
-                if (res != undefined && res != null && objLength !== 0 && res[objLength-1].activeDate[res[objLength-1].activeDate.length-1]) {
-                    ohillSchema.updateOne({_id: res[objLength-1]._id, "item.timeFrame" : timeFrame}, {$push: {activeDate: curDate}}, (err, res ) => {
-                        if (err) console.error(err)
-                    })
-                }
-                else {
-                    if (!(stationId in ohillstations)) { /* We should audit this, and then stop the process */ return }
-                    const obj = {
-                        stationName: ohillstations[stationId],
-                        item: {
-                            itemName: resultString,
-                            itemDesc: descriptionString,
-                            timeFrame: timeFrame
-                        },
-                        activeDate: [curDate]
-                    }
-                    if (obj && obj.item.timeFrame !== 'Unavailable') {
-                        let ohill1 = new ohillSchema(obj)
-                        ohill1.save()
-                    }
-                    
-                }
+async function getData() { //figure out a faster way --> perhaps load only 3, then lazy load the rest?
+    const res = await axios.get('https://virginia.campusdish.com/LocationsAndMenus/ObservatoryHillDiningRoom')
+
+    //console.log(res.data.slice(80000,200000))
+    //const ind = res.data.indexOf("model")
+    const endInd = res.data.indexOf("/Cart") + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... , Product":{ and more like Contains Fish or whatnot
+    //let data = res.data.slice(ind, endInd)
+    let data = res.data
+    let iterator = 0 //or ind
+    let curDate = getCurDateAsString().trim()
+    let timeFrame = getOhillTimeFrame(new Date().getDay(), getCurHour())
+    const size = data.length;
+    while (data.indexOf('"Product":', iterator) !== -1 && iterator < size) {
+        let shopId = data.indexOf('"StationId":', iterator) + 13
+        let end = data.indexOf('"', shopId)
+        let stationId = data.slice(shopId, end)
+        let start = data.indexOf('"Product":{', end)
+        let mn = data.indexOf("MarketingName", start) + 16
+        let mne = data.indexOf('"', mn)
+        let resultString = data.slice(mn, mne)
+        let begin = data.indexOf("ShortDescription", mne+1)
+        begin = data.indexOf('"', begin + 18) + 1
+        let sde = data.indexOf('"', begin+3)
+        let descriptionString = data.slice(begin, sde)
+        descriptionString = removeSpecialChar(descriptionString)
+        resultString = removeSpecialChar(resultString)
+        //* There potentially could be an error in adding to existing ones* fixed** 
+        let existing = await ohillSchema.find({ "item.itemName" : resultString, "item.timeFrame": timeFrame, "stationName" : ohillstations[stationId]})
+            //console.log(resultString, stationId, ohillstations[stationId])
+        const objLength = Object.keys(existing).length
+        if (existing != undefined && existing != null && objLength !== 0 && existing[objLength-1].activeDate[existing[objLength-1].activeDate.length-1]) {
+            ohillSchema.updateOne({_id: existing[objLength-1]._id, "item.timeFrame" : timeFrame}, {$push: {activeDate: curDate}}, (err, res ) => {
+                if (err) console.error(err)
             })
-            iterator = sde + 1
         }
-       //console.log(currentOhillDiningOptions)
-    return true
-    }).catch(err => console.error(err))
+        else {
+            if (!(stationId in ohillstations)) { /* We should audit this, and then stop the process */ return }
+            const obj = {
+                stationName: ohillstations[stationId],
+                item: {
+                    itemName: resultString,
+                    itemDesc: descriptionString,
+                    timeFrame: timeFrame,
+                    itemReview: {
+                        stars: [],
+                        starsLength: 0
+                    }
+                },
+                activeDate: [curDate]
+            }
+            if (obj && obj.item.timeFrame !== 'Unavailable') {
+                let ohill1 = new ohillSchema(obj)
+                await ohill1.save()
+            }
+            
+        }
+        iterator = sde + 1
+    }
+    //console.log(currentOhillDiningOptions
+
 
 
 }
