@@ -1,16 +1,18 @@
 <div class="bg-gradient-to-bl from-red-500 via-orange-400/90 to-yellow-400/70 w-[100vw] h-[100vh] fixed overflow-hidden">
-    <div class="h-full w-full m-auto flex relative">
-        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[500px]">
+    <div class="h-full w-full m-auto flex relative overflow-y-auto">
+        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[500px] shadow-black/20 shadow-lg">
             <div class="h-[25%] my-auto min-h-max flex-col justify-end flex flex-grow-[4] w-full text-center">
                <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Login </h2> 
             </div>
             <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
                 <div class="flex flex-col w-full align-middle flex-grow justify-center">
-                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 align-middle"> Username </label>
-                    <input type="text" name="user" placeholder="Type your username" id="user" appNoAutocompleteBg formControlName="user"  class="lg:text-xl text-lg pb-2 pt-2 border-b-2 rounded-sm align-middle mb-0 text-gray-800 font-medium border-gray-300 outline-none focus:placeholder:text-transparent">
+                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 align-middle indent-2"> Username </label>
+                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': userError , 'border-gray-300': !userError}">
+                        <input type="text" name="user" placeholder="Type your username" id="user" appNoAutocompleteBg formControlName="user"  class="lg:text-base text-sm border-b-2 rounded-sm align-middle mb-0 text-gray-800 font-medium w-full border-none outline-none py-1 focus:placeholder:text-transparent indent-3">
+                    </div>
                     <div class="relative mb-2 mt-1">
                         <div *ngIf="(user?.dirty || user?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic my-2">
-                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
                                 <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                     <!-- implement check later -->
                                 </div>
@@ -32,11 +34,13 @@
                 </div>
                 <ng-container class="flex flex-grow">
                     <div class="flex flex-col w-full flex-grow justify-center">
-                        <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1"> Password </label>
-                        <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="lg:text-xl text-lg border-b-2  align-middle mb-0 text-gray-800 font-medium border-gray-300 outline-none py-2 focus:placeholder:text-transparent" >
+                        <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 indent-2"> Password </label>
+                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': passError , 'border-gray-300': !passError}">
+                            <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="lg:text-base text-sm  align-middle mb-0 text-gray-800 font-medium  outline-none py-2 focus:placeholder:text-transparent indent-3" >
+                        </div>
                         <div class="relative mb-2 mt-1" >   
                             <div *ngIf="(password?.dirty || password?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': passLoading, 'hidden': !passLoading}">
+                                <div class="rounded-full border-none border-0 spin justify-center w-[17px] h-[17px] visible " [ngClass]="{'animate-spin flex': passLoading, 'hidden': !passLoading}">
                                     <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                         <!-- implement check later -->
                                     </div>
@@ -55,8 +59,8 @@
                         </div>
                     </div>
                 </ng-container>
-                <div class="w-full flex flex-grow flex-col">
-                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 shadow-black shadow-inner align-bottom rounded-full"> {{loginButtonText}} </button>
+                <div class="w-full flex flex-grow flex-col justify-center">
+                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-red-400 via-yellow-400/70 to-red-400 py-3 text-center my-3 shadow-black shadow-inner rounded-full"> {{loginButtonText}} </button>
                 </div>
                 
             </form>
@@ -75,8 +79,18 @@
     <span class="bg-gradient-to-r from-black/10 to-black/5 rotate-[45deg] w-[50vw] h-[50vh] absolute top-[0vh] right-[-20vw] rounded-lg shadow-md"></span>
     <span class="bg-gradient-to-tr from-yellow-50/10 to-yellow-100/15 w-[25vw] h-[25vh] absolute bottom-[-15vh] left-[20vw] rounded-lg rotate-[60deg] shadow-md"> <!-- box on bottom left--></span>
     <span class="bg-gradient-to-tr from-orange-50/10 to-orange-100/20 w-[30vw] h-[30vh] absolute top-[-5vh] left-[-10vw] rotate-[150deg] rounded-xl shadow-md"></span>
-    <div>
-        
-    </div>
+    
 </div>
 
+<div class="absolute top-0 translate-y-[-150px] translate-x-[-200px] text-transparent w-[440.5px] h-[291.1px]">
+            <?xml version="1.0" encoding="utf-8"?>
+            <!-- Generator: Adobe Illustrator 25.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+            <a href="https://pixlok.com/icons/back-svg-icon-free-download/" class="hidden">House photo created by Search png - www.pixlok.com</a>
+            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"  class="scale-[0.04] hover:cursor-pointer hover:scale-[0.045]" (click)="switchToHomePage($event)"
+                viewBox="0 0 440.5 291.1" xml:space="preserve" >
+                <title class="bg-transparent "> Return to home page </title>
+            <path d="M418.1,120.4H87.8l82-82.1c8.8-8.8,8.8-23,0-31.7c-8.8-8.8-22.9-8.8-31.7,0L0,144.8l139.5,139.7c4.4,4.4,10.1,6.6,15.9,6.6
+                s11.5-2.2,15.9-6.5c8.8-8.8,8.8-22.9,0-31.7l-87.4-87.6h334.3c12.4,0,22.4-10,22.4-22.4S430.5,120.4,418.1,120.4z"/>
+            </svg>
+
+ </div>

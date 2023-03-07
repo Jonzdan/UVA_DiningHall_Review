@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, AfterViewInit, ElementRef, Output, EventEmitter} from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, ElementRef, Output, EventEmitter, HostListener} from '@angular/core';
 import { AccountService } from '../account.service';
 
 @Component({
@@ -6,9 +6,17 @@ import { AccountService } from '../account.service';
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.css']
 })
+
+
+  
+
+
 export class NavComponent implements OnInit {
 
+  
 
+
+  dropDown:boolean = false
   private id:any  = {
     "Observatory Hill Dining Hall": "ohill",
     "Runk Dining Hall": "runk",
@@ -17,6 +25,12 @@ export class NavComponent implements OnInit {
 
   constructor(private elementRef: ElementRef, private as: AccountService) { }
 
+  @HostListener('document:click', ['$event.target'])
+    onClick(event: HTMLLIElement) {
+      if (event.tagName !== "circle" && this.dropDown) {
+        this.dropDown = false
+      }
+    }
   ngOnInit(): void {
 
   }
@@ -27,9 +41,10 @@ export class NavComponent implements OnInit {
   }
 
   showAccountOptions(e:any) {
-    if (!this.as.signedIn) { //not available
+    this.dropDown = !this.dropDown
+    /* if (!this.as.signedIn) { //not available currently bypass
       return
-    }
+    } */
     //else show options *dropdown*
     
   }

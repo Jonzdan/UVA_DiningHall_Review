@@ -1,21 +1,24 @@
 <div class="bg-gradient-to-bl from-red-500 via-orange-400/90 to-yellow-400/70 w-[100vw] h-[100vh] fixed overflow-hidden">
-    <div class="h-full w-full m-auto flex relative">
-        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65vw] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[500px]">
+    <div class="h-full w-full m-auto flex relative overflow-y-auto">
+        <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65w] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[500px] shadow-black/20 shadow-lg">
             <div class="lg:mt-8 md:mt-6 my-4 min-h-max flex-col justify-end flex flex-grow w-full text-center">
                <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Register </h2> <!-- worry about scrollbar showing when screen is stretched -->
             </div>
             <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow-[3] w-full">
                 <div class="flex flex-col w-full align-middle flex-grow justify-center">
-                    <label for="email" class="text-left font-[450] lg:text-base text-sm mb-0 align-middle text-gray-800 block lg:pt-2 pt-1"> Email Address </label>
-                    <input type="email" name="email" placeholder="Type your email" id="email" appNoAutocompleteBg formControlName="email"  class="lg:text-lg focus:placeholder:text-transparent text-base border-b-2 mt-0 align-middle text-gray-800 rounded-sm font-medium border-gray-300 outline-none py-1" >
+                    <label for="email" class="text-left font-[450] lg:text-base text-sm mb-0 align-middle text-gray-800 block lg:pt-2 pt-1 indent-2"> Email Address </label>
+                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': emailError , 'border-gray-300': !emailError}">
+                       <input type="email" name="email" placeholder="example@email.com" id="email" appNoAutocompleteBg formControlName="email"  class="lg:text-base w-full focus:placeholder:text-transparent text-sm font-medium outline-none indent-3"  > 
+                    </div>
+                    
                     <div class="relative mb-2 mt-1" >
                         <div *ngIf="(email?.dirty || email?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': emailLoading, 'hidden': !emailLoading}">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': emailLoading, 'hidden': !emailLoading}">
                                 <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                     <!-- implement check later -->
                                 </div>
                             </div>
-                            <div *ngIf="email?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}">
+                            <div *ngIf="email?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="indent-3">
                                 <h3 *ngIf="email?.errors?.['required']; else e1" class=""> Required Field </h3>
                                 <ng-template #e1>
                                     <h3 *ngIf="email?.errors?.['email']; else e2" class=""> Invalid Email </h3>
@@ -30,16 +33,18 @@
                     </div>
                 </div>
                 <div class="inline-flex flex-col w-full align-middle flex-grow justify-center">
-                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 align-middle"> New Username </label>
-                    <input type="text" name="user" placeholder="Type your username" id="user" appNoAutocompleteBg formControlName="user"  class="lg:text-lg text-base border-b-2 rounded-sm align-middle mb-0 text-gray-800 font-medium border-gray-300 outline-none py-1 focus:placeholder:text-transparent">
+                    <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 align-middle indent-2"> New Username </label>
+                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': userError , 'border-gray-300': !userError}">
+                        <input type="text" name="user" placeholder="Must be at least 6 characters" id="user" appNoAutocompleteBg formControlName="user"  class="lg:text-base text-sm border-b-2 rounded-sm align-middle mb-0 text-gray-800 font-medium w-full border-none outline-none py-1 focus:placeholder:text-transparent indent-3">
+                    </div>
                     <div class="relative mb-2 mt-1">
                         <div *ngIf="(user?.dirty || user?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
                                 <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                     <!-- implement check later -->
                                 </div>
                             </div>
-                            <div *ngIf="user?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="">
+                            <div *ngIf="user?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="indent-3">
                                 <div *ngIf="user?.errors?.['required']; else u1" > Required Field </div>
                                 <ng-template #u1>
                                     <div *ngIf="user?.errors?.['minlength']; else u2"> Username Length Must Be At Least 6 Characters</div>
@@ -56,17 +61,19 @@
                 </div>
                 <ng-container [formGroup]="passGroup" class="flex flex-grow">
                     <div class="inline-flex flex-col w-full flex-grow justify-center">
-                        <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1"> New Password </label>
-                        <input type="password" name="pass1" placeholder="Type your password" formControlName="firstPass" appNoAutocompleteBg class="lg:text-lg text-base border-b-2  align-middle mb-0 text-gray-800 font-medium border-gray-300 outline-none py-1 focus:placeholder:text-transparent" >
+                        <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 indent-2"> New Password </label>
+                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': firstPassError || bothPassError, 'border-gray-300': !firstPassError && !bothPassError}">
+                            <input type="password" name="pass1" placeholder="Must be at least 8 characters" formControlName="firstPass" appNoAutocompleteBg class="lg:text-base text-sm border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-3" >
+                        </div>
                         <div class="relative mb-2 mt-1" >
                             
                             <div *ngIf="(firstPass?.dirty || firstPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': firstPassLoading, 'hidden': !firstPassLoading}">
+                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': firstPassLoading, 'hidden': !firstPassLoading}">
                                     <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                         <!-- implement check later -->
                                     </div>
                                 </div>
-                                <div *ngIf="firstPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
+                                <div *ngIf="firstPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}" class="indent-3">
                                     <h3 *ngIf="firstPass?.errors?.['required']; else minLengthValid"> Required Field </h3>
                                     <ng-template #minLengthValid>
                                         <h3 *ngIf="firstPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
@@ -83,16 +90,18 @@
                         </div>
                     </div>
                     <div class="inline-flex flex-col w-full flex-grow justify-center">
-                        <label for="pass2" class="text-left font-[450] lg:text-base text-sm mb-0 text-gray-800 block lg:pt-3 pt-2"> Re-enter Password </label>
-                        <input type="password" name="pass2" placeholder="Re-enter your password" formControlName="secondPass" appNoAutocompleteBg class="lg:text-lg text-base border-b-2  align-middle text-gray-800 font-medium border-gray-300 outline-none py-1 focus:placeholder:text-transparent" >
+                        <label for="pass2" class="text-left font-[450] lg:text-base text-sm mb-0 text-gray-800 block lg:pt-3 pt-2 indent-2"> Re-enter Password </label>
+                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': secondPassError || bothPassError, 'border-gray-300': !secondPassError && !bothPassError}">
+                            <input type="password" name="pass2" placeholder="Must be at least 8 characters" formControlName="secondPass" appNoAutocompleteBg class="lg:text-base text-sm  align-middle text-gray-800 font-medium outline-none py-1 focus:placeholder:text-transparent indent-3 w-full" >
+                        </div>
                         <div class="relative mb-2 mt-1" >
                             <div *ngIf="(secondPass?.dirty || secondPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-4 h-4 flex visible " [ngClass]="{'animate-spin flex': secondPassLoading, 'hidden': !secondPassLoading}">
+                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': secondPassLoading, 'hidden': !secondPassLoading}">
                                     <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                         <!-- implement check later -->
                                     </div>
                                 </div>
-                                <div *ngIf="secondPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
+                                <div *ngIf="secondPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}" class="indent-3">
                                     <h3 *ngIf="secondPass?.errors?.['required']; else minLengthValid" > Required Field </h3>
                                     <ng-template #minLengthValid>
                                         <h3 *ngIf="secondPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
@@ -132,5 +141,17 @@
     <div>
         
     </div>
+</div>
+<div class="absolute top-0 translate-y-[-150px] translate-x-[-200px] text-transparent w-[440.5px] h-[291.1px]">
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- Generator: Adobe Illustrator 25.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+    <a href="https://pixlok.com/icons/back-svg-icon-free-download/" class="hidden">House photo created by Search png - www.pixlok.com</a>
+    <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"  class="scale-[0.04] hover:cursor-pointer hover:scale-[0.045]" (click)="switchToHomePage($event)"
+        viewBox="0 0 440.5 291.1" xml:space="preserve" >
+        <title class="bg-transparent "> Return to home page </title>
+    <path d="M418.1,120.4H87.8l82-82.1c8.8-8.8,8.8-23,0-31.7c-8.8-8.8-22.9-8.8-31.7,0L0,144.8l139.5,139.7c4.4,4.4,10.1,6.6,15.9,6.6
+        s11.5-2.2,15.9-6.5c8.8-8.8,8.8-22.9,0-31.7l-87.4-87.6h334.3c12.4,0,22.4-10,22.4-22.4S430.5,120.4,418.1,120.4z"/>
+    </svg>
+
 </div>
 

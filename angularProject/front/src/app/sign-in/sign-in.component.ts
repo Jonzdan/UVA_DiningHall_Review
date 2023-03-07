@@ -21,6 +21,7 @@ export class SignInComponent implements OnInit {
   invalidPassSubmit:boolean = false; invalidUserSubmit:boolean = false;
   private currentSubmission:boolean = false;
   loginButtonText: string = "LOGIN"
+  userError:boolean = false; passError:boolean = false;
   constructor(private as: AccountService, private router: Router) { }
 
   ngOnInit(): void {
@@ -31,20 +32,24 @@ export class SignInComponent implements OnInit {
     
     this.user?.valueChanges.pipe(
       tap(()=> this.userLoading = true),
-      debounceTime(500),
+      debounceTime(400),
     ).subscribe((res)=>{
       this.userLoading = false; this.invalidUserSubmit = false;
       const obj = this.helper("user", this.user)
       this.user?.setErrors(obj)
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.userError = true} 
+      else { this.userError = false }
     })
 
     this.password?.valueChanges.pipe(
       tap(()=>this.passLoading = true),
-      debounceTime(500)
+      debounceTime(400)
     ).subscribe((res)=>{
       this.passLoading = false; this.invalidPassSubmit = false;
       const obj = this.helper("password", this.password)
       this.password?.setErrors(obj)
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.passError = true} 
+      else { this.passError = false }
     })
   }
 
@@ -170,4 +175,9 @@ export class SignInComponent implements OnInit {
     }
     return obj
   }
+
+  switchToHomePage(e:any) {
+    this.router.navigateByUrl(``) //add animation later
+  }
+
 }

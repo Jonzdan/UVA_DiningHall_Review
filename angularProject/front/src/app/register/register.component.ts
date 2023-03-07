@@ -20,7 +20,9 @@ export class RegisterComponent implements OnInit {
   regButtonText: string = "REGISTER"
   showPopup:boolean = false
   invalidEmailSubmit:boolean = false; invalidUserSubmit:boolean = false;
+  emailError: boolean = false; userError:boolean = false; secondPassError: boolean = false; firstPassError:boolean = false; bothPassError:boolean = false
   private currentSubmission: boolean = false;
+  
 
   constructor(private as: AccountService, private route: Router) { }
 
@@ -42,27 +44,30 @@ export class RegisterComponent implements OnInit {
 
     this.email?.valueChanges.pipe(
       tap(()=> this.emailLoading = true),
-      debounceTime(500),
-      distinctUntilChanged(),
+      debounceTime(400),
     ).subscribe((res)=> {
       this.emailLoading = false; this.invalidEmailSubmit = false; 
-      this.email?.setErrors({'email':Validators.email(this.email), 'required':Validators.required(this.email)})
+      const obj: {[index:string]:any} = {'email': Validators.email(this.email)}
+      if (this.email.value.length === 0 ) { obj['required']=true} else { obj['required']=false}
+      this.email?.setErrors(obj)
+      if (obj?.['email'] || obj?.['required']) { this.emailError = true; }
+      else { this.emailError = false; }
     })
 
     this.passGroup?.valueChanges.pipe(
-      tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true; this.hideErrorText = true}),
-      debounceTime(500),
-      distinctUntilChanged(),
+      tap(()=> { this.firstPassLoading = true; this.secondPassLoading = true; this.hideErrorText = true}),
+      debounceTime(400),
     ).subscribe((res)=> {
       this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false; 
       //this.passGroup?.setErrors(this.matchingPasswords())
+      if (this.passGroup?.errors?.['matchingPasswords']) { this.bothPassError = true}
+      else { this.bothPassError = false}
       
     })
 
     this.firstPass?.valueChanges.pipe(
       //tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true}),
-      debounceTime(500),
-      distinctUntilChanged(),
+      debounceTime(400),
     ).subscribe((res)=>{
       const obj: {[index:string]:any} = {}
       if (this.firstPass.value.length < 8 && this.firstPass.value.length > 0) {
@@ -75,13 +80,14 @@ export class RegisterComponent implements OnInit {
         obj['required'] = true
       }
       this.firstPass?.setErrors(obj)
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.firstPassError = true} 
+      else { this.firstPassError = false }
       //this.firstPassLoading = false; this.secondPassLoading = false
     })
 
     this.secondPass?.valueChanges.pipe(
       //tap(()=> {this.secondPassLoading = true; this.firstPassLoading = true}),
-      debounceTime(500),
-      distinctUntilChanged(),
+      debounceTime(400),
     ).subscribe((res)=>{
       const obj: {[index:string]:any} = {}
       if (this.secondPass.value.length < 8 && this.secondPass.value.length > 0) {
@@ -95,12 +101,13 @@ export class RegisterComponent implements OnInit {
       }
       //this.secondPassLoading = false; this.firstPassLoading = false
       this.secondPass?.setErrors(obj)
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.secondPassError = true} 
+      else { this.secondPassError = false }
     })
 
     this.user?.valueChanges.pipe(
       tap((e)=> this.userLoading = true),
-      debounceTime(500),
-      distinctUntilChanged(),
+      debounceTime(400),
     ).subscribe((res)=>{
       const obj: {[index:string]:any} = {}
       if (this.user.value.length < 6 && this.user.value.length > 0) { //change to just helper function
@@ -114,6 +121,8 @@ export class RegisterComponent implements OnInit {
       }
       this.userLoading = false; this.invalidUserSubmit = false;
       this.user?.setErrors(obj)
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.userError = true} 
+      else { this.userError = false }
       
     },
     )
@@ -272,6 +281,10 @@ export class RegisterComponent implements OnInit {
     return error
   }
 
+  switchToHomePage(e:any) {
+    this.route.navigateByUrl(``) //add animation later
+  }
+
 
   ngOnDestroy(): void {
   }
@@ -279,6 +292,7 @@ export class RegisterComponent implements OnInit {
   matchingPasswords():ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const password = control.get('firstPass')?.value; const confirmPassword = control.get('secondPass')?.value
+      if (password.length < 8 || password.length > 32 || confirmPassword.length < 8 || confirmPassword > 32) { return null } //doesn't fit
       return password === confirmPassword ? null : { matchingPasswords: true}
   }
 }

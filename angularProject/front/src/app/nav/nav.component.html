@@ -1,37 +1,35 @@
 <div id="navbar" class="flex align-middle justify-center w-full shadow-md" routerLinkActive="hidden">
     <h1 class="font-extralight xl:text-6xl lg:text-4xl sm:text-lg md:text-lg text-base align-center justify-center self-center first-letter:text-amber-400  " appTextShadow> HooFood </h1> 
-    <ul class="font-medium xl:text-lg lg:text-lg sm:text-base md:text-base text-sm flex justify-end items-center w-full flex-1 shadow-inner">
+    <ul class="font-medium xl:text-lg lg:text-lg sm:text-base md:text-base text-sm flex justify-end items-center w-full flex-1">
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105" routerLink="../reviews" appTextShadow>
+            <button class="hover:text-amber-400/70 scale-105" routerLink="../reviews" appTextShadow>
                 Reviews
             </button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 "  routerLink="../aboutus"  appTextShadow> About us</button>
+            <button class="hover:text-amber-400/70  scale-105 "  routerLink="../aboutus"  appTextShadow> About us</button>
             
 
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 " routerLink="../login" appTextShadow>  Sign in  </button>
+            <button class="hover:text-amber-400/70 scale-105 " routerLink="../login" appTextShadow>  Sign in  </button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 hover:shadow-sm scale-105 " routerLink="../register" appTextShadow>  Register  </button>
+            <button class="hover:text-amber-400/70 scale-105 " routerLink="../register" appTextShadow>  Register  </button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 relative overflow-hidden flex flex-row items-center z-50" >
             <!-- Written by Treer (gitlab.com/Treer) -->
             <div class="flex flex-col flex-grow relative m-1"> <!-- fix height later (when screen size is small)-->
-                <svg class="scale-[.4] lg:scale-[.5] m-0 " (click)="showAccountOptions($event)"
+                <svg class="scale-[.4] lg:scale-[.5] lg:hover:scale-[.55] hover:scale-[.45] m-0 hover:cursor-pointer rounded-full shadow-lg shadow-black/20 " (click)="showAccountOptions($event)" 
                 version="1.1"
                 xmlns="http://www.w3.org/2000/svg" 
                 xmlns:xlink="http://www.w3.org/1999/xlink" 
                 width="50" 
                 height="50"
                 fill="white">
-        
-                <title>User</title>
                 
                 <defs>
                     <clipPath id="circular-border">
@@ -47,11 +45,17 @@
                 <circle cx="25" cy="45.83" r="17.1" clip-path="url(#circular-border)" />
                 
                 </svg>
-                <div class="" [ngClass]="{'flex ': signedIn, 'hidden': !signedIn}" > <!-- figure out how to do a dropdown -->
+                <div  [ngClass]="{'flex': dropDown, 'hidden': !dropDown}" class=" flex-col relative w-full h-full">
+                    <ul class="fixed z-50 h-[50vh] w-[15vw] top-[8vh] left-[84vw] bg-neutral-50 text-black rounded-md shadow-black/15 shadow-lg drop-shadow-md flex"> <!-- fix where svg appears on smaller screens... -->
+                        <li></li>
+                        <li></li>
+                        <li></li>
+                        <li></li>
+                    </ul>
                 </div>
             </div>
             
-            <h3 class="lg:text-sm text-xs font-light hover:scale-[1.02] " appTextShadow > {{ accountText }} </h3>
+            <h3 class="lg:text-sm text-xs font-light hover:scale-[1.02]" appTextShadow > {{ accountText }} </h3>
         </li>
     </ul>
 </div>
