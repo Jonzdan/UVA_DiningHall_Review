@@ -1,23 +1,23 @@
 <div id="navbar" class="flex align-middle justify-center w-full shadow-md" routerLinkActive="hidden">
-    <h1 class="font-extralight xl:text-6xl lg:text-4xl sm:text-lg md:text-lg text-base align-center justify-center self-center first-letter:text-amber-400  " appTextShadow> HooFood </h1> 
-    <ul class="font-medium xl:text-lg lg:text-lg sm:text-base md:text-base text-sm flex justify-end items-center w-full flex-1">
+    <h1 class="text xl:first-letter:text-5xl xl:text-4xl lg:first-letter:text-4xl lg:text-3xl sm:first-letter:text-2xl sm:text-lg md:first-letter:text-3xl md:text-2xl first-letter:text-xl text-base align-center justify-center self-center tracking-tight first-letter:text-amber-400 indent-3 " appTextShadow> HOO<span class="italic"></span><span class="xl:text-5xl lg:text-4xl md:text-3xl sm:text-2xl text-xl">F</span>OOD </h1> 
+    <ul class="font-semibold xl:text-sm lg:text-sm sm:text-xs md:text-xs text-xs flex justify-end items-center w-full flex-1">
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
             <button class="hover:text-amber-400/70 scale-105" routerLink="../reviews" appTextShadow>
-                Reviews
+                REVIEWS
             </button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70  scale-105 "  routerLink="../aboutus"  appTextShadow> About us</button>
+            <button class="hover:text-amber-400/70  scale-105 "  routerLink="../aboutus"  appTextShadow>ABOUT US</button>
             
 
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 scale-105 " routerLink="../login" appTextShadow>  Sign in  </button>
+            <button class="hover:text-amber-400/70 scale-105 " routerLink="../login" appTextShadow>SIGN IN</button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
-            <button class="hover:text-amber-400/70 scale-105 " routerLink="../register" appTextShadow>  Register  </button>
+            <button class="hover:text-amber-400/70 scale-105 " routerLink="../register" appTextShadow>REGISTER</button>
             
         </li>
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 relative overflow-hidden flex flex-row items-center z-50" >
@@ -46,11 +46,20 @@
                 
                 </svg>
                 <div  [ngClass]="{'flex': dropDown, 'hidden': !dropDown}" class=" flex-col relative w-full h-full">
-                    <ul class="fixed z-50 h-[50vh] w-[15vw] top-[8vh] left-[84vw] bg-neutral-50 text-black rounded-md shadow-black/15 shadow-lg drop-shadow-md flex"> <!-- fix where svg appears on smaller screens... -->
-                        <li></li>
-                        <li></li>
-                        <li></li>
-                        <li></li>
+                    <ul class="fixed items-center z-50 h-[50vh] lg:w-[15vw] md:w-[20vw] sm:w-[25vw] w-[30vw] lg:left-[84vw] md:left-[79vw] sm:left-[74vw] left-[69vw] top-[50px] bg-neutral-50 text-black rounded-md shadow-black/15 shadow-lg drop-shadow-md flex flex-col"> <!-- fix where svg appears on smaller screens... -->
+                        <li class="flex-grow flex flex-shrink flex-row border-b-[1px] border-b-neutral-600 w-full p-2"> <!-- user info -->
+                            <img src="" alt="N/A" class="flex flex-grow">
+                            <div class="flex flex-grow-[4] flex-col text-start indent-1 text-neutral-700">
+                                <h3 class="flex-wrap flex overflow-auto lg:text-base sm:text-xs font-normal leading-tight" > Bob Ross</h3> <!-- name -->
+                                <h3 class="flex-wrap flex lg:text-base sm:text-xs font-normal leading-tight"> @Bob_Ross </h3> <!-- some type of @ -->
+                            </div>
+                        </li>
+                        <li class="flex-grow-[3] flex"> <!-- apperance/your account? -->
+                            temp
+                        </li>
+                        <!-- any collapsible options -->
+                        <li class="flex-grow-[3] flex"> 2 </li> <!-- settings-->
+                        <li class="flex-grow-[3] flex"> 3 </li> <!-- sign out-->
                     </ul>
                 </div>
             </div>

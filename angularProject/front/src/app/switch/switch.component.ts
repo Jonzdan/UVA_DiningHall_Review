@@ -16,13 +16,12 @@ export class SwitchComponent implements OnInit {
   @ViewChildren('change')
   public navBtnItems!: QueryList <ElementRef<HTMLLIElement>>
 
-  public name1:string = 'Observatory Hill Dining Hall'
-  public name2:string = 'Newcomb Dining Hall'
-  public name3:string = 'Runk Dining Hall'
+  name1:string = 'Observatory Hill Dining Hall'; name1Boolean:boolean = true;
+  name2:string = 'Newcomb Dining Hall'; name2Boolean:boolean = false;
+  name3:string = 'Runk Dining Hall'; name3Boolean: boolean = false;
   public b1: boolean = true
   public b2: boolean = false
-  private bgColor = 'bg-green-300/20'
-  private bgEdges = 'rounded-full'
+  private bgColor = 'bg-[#EB5F0C]'
 
   constructor(private elementRef: ElementRef) { }
 
@@ -34,55 +33,26 @@ export class SwitchComponent implements OnInit {
   }
   
   changeData(event: any): void { //add changing colors ** DELETE THIS IN FUTURE, AND JUST ADD NGCLASS CONDITIONALS**
-    let name = event.target.textContent
-    name = name.trim()
-    let classes = event.target.className
-    if (classes.indexOf(this.bgColor) === -1) {
-      event.target.className = classes + " " + this.bgColor + " " + this.bgEdges + " " 
-    }
-    for (let child of this.navSwi) {
-      let children: HTMLCollection = child.nativeElement.children //finish thisup
-      for (let i = 0; i < children.length; i++) {
-        let c = children[i]
-        while (c.firstElementChild != null) {
-          c = c.firstElementChild
-          let tempClassInd = c.className.indexOf(this.bgEdges)
-          if (tempClassInd !== -1 && c.textContent?.trim() !== name) {
-            c.className = c.className.slice(0, tempClassInd) + c.className.slice(tempClassInd+this.bgEdges.length)
-            tempClassInd = c.className.indexOf(this.bgColor)
-            c.className = c.className.slice(0, tempClassInd) + c.className.slice(tempClassInd+this.bgColor.length)
-          }
-        }
-        let tempClass = c.textContent?.trim()
-        if (tempClass !== name) {
-          let ind = c.className.indexOf(this.bgEdges)
-          if (ind !== -1) {
-            c.className = c.className.slice(0, ind) + c.className.slice(ind+this.bgEdges.length)
-            ind = c.className.indexOf(this.bgColor)
-            c.className = c.className.slice(0, ind) + c.className.slice(ind+this.bgColor.length)
-          }
-        }
+    const name = event.target.innerText
+    switch (name) {
+      case this.name1: {
+        this.name1Boolean = true; this.name2Boolean = false; this.name3Boolean = false;
+        break
       }
-      
-    }
-    for (let child of this.navBtnItems) {
-      let children: HTMLCollection = child.nativeElement.children
-      if (name === 'Newcomb Dining Hall') {
-        children[2].className = 'flex'
-        children[1].className = 'hidden'
-        children[0].className = 'hidden'
+      case this.name2: {
+        this.name2Boolean = true; this.name1Boolean = false; this.name3Boolean = false;
+        break
       }
-      else if (name === 'Observatory Hill Dining Hall') {
-        children[0].className = 'flex'
-        children[1].className = 'hidden'
-        children[2].className = 'hidden'
+      case this.name3: {
+        this.name3Boolean = true; this.name1Boolean = false; this.name2Boolean = false;
+        break
       }
-      else {
-        children[1].className = 'flex'
-        children[2].className = 'hidden'
-        children[0].className = 'hidden'
+      default: {
+        console.error(event)
       }
     }
+
+    //also switch data...
 
     
   }

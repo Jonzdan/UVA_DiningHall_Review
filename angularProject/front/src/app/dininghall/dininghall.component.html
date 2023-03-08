@@ -1,5 +1,5 @@
 <div id= '{{ short }}' class="w-full">
-    <h2 class="text-center block font-extrabold lg:text-4xl md:text-2xl: sm:text-xl: text-lg w-full m-auto bg-amber-600 pb-1 pr-2 pl-2 rounded bg-blend-luminosity align-middle justify-center" appTextShadow> {{ text }} </h2>
+    <h2 class="text-center block font-bold font-sans tracking-tighter lg:text-4xl md:text-2xl: sm:text-xl: text-lg w-full m-auto lg:py-5 md:py-4 py-2 px-2 rounded bg-neutral-200 align-middle justify-center text-[#2b3758]" > {{ text }} </h2>
     <!-- create stations here -->
     <div *ngFor="let head of headers">
         <app-station-name [head] = "head" [short]="short">
