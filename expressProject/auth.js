@@ -51,15 +51,16 @@ async function validateFields(req, res, next) {
 async function hasWhiteSpace(array) {
     for (let i = 0; i < array.length; i++) {
         if (array[i] !== undefined && /\s/.test(array[i])) {
-            return false
+            return true
         }
     }
-    return true
+    return false
 }
 
+
 async function loggedIn_Or_Not(req, res, next) {
-    if (req.cookies.SESSION_ID !== undefined) {
-        const response = await identifierSchema.find({session_token: req.cookies.SESSION_ID})
+    if (req.signedCookies.SESSION_ID !== undefined) {
+        const response = await identifierSchema.find({session_token: req.signedCookies.SESSION_ID})
         if (response && Object.keys(response).length > 1) {res.status(504).end(); return }
         if (response && Object.keys(response).length === 1) {
             if (response[0].userID !== undefined) { //associated user, so authenticated session token
@@ -71,6 +72,10 @@ async function loggedIn_Or_Not(req, res, next) {
             res.status(504).end(); return
         }
     }
+    else {
+       next() 
+    }
+    
 }
 
 

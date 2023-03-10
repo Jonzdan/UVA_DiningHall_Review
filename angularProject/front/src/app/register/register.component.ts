@@ -197,6 +197,7 @@ export class RegisterComponent implements OnInit {
 
       })
       const msg = await this.as.createAccount(this.inputForm)
+      console.log(msg)
 
       
     }

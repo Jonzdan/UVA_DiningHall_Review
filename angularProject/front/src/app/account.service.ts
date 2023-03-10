@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Form, FormGroup } from '@angular/forms';
 import { HttpClient, HttpEvent, HttpEventType, HttpRequest, HttpResponse } from '@angular/common/http';
 import { BehaviorSubject, catchError, last, map, Subject, tap } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +21,7 @@ export class AccountService {
     return this._signedIn
   }
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private router: Router) { }
 
   async createAccount(form: FormGroup) {
     let obj: {[index:string]: any} = {}
@@ -75,7 +76,7 @@ export class AccountService {
       }),
       last(),
       catchError((err, caught)=>{
-        this.eventMsg.next(err.error.code)
+        //this.eventMsg.next(err.error?.code)
         throw err
       }),
       ).subscribe((res)=> {
@@ -109,9 +110,10 @@ export class AccountService {
         'content-type':'application/json'
       },
       observe: 'response',
+      reportProgress: true
     }).pipe(
       tap(()=> {
-        if (!sent) {
+        if (!sent) { //add time limit
           sent = true
           this.eventLoginMsg.next("Submitting...")
         }
@@ -120,10 +122,18 @@ export class AccountService {
   
     //** NEXT STEP::: FINISH INVALID FORM APPEARNCE */
     req.subscribe((res: HttpResponse<Object>)=> {
-      if (res.body != null) { //change authToken
+      if (res.body !== null) { 
           this.accountInfo['username'] = (res.body as loginResponse)?.username
           this.accountText = (res.body as loginResponse)?.username
           this._signedIn = true
+          setTimeout(() => {
+            this.eventLoginMsg.next("Done!")
+            setTimeout(()=>{
+              this.eventLoginMsg.next("LOGIN") //ew??
+              this.router.navigateByUrl('/')
+            },400)
+          }, 400);
+          
           //redirect to signed in navigation...
           //remove sign-in option/register when signed in
           //add sign-out option
@@ -133,12 +143,7 @@ export class AccountService {
         //invalid request
         alert("invalid request")
       }
-      setTimeout(() => {
-        this.eventLoginMsg.next("Done!")
-        setTimeout(()=>{
-          this.eventLoginMsg.next("LOGIN") //ew??
-        },500)
-      }, 500);
+      
         
       
     })
@@ -165,9 +170,30 @@ export class AccountService {
     }
   }
 
+  signOut() {
+    const clearCookies = this.http.post('./user/signOut', this.accountInfo, {
+      observe: "response"
+    } )
+    clearCookies.subscribe((res: HttpResponse<Object>)=> {
+      if ((res.body as signOutResponse)?.msg === "Signed Out Successfully") { //signed out successfully
+        this._signedIn = false; this.accountInfo = {}; this.accountText = "Not Signed In"
+      }
+      else {
+        console.error(res)
+      }
+      
+    })
+    //send request to backend to clear all cookies/tokens
+    
+  }
+
 }
 
 interface loginResponse {
   username: string,
   //...
+}
+
+interface signOutResponse {
+  msg: string
 }

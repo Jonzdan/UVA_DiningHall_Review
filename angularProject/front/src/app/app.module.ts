@@ -19,7 +19,8 @@ import { AboutUsComponent } from './about-us/about-us.component';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { TextShadowDirective } from './text-shadow.directive';
 import { ReactiveFormsModule } from '@angular/forms';
-import { NoAutocompleteBgDirective } from './no-autocomplete-bg.directive'
+import { NoAutocompleteBgDirective } from './no-autocomplete-bg.directive';
+import { SettingsComponent } from './settings/settings.component'
 
 
 @NgModule({
@@ -40,6 +41,7 @@ import { NoAutocompleteBgDirective } from './no-autocomplete-bg.directive'
     PageNotFoundComponent,
     TextShadowDirective,
     NoAutocompleteBgDirective,
+    SettingsComponent,
   ],
   imports: [
     BrowserModule,

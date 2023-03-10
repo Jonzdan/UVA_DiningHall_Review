@@ -7,12 +7,11 @@ const { csrf, validateFields, loggedIn_Or_Not } = require('../auth')
 const tokenSchema = require('../models/token')
 
 router.use(csrf)
-router.use(validateFields)
-router.use(loggedIn_Or_Not)
 
 
-router.post('/register', async(req,res)=>{
+router.post('/register', [validateFields, loggedIn_Or_Not], async(req,res)=>{
     const data = req.body //should be reg form
+    console.log('hello?')
     /* Validation Here */
     //authenticate(data)
     /* Saving to DB */
@@ -20,10 +19,11 @@ router.post('/register', async(req,res)=>{
         //throw new Error()
         const existingUser$ = await userSchema.find({$or: [{email: data.email},{username: data.user}]})
         if (existingUser$ && Object.keys(existingUser$).length === 0) {
+            
             const obj = {
-                email: existingUser$[0].email,
-                username: existingUser$[0].user,
-                password: existingUser$[0].firstPass,
+                email: data.email,
+                username: data.user,
+                password: data.firstPass,
             }
             const newUser = new userSchema(obj)
             newUser.save()
@@ -50,7 +50,7 @@ router.post('/register', async(req,res)=>{
     
 })
 
-router.post('/login', async(req, res)=>{ //make sure login is only possible if not alr logged in
+router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res)=>{ //make sure login is only possible if not alr logged in (i.e. multiple ppl logging in)
     const data = req.body
     const foundUser$ = await userSchema.find({username: data.user, password: data.password})
     if (foundUser$ && Object.keys(foundUser$).length === 1) { //send sessionID, authentication Token
@@ -91,6 +91,20 @@ router.post('/login', async(req, res)=>{ //make sure login is only possible if n
         res.status(401).json({code:"01101111011101"})
     }
     
+})
+
+router.post('/signOut', async(req, res)=> { //have some other way to clear users (if they don't log out)
+    const data = req.body; const session = req.signedCookies.SESSION_ID; const csrf = req.cookies.CSRF_TOKEN
+    const response = await tokenSchema.find({session_token: session, csrf_token: csrf})
+    const user = await userSchema.find({_id: response[0].userID, username: data.username})
+    if (Object.keys(response).length === 0 || Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
+        res.status(401).end(); return
+    }
+    else { //valid user, just remove linked user, and clear cookies on the res back
+        await tokenSchema.findOneAndUpdate({session_token: session, csrf_token: csrf}, {$unset: {userID: '', SESSION_ID: ''}})
+        res.clearCookie('CSRF_TOKEN'); res.clearCookie('SESSION_ID'); //H_CSRF_TOKEN should auto be removed maybe??
+        res.status(200).json({msg: "Signed Out Successfully"})
+    }
 })
 
 
