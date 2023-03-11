@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Form, FormGroup } from '@angular/forms';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpRequest, HttpResponse } from '@angular/common/http';
-import { BehaviorSubject, catchError, last, map, Subject, tap } from 'rxjs';
+import { BehaviorSubject, catchError, last, map, Subject, tap, timeout, TimeoutError } from 'rxjs';
 import { Router } from '@angular/router';
 
 @Injectable({
@@ -29,7 +29,6 @@ export class AccountService {
     return this.http.post(_url, '', {
       observe: 'response'
     }).subscribe((res: HttpResponse<any>) => {
-      console.log(res.body)
       if (res.body === '1110111' || res.status !== 200 || (res.body as loginResponse)?.username === undefined) { 
         return
       }
@@ -45,11 +44,11 @@ export class AccountService {
       if (control instanceof FormGroup) { //only assuming one nested group
         Object.keys(control.controls).forEach((f)=> {
           const data = control.get(f)
-          obj[f] = data?.value.trim()
+          obj[f] = data?.value
         })
       }
       else {
-        obj[field] = control?.value.trim() //could just ban spaces
+        obj[field] = control?.value //could just ban spaces
       }
       
     })
@@ -89,13 +88,33 @@ export class AccountService {
         })
       
       }),
+      timeout(5000),
       last(),
       catchError((err, caught)=>{
-        //this.eventMsg.next(err.error?.code)
+        if (err.error?.codes !== undefined) { //server-side error in validation
+          for(let i = 0; i < err.error?.codes.length; i++) {
+            switch (err.error?.codes[i]) {
+              case "1000": { this.eventMsg.next("FIRSTPASS_ERROR_MAX"); break }
+              case "1001": { this.eventMsg.next("FIRSTPASS_ERROR_MIN"); break }
+              case "1101": { this.eventMsg.next("USER_ERROR_MIN"); break }
+              case "1100": { this.eventMsg.next("USER_ERROR_MAX"); break }
+              case "2000": { this.eventMsg.next("SECONDPASS_ERROR_MAX"); break }
+              case "2001": { this.eventMsg.next("SECONDPASS_ERROR_MIN"); break }
+              case "3000": { this.eventMsg.next("PASS_MATCHING_ERROR"); break }
+              case "1111": { this.eventMsg.next("EMAIL_ERROR"); break }
+              case "u0000": { this.eventMsg.next("USER_WHITESPACE_ERROR"); break }
+              case "f0000": { this.eventMsg.next("FIRSTPASS_WHITESPACE_ERROR"); break }
+              case "s0000": { this.eventMsg.next("SECONDPASS_WHITESPACE_ERROR"); break }
+              case "e0000": { this.eventMsg.next("EMAIL_WHITESPACE_ERROR"); break }
+            }
+          }
+        }
+        else if (err.error?.code !== undefined) {
+          this.eventMsg.next(err.error?.code)
+        }
         throw err
       }),
       ).subscribe((res)=> {
-        console.log(res)
 
     })
     /*
@@ -110,11 +129,11 @@ export class AccountService {
       if (control instanceof FormGroup) { //only assuming one nested group
         Object.keys(control.controls).forEach((f)=> {
           const data = control.get(f)
-          obj[f] = data?.value.trim()
+          obj[f] = data?.value
         })
       }
       else {
-        obj[field] = control?.value.trim() //could just ban spaces
+        obj[field] = control?.value //could just ban spaces
       }
       
     })
@@ -131,17 +150,15 @@ export class AccountService {
       tap(()=> {
         
       }),
+      timeout(5000),
       last(),
       catchError((err, caught) => {
         if (err.error?.code === '01101111011101') {
           this.eventLoginMsg.next("ERROR")
         }
-        else if (err.error?.code === "4444") { //work on more
-          this.eventLoginMsg.next("WHITESPACE_ERROR")
-        }
         else if (err.error?.codes !== undefined) { //server-side error in validation
           for(let i = 0; i < err.error?.codes.length; i++) {
-            switch (err.error?.codes[0]) {
+            switch (err.error?.codes[i]) {
               case "1000": {
                 this.eventLoginMsg.next("PASS_ERROR_MAX")
                 break
@@ -158,8 +175,19 @@ export class AccountService {
                 this.eventLoginMsg.next("USER_ERROR_MAX")
                 break
               }
+              case "u0000": {
+                this.eventLoginMsg.next("USER_WHITESPACE_ERROR")
+                break
+              }
+              case "p0000": {
+                this.eventLoginMsg.next("PASS_WHITESPACE_ERROR")
+                break
+              }
             }
           }
+        }
+        else if (err instanceof TimeoutError || err.status === 504) {
+          this.eventLoginMsg.next("TIMEOUT_ERROR")
         }
         throw err
       })
@@ -209,7 +237,6 @@ export class AccountService {
         return "Done!"
       }
       default: {
-        console.log(event)
         return event.type.toString()
       }
     }

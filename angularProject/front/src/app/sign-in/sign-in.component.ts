@@ -36,6 +36,7 @@ export class SignInComponent implements OnInit {
       debounceTime(400),
     ).subscribe((res)=>{
       this.userLoading = false; this.invalidUserSubmit = false;
+      this.user?.setErrors({})
       const obj = this.helper("user", this.user)
       this.user?.setErrors(obj)
       if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.userError = true} 
@@ -47,6 +48,7 @@ export class SignInComponent implements OnInit {
       debounceTime(400)
     ).subscribe((res)=>{
       this.passLoading = false; this.invalidPassSubmit = false;
+      this.password?.setErrors({})
       const obj = this.helper("password", this.password)
       this.password?.setErrors(obj)
       if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.passError = true} 
@@ -109,6 +111,13 @@ export class SignInComponent implements OnInit {
             },500) 
             break
           }
+          case "TIMEOUT_ERROR": {
+            setTimeout(() => {
+              this.inputDefault(); this.invalidPassSubmit = true; this.invalidUserSubmit = true;
+              this.userError = true; this.passError = true;
+            }, 400);
+            break
+          }
           case "ERROR": {
             setTimeout(()=> { //* come back to this later maybe : how to tell error? */
                 this.invalidPassSubmit = true; this.invalidUserSubmit = true
@@ -116,18 +125,23 @@ export class SignInComponent implements OnInit {
               }, 400)
             break
           }
-          case "WHITESPACE_ERROR": { //whitespace case -- add validator for whitespace
+          case "USER_WHITESPACE_ERROR": { //whitespace case -- add validator for whitespace
             setTimeout(() => {
-              this.inputDefault(); this.passError = true; this.userError = true;
-              this.user.setErrors({})
+              this.inputDefault(); this.userError = true;
               this.user.setErrors({'whitespace':true})
+            }, 400);
+            break
+          }
+          case "PASS_WHITESPACE_ERROR": { //whitespace case -- add validator for whitespace
+            setTimeout(() => {
+              this.inputDefault(); this.passError = true;
+              this.password.setErrors({'whitespace':true})
             }, 400);
             break
           }
           case "USER_ERROR_MIN": {
             setTimeout(() => {
               this.inputDefault(); this.userError = true;
-              this.user.setErrors({})
               this.user.setErrors({'minlength':true})
             }, 400);
             break
@@ -135,7 +149,6 @@ export class SignInComponent implements OnInit {
           case "USER_ERROR_MAX": {
             setTimeout(() => {
               this.inputDefault(); this.userError = true;
-              this.user.setErrors({})
               this.user.setErrors({'maxlength':true})
               
             }, 400);
@@ -144,7 +157,6 @@ export class SignInComponent implements OnInit {
           case "PASS_ERROR_MIN": {
             setTimeout(() => {
               this.inputDefault(); this.passError = true;
-              this.password.setErrors({})
               this.password.setErrors({'minlength':true})
             }, 400);
             break
@@ -152,7 +164,6 @@ export class SignInComponent implements OnInit {
           case "PASS_ERROR_MAX": {
             setTimeout(() => {
               this.inputDefault(); this.passError = true;
-              this.password.setErrors({})
               this.password.setErrors({'maxlength':true})
             }, 400);
             break
@@ -201,7 +212,7 @@ export class SignInComponent implements OnInit {
     switch (field) {
       case "user": {
         if (control.value.length < 6 && control.value.length > 0) {
-        obj['minlength'] = true
+          obj['minlength'] = true
         }
         if (control.value.length > 16) { 
           obj['maxlength'] = true

@@ -47,10 +47,9 @@ export class RegisterComponent implements OnInit {
       debounceTime(400),
     ).subscribe((res)=> {
       this.emailLoading = false; this.invalidEmailSubmit = false; 
-      const obj: {[index:string]:any} = {'email': Validators.email(this.email)}
-      if (this.email.value.length === 0 ) { obj['required']=true} else { obj['required']=false}
+      const obj: {[index:string]:any} = this.helper('email', this.email)
       this.email?.setErrors(obj)
-      if (obj?.['email'] || obj?.['required']) { this.emailError = true; }
+      if (obj?.['email'] || obj?.['required'] || obj?.['whitespace']) { this.emailError = true; }
       else { this.emailError = false; }
     })
 
@@ -69,18 +68,9 @@ export class RegisterComponent implements OnInit {
       //tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true}),
       debounceTime(400),
     ).subscribe((res)=>{
-      const obj: {[index:string]:any} = {}
-      if (this.firstPass.value.length < 8 && this.firstPass.value.length > 0) {
-        obj['minlength'] = true
-      }
-      if (this.firstPass.value.length > 32) { 
-        obj['maxlength'] = true
-      }
-      if (this.firstPass.value.length === 0) {
-        obj['required'] = true
-      }
+      const obj: {[index:string]:any} = this.helper('firstPass', this.firstPass)
       this.firstPass?.setErrors(obj)
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.firstPassError = true} 
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.firstPassError = true} 
       else { this.firstPassError = false }
       //this.firstPassLoading = false; this.secondPassLoading = false
     })
@@ -89,19 +79,10 @@ export class RegisterComponent implements OnInit {
       //tap(()=> {this.secondPassLoading = true; this.firstPassLoading = true}),
       debounceTime(400),
     ).subscribe((res)=>{
-      const obj: {[index:string]:any} = {}
-      if (this.secondPass.value.length < 8 && this.secondPass.value.length > 0) {
-        obj['minlength'] = true
-      }
-      if (this.secondPass.value.length > 32) { 
-        obj['maxlength'] = true
-      }
-      if (this.secondPass.value.length === 0) {
-        obj['required'] = true
-      }
+      const obj: {[index:string]:any} = this.helper("secondPass", this.secondPass)
       //this.secondPassLoading = false; this.firstPassLoading = false
       this.secondPass?.setErrors(obj)
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.secondPassError = true} 
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.secondPassError = true} 
       else { this.secondPassError = false }
     })
 
@@ -109,19 +90,10 @@ export class RegisterComponent implements OnInit {
       tap((e)=> this.userLoading = true),
       debounceTime(400),
     ).subscribe((res)=>{
-      const obj: {[index:string]:any} = {}
-      if (this.user.value.length < 6 && this.user.value.length > 0) { //change to just helper function
-        obj['minlength'] = true
-      }
-      if (this.user.value.length > 16) { 
-        obj['maxlength'] = true
-      }
-      if (this.user.value.length === 0) {
-        obj['required'] = true
-      }
+      const obj: {[index:string]:any} = this.helper("user", this.user)
       this.userLoading = false; this.invalidUserSubmit = false;
       this.user?.setErrors(obj)
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.userError = true} 
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.userError = true} 
       else { this.userError = false }
       
     },
@@ -149,17 +121,18 @@ export class RegisterComponent implements OnInit {
       return
     }
       
-    if (this.invalidEmailSubmit || this.invalidUserSubmit || this.currentSubmission) {
+    if (this.invalidEmailSubmit || this.invalidUserSubmit || this.currentSubmission || this.userError || this.bothPassError || this.emailError || this.firstPassError || this.secondPassError) {
       return
     }
     
     if (this.validate(this.inputForm)) {
       //submit form
       this.as.eventMsg.subscribe((res)=> { //* Good Enough For Now*
-        console.log(res)
         switch (res) {
           case "Submitting...":{
-            this.regButtonText = res; this.currentSubmission = true
+            this.regButtonText = res; this.currentSubmission = true; this.hideErrorText = true; this.hideUserErrorText = true;
+            this.userError = false; this.firstPassLoading = false; this.secondPassLoading = false; this.emailLoading = false;
+            this.firstPassLoading = true; this.secondPassLoading = true; this.emailLoading = true; this.userLoading = true;
             break
           }
           case "Done!": {
@@ -169,36 +142,130 @@ export class RegisterComponent implements OnInit {
               this.route.navigateByUrl('/login')
               this.regButtonText = "REGISTER"
               this.currentSubmission = false
-            },500) 
+            },400) 
             break
           }
           case "110": {
             setTimeout(()=>{
-              this.invalidEmailSubmit = true; this.invalidUserSubmit = true; this.currentSubmission = false;
-              this.regButtonText = "REGISTER"
-            },500)
+              this.invalidEmailSubmit = true; this.invalidUserSubmit = true; this.inputDefault()
+            },400)
             
             break
           }
           case "001": {
             setTimeout(()=>{
-              this.invalidEmailSubmit = true; this.invalidUserSubmit = false; this.currentSubmission = false;
-              this.regButtonText = "REGISTER"
-            },500)
+              this.invalidEmailSubmit = true; this.invalidUserSubmit = false; 
+              this.inputDefault()
+            },400)
             break
           }
           case "010": {
             setTimeout(()=>{
-              this.invalidUserSubmit = true; this.invalidEmailSubmit = false; this.currentSubmission = false;
-              this.regButtonText = "REGISTER"
-            })
+              this.invalidUserSubmit = true; this.invalidEmailSubmit = false; 
+              this.inputDefault()
+            }, 400)
+            break
+          }
+          case "FIRSTPASS_ERROR_MAX": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.firstPassError = true;
+                this.firstPass.setErrors({'maxlength': true})
+            }, 400);
+            break
+          }
+          case "FIRSTPASS_ERROR_MIN": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.firstPassError = true;
+                this.firstPass.setErrors({'minlength': true})
+            }, 400);
+            break
+          }
+          case "USER_ERROR_MIN": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.userError = true;
+                this.user.setErrors({'minlength': true})
+            }, 400);
+            break
+          }
+          case "USER_ERROR_MAX": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.userError = true;
+                this.user.setErrors({'maxlength': true})
+            }, 400);
+            break
+          }
+          case "SECONDPASS_ERROR_MAX": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.secondPassError = true;
+                this.secondPass.setErrors({'maxlength': true})
+            }, 400);
+            break
+          }
+          case "SECONDPASS_ERROR_MIN": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.secondPassError = true;
+                this.secondPass.setErrors({'minlength': true})
+            }, 400);
+            break
+          }
+          case "PASS_MATCHING_ERROR": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.bothPassError = true;
+                this.passGroup.setErrors({'matchingPasswords': true})
+            }, 400);
+            break
+          }
+          case "EMAIL_ERROR": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.emailError = true;
+                this.email.setErrors({'email': true})
+            }, 400);
+            break
+          }
+          case "USER_WHITESPACE_ERROR": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.userError = true;
+                this.user.setErrors({'whitespace': true})
+            }, 400);
+            break
+          }
+          case "FIRSTPASS_WHITESPACE_ERROR": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.firstPassError = true;
+                this.firstPass.setErrors({'whitespace': true})
+            }, 400);
+            break
+          }
+          case "SECONDPASS_WHITESPACE_ERROR": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.secondPassError = true;
+                this.secondPass.setErrors({'whitespace': true})
+            }, 400);
+            break
+          }
+          case "EMAIL_WHITESPACE_ERROR": {
+            setTimeout(() => {
+                this.inputDefault();
+                this.emailError = true;
+                this.email.setErrors({'whitespace': true})
+            }, 400);
             break
           }
         }
 
       })
       const msg = await this.as.createAccount(this.inputForm)
-      console.log(msg)
 
       
     }
@@ -215,6 +282,12 @@ export class RegisterComponent implements OnInit {
  
   helper(field:string, control:AbstractControl) {
     const obj: {[index:string]:any} = {}
+    if (/\s/.test(control.value)) {
+      obj['whitespace'] = true
+    }
+    if (control.value.length === 0) {
+      obj['required'] = true
+    }
     switch (field) {
       case "user": {
         if (control.value.length < 6 && control.value.length > 0) {
@@ -223,13 +296,10 @@ export class RegisterComponent implements OnInit {
         if (control.value.length > 16) { 
           obj['maxlength'] = true
         }
-        if (control.value.length === 0) {
-          obj['required'] = true
-        }
         break
       }
       case "email": {
-        return {'email':Validators.email(control), 'required':Validators.required(control)}
+        obj['email'] = Validators.email(control); obj['required'] = Validators.required(control); //auto trims it seems; good or bad thing?
         break
       }
       case "firstPass": {
@@ -239,9 +309,6 @@ export class RegisterComponent implements OnInit {
         if (control.value.length > 32) { 
           obj['maxlength'] = true
         }
-        if (control.value.length === 0) {
-          obj['required'] = true
-        }
         break
       }
       case "secondPass": {
@@ -250,9 +317,6 @@ export class RegisterComponent implements OnInit {
         }
         if (control.value.length > 32) { 
           obj['maxlength'] = true
-        }
-        if (control.value.length === 0) {
-          obj['required'] = true
         }
         break
       }
@@ -287,6 +351,11 @@ export class RegisterComponent implements OnInit {
     this.route.navigateByUrl(``) //add animation later
   }
 
+  inputDefault():void {
+    this.regButtonText = "REGISTER"; this.userLoading = false; this.secondPassLoading=false; this.firstPassLoading = false; this.emailLoading = false;
+    this.currentSubmission = false;
+    this.hideUserErrorText = false; this.hideErrorText = false;
+  }
 
   ngOnDestroy(): void {
   }

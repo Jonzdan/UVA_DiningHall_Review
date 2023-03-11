@@ -21,7 +21,10 @@
                             <div *ngIf="email?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="indent-3">
                                 <h3 *ngIf="email?.errors?.['required']; else e1" class=""> Required Field </h3>
                                 <ng-template #e1>
-                                    <h3 *ngIf="email?.errors?.['email']; else e2" class=""> Invalid Email </h3>
+                                    <h3 *ngIf="email?.errors?.['email']; else whitespace_e" class=""> Invalid Email </h3>
+                                </ng-template>
+                                <ng-template #whitespace_e> 
+                                    <h3 *ngIf="email?.errors?.['whitespace']; else e2"> Email cannot contain spaces </h3> <!-- start here next time-->
                                 </ng-template>
                                 <ng-template #e2>
                                     <h3 *ngIf="invalidEmailSubmit"> Email Already Registered </h3>
@@ -50,11 +53,15 @@
                                     <div *ngIf="user?.errors?.['minlength']; else u2"> Username Length Must Be At Least 6 Characters</div>
                                 </ng-template>
                                 <ng-template #u2>
-                                    <h3 *ngIf="user?.errors?.['maxlength']; else u3" > Username Length Must Be Less Than 17 Characters </h3>
+                                    <h3 *ngIf="user?.errors?.['maxlength']; else whitespace_u" > Username Length Must Be Less Than 17 Characters </h3>
+                                </ng-template>
+                                <ng-template #whitespace_u> 
+                                    <h3 *ngIf="user?.errors?.['whitespace']; else u3"> Username cannot contain spaces </h3> <!-- start here next time-->
                                 </ng-template>
                                 <ng-template #u3>
                                     <h3 *ngIf="invalidUserSubmit"> Username Already Taken </h3>
-                                </ng-template> 
+                                </ng-template>
+                                
                             </div>
                         </div>
                     </div>
@@ -79,11 +86,15 @@
                                         <h3 *ngIf="firstPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
                                     </ng-template>
                                     <ng-template #maxLengthValid>
-                                        <h3 *ngIf="firstPass?.errors?.['maxlength']; else matchingPasswords" > Password Length Must Be Less Than 32 Characters </h3>
+                                        <h3 *ngIf="firstPass?.errors?.['maxlength']; else whitespace_fp" > Password Length Must Be Less Than 32 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #whitespace_fp> 
+                                        <h3 *ngIf="firstPass?.errors?.['whitespace']; else matchingPasswords"> Password cannot contain spaces </h3> <!-- start here next time-->
                                     </ng-template>
                                     <ng-template #matchingPasswords>
-                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']"> Passwords Must Match </h3>
+                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']; "> Passwords Must Match </h3>
                                     </ng-template>
+                                    
                                 </div>
                             </div>
                             
@@ -107,10 +118,16 @@
                                         <h3 *ngIf="secondPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
                                     </ng-template>
                                     <ng-template #maxLengthValid>
-                                        <h3 *ngIf="secondPass?.errors?.['maxlength']; else matchingPasswords" > Password Length Must Be Less Than 32 Characters </h3>
+                                        <h3 *ngIf="secondPass?.errors?.['maxlength']; else whitespace_sp" > Password Length Must Be Less Than 32 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #whitespace_sp> 
+                                        <h3 *ngIf="secondPass?.errors?.['whitespace']; else matchingPasswords"> Password cannot contain spaces </h3> <!-- start here next time-->
                                     </ng-template>
                                     <ng-template #matchingPasswords>
-                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']"> Passwords Must Match </h3>
+                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']; else timeout"> Passwords Must Match </h3>
+                                    </ng-template>
+                                    <ng-template #timeout> 
+                                        <h3 *ngIf="secondPass?.errors?.['timeout']"> Something went wrong </h3> <!-- start here next time-->
                                     </ng-template>
                                 </div>
                             </div>

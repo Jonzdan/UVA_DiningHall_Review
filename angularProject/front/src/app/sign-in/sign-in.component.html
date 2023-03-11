@@ -57,7 +57,10 @@
                                         <h3 *ngIf="invalidPassSubmit; else whitespace_p"> The username or password is incorrect </h3> <!-- start here next time-->
                                     </ng-template>
                                     <ng-template #whitespace_p> 
-                                        <h3 *ngIf="password?.errors?.['whitespace']"> Password cannot contain spaces </h3> <!-- start here next time-->
+                                        <h3 *ngIf="password?.errors?.['whitespace']; else timeout"> Password cannot contain spaces </h3> <!-- start here next time-->
+                                    </ng-template>
+                                    <ng-template #timeout> 
+                                        <h3 *ngIf="password?.errors?.['timeout']; else timeout"> Something went wrong </h3> <!-- start here next time-->
                                     </ng-template>
                                 </div>
                             </div>
