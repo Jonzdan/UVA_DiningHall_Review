@@ -1,6 +1,6 @@
 import { Component, OnInit} from '@angular/core';
+import { AccountService } from './account.service';
 import { AppService } from './app.service';
-import { AuthenticationService } from './authentication.service';
 
 @Component({
   selector: 'app-root',
@@ -10,13 +10,13 @@ import { AuthenticationService } from './authentication.service';
 export class AppComponent {
   title = 'HooRank';
 
-  constructor(private appService: AppService, private authentication: AuthenticationService) {
+  constructor(private appService: AppService, private as: AccountService) {
     
   }
 
   ngOnInit() {
     this.appService.setData()
-    this.authentication.getCSRF()
+    this.as.authBeginning()
   }
 
 

@@ -1,6 +1,6 @@
 
 <div class="w-full">
-    <div #swi class="items-center text-center w-full bg-neutral-50 flex-shrink-0 flex justify-evenly lg:top-[40px] xl:top-[60px] md:top-[28px] sm:top-[28px] top-[24px]  sticky xl:text-2xl lg:text-lg sm:text-sm md:text-base text-xs border-none outline-none p-0">
+    <div #swi class="items-center text-center w-full bg-neutral-50 flex-shrink-0 flex justify-evenly sticky xl:text-2xl lg:text-lg sm:text-sm md:text-base text-xs border-none outline-none p-0">
         <app-button class="rounded-t-md w-full  hover:cursor-pointer" [name]="name1" (click)="changeData($event)" [selected]="b1" [ngClass]="{'bg-inherit': !name1Boolean, 'bg-neutral-200': name1Boolean}" >  </app-button> <!-- add like no outline/bg for this button if not selected-->
         <app-button class="rounded-t-md w-full hover:cursor-pointer" [name]="name2" (click)="changeData($event)" [selected]="b2" [ngClass]="{'bg-inherit': !name2Boolean, 'bg-neutral-200': name2Boolean}" >  </app-button>
         <app-button class="rounded-t-md w-full hover:cursor-pointer" [name]='name3' (click)="changeData($event)" [selected]="b2" [ngClass]="{'bg-inherit': !name3Boolean, 'bg-neutral-200': name3Boolean}" >  </app-button>

@@ -23,6 +23,21 @@ export class AccountService {
 
   constructor(private http: HttpClient, private router: Router) { }
 
+
+  authBeginning() {
+    const _url = './authConfirm'
+    return this.http.post(_url, '', {
+      observe: 'response'
+    }).subscribe((res: HttpResponse<any>) => {
+      console.log(res.body)
+      if (res.body === '1110111' || res.status !== 200 || (res.body as loginResponse)?.username === undefined) { 
+        return
+      }
+      this._signedIn = true; this.accountInfo['username'] = (res.body as loginResponse)?.username; this.accountText = (res.body as loginResponse)?.username
+
+    })
+  }
+
   async createAccount(form: FormGroup) {
     let obj: {[index:string]: any} = {}
     Object.keys(form.controls).forEach((field)=> {
