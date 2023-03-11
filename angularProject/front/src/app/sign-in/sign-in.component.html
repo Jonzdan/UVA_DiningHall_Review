@@ -23,10 +23,10 @@
                                     <div *ngIf="user?.errors?.['minlength']; else u2"> Username Length Must Be At Least 6 Characters</div>
                                 </ng-template>
                                 <ng-template #u2>
-                                    <h3 *ngIf="user?.errors?.['maxlength']; else invalidUser" > Username Length Must Be Less Than 17 Characters </h3>
+                                    <h3 *ngIf="user?.errors?.['maxlength']; else whitespace_u" > Username Length Must Be Less Than 17 Characters </h3>
                                 </ng-template>
-                                <ng-template #invalidUser> 
-                                    <h3 *ngIf="invalidUserSubmit"> Invalid Username </h3> <!-- start here next time-->
+                                <ng-template #whitespace_u> 
+                                    <h3 *ngIf="user?.errors?.['whitespace']"> Username cannot contain spaces </h3> <!-- start here next time-->
                                 </ng-template>
                             </div>
                         </div>
@@ -36,7 +36,7 @@
                     <div class="flex flex-col w-full flex-grow justify-center">
                         <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 indent-2"> Password </label>
                         <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': passError , 'border-gray-300': !passError}">
-                            <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="lg:text-base text-sm  align-middle mb-0 text-gray-800 font-medium  outline-none py-2 focus:placeholder:text-transparent indent-3" >
+                            <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="lg:text-base text-sm w-full align-middle mb-0 text-gray-800 font-medium  outline-none py-2 focus:placeholder:text-transparent indent-3" >
                         </div>
                         <div class="relative mb-2 mt-1" >   
                             <div *ngIf="(password?.dirty || password?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
@@ -51,7 +51,13 @@
                                         <h3 *ngIf="password?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
                                     </ng-template>
                                     <ng-template #maxLengthValid>
-                                        <h3 *ngIf="password?.errors?.['maxlength']" > Password Length Must Be Less Than 32 Characters </h3>
+                                        <h3 *ngIf="password?.errors?.['maxlength']; else invalidPass" > Password Length Must Be Less Than 32 Characters </h3>
+                                    </ng-template>
+                                    <ng-template #invalidPass> 
+                                        <h3 *ngIf="invalidPassSubmit; else whitespace_p"> The username or password is incorrect </h3> <!-- start here next time-->
+                                    </ng-template>
+                                    <ng-template #whitespace_p> 
+                                        <h3 *ngIf="password?.errors?.['whitespace']"> Password cannot contain spaces </h3> <!-- start here next time-->
                                     </ng-template>
                                 </div>
                             </div>

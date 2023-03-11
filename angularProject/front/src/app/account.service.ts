@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Form, FormGroup } from '@angular/forms';
-import { HttpClient, HttpEvent, HttpEventType, HttpRequest, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpRequest, HttpResponse } from '@angular/common/http';
 import { BehaviorSubject, catchError, last, map, Subject, tap } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -96,6 +96,7 @@ export class AccountService {
       }),
       ).subscribe((res)=> {
         console.log(res)
+
     })
     /*
     */
@@ -118,7 +119,7 @@ export class AccountService {
       
     })
     const url = `./user/login`
-    let sent:boolean = false
+    this.eventLoginMsg.next("Submitting...")
 
     const req =  this.http.post(url, JSON.stringify(obj), {
       'headers': {
@@ -128,40 +129,68 @@ export class AccountService {
       reportProgress: true
     }).pipe(
       tap(()=> {
-        if (!sent) { //add time limit
-          sent = true
-          this.eventLoginMsg.next("Submitting...")
-        }
+        
       }),
+      last(),
+      catchError((err, caught) => {
+        if (err.error?.code === '01101111011101') {
+          this.eventLoginMsg.next("ERROR")
+        }
+        else if (err.error?.code === "4444") { //work on more
+          this.eventLoginMsg.next("WHITESPACE_ERROR")
+        }
+        else if (err.error?.codes !== undefined) { //server-side error in validation
+          for(let i = 0; i < err.error?.codes.length; i++) {
+            switch (err.error?.codes[0]) {
+              case "1000": {
+                this.eventLoginMsg.next("PASS_ERROR_MAX")
+                break
+              }
+              case "1001": {
+                this.eventLoginMsg.next("PASS_ERROR_MIN")
+                break
+              }
+              case "1101": {
+                this.eventLoginMsg.next("USER_ERROR_MIN")
+                break
+              }
+              case "1100": {
+                this.eventLoginMsg.next("USER_ERROR_MAX")
+                break
+              }
+            }
+          }
+        }
+        throw err
+      })
     )
   
     //** NEXT STEP::: FINISH INVALID FORM APPEARNCE */
-    req.subscribe((res: HttpResponse<Object>)=> {
-      if (res.body !== null) { 
-          this.accountInfo['username'] = (res.body as loginResponse)?.username
-          this.accountText = (res.body as loginResponse)?.username
-          this._signedIn = true
-          setTimeout(() => {
-            this.eventLoginMsg.next("Done!")
-            setTimeout(()=>{
-              this.eventLoginMsg.next("LOGIN") //ew??
-              this.router.navigateByUrl('/')
-            },400)
-          }, 400);
-          
-          //redirect to signed in navigation...
-          //remove sign-in option/register when signed in
-          //add sign-out option
-        }
+
+      req.subscribe((res: HttpResponse<Object>)=> {
+        if (res.body !== null) { 
+        this.accountInfo['username'] = (res.body as loginResponse)?.username
+        this.accountText = (res.body as loginResponse)?.username
+        this._signedIn = true
+        setTimeout(() => {
+          this.eventLoginMsg.next("Done!")
+          setTimeout(()=>{
+            this.eventLoginMsg.next("LOGIN") //ew??
+            this.router.navigateByUrl('/')
+          },400)
+        }, 400);
+        //redirect to signed in navigation...
+        //remove sign-in option/register when signed in
+        //add sign-out option
+      }
       else {
         console.log(res.headers)
-        //invalid request
-        alert("invalid request")
-      }
-      
-        
-      
+      } 
+
     })
+
+
+    
     /*
     */
   }
@@ -180,7 +209,8 @@ export class AccountService {
         return "Done!"
       }
       default: {
-        return ""
+        console.log(event)
+        return event.type.toString()
       }
     }
   }

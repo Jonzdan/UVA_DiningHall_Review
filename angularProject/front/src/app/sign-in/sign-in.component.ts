@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -31,24 +32,24 @@ export class SignInComponent implements OnInit {
     })
     
     this.user?.valueChanges.pipe(
-      tap(()=> this.userLoading = true),
+      tap(()=> {this.userLoading = true; this.userError = false;}),
       debounceTime(400),
     ).subscribe((res)=>{
       this.userLoading = false; this.invalidUserSubmit = false;
       const obj = this.helper("user", this.user)
       this.user?.setErrors(obj)
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.userError = true} 
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.userError = true} 
       else { this.userError = false }
     })
 
     this.password?.valueChanges.pipe(
-      tap(()=>this.passLoading = true),
+      tap(()=>{this.passLoading = true; this.passError = false}),
       debounceTime(400)
     ).subscribe((res)=>{
       this.passLoading = false; this.invalidPassSubmit = false;
       const obj = this.helper("password", this.password)
       this.password?.setErrors(obj)
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required']) { this.passError = true} 
+      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.passError = true} 
       else { this.passError = false }
     })
   }
@@ -64,6 +65,8 @@ export class SignInComponent implements OnInit {
           control.markAsDirty({onlySelf:true})
         }
         // Add Something upon Form Submit where fields are invalid...
+        const obj = this.helper(field, control)
+        control.setErrors(obj)
       }
       else if (control instanceof FormGroup) {
         this.validate(control)
@@ -81,7 +84,7 @@ export class SignInComponent implements OnInit {
       return
     }  
 
-    if (this.invalidPassSubmit || this.invalidUserSubmit || this.currentSubmission) {
+    if (this.invalidPassSubmit || this.invalidUserSubmit || this.currentSubmission || this.userError || this.passError) {
       return
     }
     if (this.validate(this.inputForm)) {
@@ -89,36 +92,78 @@ export class SignInComponent implements OnInit {
       this.as.eventLoginMsg.subscribe((res)=> { //* Good Enough For Now*
         switch (res) {
           case "Submitting...":{
+            this.hideErrorText = true; this.hideUserErrorText = true;
             this.loginButtonText = res; this.currentSubmission = true
+            this.passError = false; this.userError = false;
+            this.passLoading = true; this.userLoading = true
             break
           }
           case "Done!": {
-            this.loginButtonText = res
+            this.hideErrorText = true; this.hideUserErrorText = true;
+            this.loginButtonText = res;
             setTimeout(()=>{
               //prefetch maybe -- Def add transition later **IMPORTANT** --perhaps disable input fields
-              //this.router.navigateByUrl('/')
+              this.router.navigateByUrl('/')
               this.loginButtonText = "LOGIN"
               this.currentSubmission = false
             },500) 
             break
           }
-          case "01101111011101": {
-            setTimeout(()=>{
-              this.invalidPassSubmit = true; this.invalidUserSubmit = true
-              this.currentSubmission = false; this.loginButtonText = "LOGIN"
-            },500)
-            
+          case "ERROR": {
+            setTimeout(()=> { //* come back to this later maybe : how to tell error? */
+                this.invalidPassSubmit = true; this.invalidUserSubmit = true
+                this.inputDefault(); this.userError = true; this.passError = true;
+              }, 400)
+            break
           }
+          case "WHITESPACE_ERROR": { //whitespace case -- add validator for whitespace
+            setTimeout(() => {
+              this.inputDefault(); this.passError = true; this.userError = true;
+              this.user.setErrors({})
+              this.user.setErrors({'whitespace':true})
+            }, 400);
+            break
+          }
+          case "USER_ERROR_MIN": {
+            setTimeout(() => {
+              this.inputDefault(); this.userError = true;
+              this.user.setErrors({})
+              this.user.setErrors({'minlength':true})
+            }, 400);
+            break
+          }
+          case "USER_ERROR_MAX": {
+            setTimeout(() => {
+              this.inputDefault(); this.userError = true;
+              this.user.setErrors({})
+              this.user.setErrors({'maxlength':true})
+              
+            }, 400);
+            break
+          }
+          case "PASS_ERROR_MIN": {
+            setTimeout(() => {
+              this.inputDefault(); this.passError = true;
+              this.password.setErrors({})
+              this.password.setErrors({'minlength':true})
+            }, 400);
+            break
+          }
+          case "PASS_ERROR_MAX": {
+            setTimeout(() => {
+              this.inputDefault(); this.passError = true;
+              this.password.setErrors({})
+              this.password.setErrors({'maxlength':true})
+            }, 400);
+            break
+          }
+          
           
         }
       })
-      try {
-        const msg = await this.as.pullAccount(this.inputForm)
-      }
-      catch (err) {
-        console.log(err); this.loginButtonText = "LOGIN"
-      }
-      
+
+      const msg = await this.as.pullAccount(this.inputForm)
+            
 
       
     }
@@ -130,6 +175,12 @@ export class SignInComponent implements OnInit {
         this.hideErrorText = false; this.hideUserErrorText = false; this.currentSubmission = false; this.userLoading = false; this.passLoading = false;
       }, 500)
     }
+  }
+
+  inputDefault():void {
+    this.loginButtonText = "LOGIN"; this.userLoading = false; this.passLoading = false;
+    this.currentSubmission = false;
+    this.hideUserErrorText = false; this.hideErrorText = false;
   }
 
   get password() {
@@ -158,6 +209,9 @@ export class SignInComponent implements OnInit {
         if (control.value.length === 0) {
           obj['required'] = true
         }
+        if (/\s/.test(control.value)) {
+          obj['whitespace'] = true
+        }
         break
       }
       case "password": {
@@ -169,6 +223,9 @@ export class SignInComponent implements OnInit {
         }
         if (control.value.length === 0) {
           obj['required'] = true
+        }
+        if (/\s/.test(control.value)) {
+          obj['whitespace'] = true
         }
         break
       }

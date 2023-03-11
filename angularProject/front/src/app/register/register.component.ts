@@ -156,6 +156,7 @@ export class RegisterComponent implements OnInit {
     if (this.validate(this.inputForm)) {
       //submit form
       this.as.eventMsg.subscribe((res)=> { //* Good Enough For Now*
+        console.log(res)
         switch (res) {
           case "Submitting...":{
             this.regButtonText = res; this.currentSubmission = true

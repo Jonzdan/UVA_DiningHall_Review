@@ -11,7 +11,6 @@ router.use(csrf)
 
 router.post('/register', [validateFields, loggedIn_Or_Not], async(req,res)=>{
     const data = req.body //should be reg form
-    console.log('hello?')
     /* Validation Here */
     //authenticate(data)
     /* Saving to DB */
