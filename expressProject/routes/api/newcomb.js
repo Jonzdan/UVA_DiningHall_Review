@@ -22,10 +22,14 @@ router.get('/', async (req, res) => {
     try {
         let date = getCurDateAsString()
         let time = getNewcombTimeFrame()
-        const data = await newcombSchema.find( { activeDate: { $in: [ date ]} , 'item.timeFrame': time}, {_id: 0} )
+        const data = await newcombSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0, "item.itemReview.reviews": 0, "item.itemReview.starsLength": 0, activeDate: 0}).sort({
+            "item.itemReview.starsLength": -1,
+        })
         if (data && Object.keys(data).length === 0) {
-            let bol = await new Promise(resolve => resolve(getData()))
-            let data1 = await newcombSchema.find( {activeDate: { $in: [date]}, 'item.timeFrame': time}, {_id: 0})
+            await getData()
+            let data1 = await newcombSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0, "item.itemReview.reviews": 0, "item.itemReview.starsLength": 0, activeDate: 0}).sort({
+                "item.itemReview.starsLength": -1,
+            })
             res.json(data1)
         }
         else {
@@ -42,7 +46,7 @@ router.get('/', async (req, res) => {
     try { //add validation later
         let date = getCurDateAsString(); let time = getNewcombTimeFrame()
         if (dataObj["Content"].length < 50 || dataObj["Content"] === undefined || dataObj["APP-STARS"] <= 0 || dataObj["APP-STARS"] > 5) { res.status(400).json({msg: "unknown parameters"}); return }
-        const temp = await newcombSchema.findOneAndUpdate({stationName: dataObj.stationName, activeDate: date, "item.timeFrame": {$in: [time]}, "item.itemName": dataObj.itemName, "item.itemDesc": dataObj.itemDesc}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}}, {returnOriginal: false})
+        const temp = await newcombSchema.findOneAndUpdate({stationName: dataObj.stationName, activeDate: date, "item.timeFrame": {$in: [time]}, "item.itemName": dataObj.itemName, "item.itemDesc": dataObj.itemDesc}, {$push: {"item.itemReview.stars": dataObj['APP-STARS'], "item.itemReview.reviews":dataObj['Content']}, $inc: {"item.itemReview.starsLength": 1}}, {returnOriginal: false})
         //console.log("TEMP: \n", temp)
         res.json("Updated")
     }
@@ -141,62 +145,65 @@ function getCurHour() {
 
 //fix code later -- dont slice data,.
 async function getData() {
-    axios.get('https://virginia.campusdish.com/LocationsAndMenus/FreshFoodCompany')
-    .then(res => {
-        //console.log(res.data.slice(100000,250000))
-        const endInd = res.data.indexOf("/Cart") + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... and more like Contains Fish or whatnot
-        let data = res.data
-        let iterator = 0
-        let curDate = getCurDateAsString()
-        while (data.indexOf('"Product":', iterator) !== -1 && iterator < data.length) {
-            let shopId = data.indexOf('"StationId":', iterator) + 13
-            let end = data.indexOf('"', shopId)
-            let stationId = data.slice(shopId, end)
-            let start = data.indexOf('"Product":{', end)
-            let mn = data.indexOf("MarketingName", start) + 16
-            let mne = data.indexOf('"', mn)
-            let resultString = data.slice(mn, mne)
-            let begin = data.indexOf("ShortDescription", mne+1)
-            begin = data.indexOf('"', begin + 18) + 1
-            let sde = data.indexOf('"', begin+3)
-            let descriptionString = data.slice(begin, sde)
-            descriptionString = removeSpecialChar(descriptionString)
-            resultString = removeSpecialChar(resultString)
-            newcombSchema.find({"item.itemName" : resultString, "item.timeFrame": getNewcombTimeFrame(), "stationName" : newcombstations[stationId]}, (err, res) => {
-                if (err) throw err
-                const objLength = Object.keys(res).length
-                if (res != undefined && res != null && objLength !== 0 && res[objLength-1].activeDate[res[objLength-1].activeDate.length-1] != curDate) {
-                    newcombSchema.updateOne({_id: res[objLength-1]._id, "item.timeFrame" : getNewcombTimeFrame()}, {$push: {activeDate: curDate}}, (err, res) => {
-                        if (err) console.error(err)
-                    })
+    const res = await axios.get('https://virginia.campusdish.com/LocationsAndMenus/FreshFoodCompany')
+    const data = res.data
+    //console.log(res.data.slice(100000,250000))
+    const endInd = res.data.indexOf("/Cart") + 8 //looks like MarketingName, and ShortDescription, DisplayName (Entrees...), isActive... and more like Contains Fish or whatnot
+    let iterator = 0
+    let curDate = getCurDateAsString()
+    while (data.indexOf('"Product":', iterator) !== -1 && iterator < data.length) {
+        let shopId = data.indexOf('"StationId":', iterator) + 13
+        let end = data.indexOf('"', shopId)
+        let stationId = data.slice(shopId, end)
+        let start = data.indexOf('"Product":{', end)
+        let mn = data.indexOf("MarketingName", start) + 16
+        let mne = data.indexOf('"', mn)
+        let resultString = data.slice(mn, mne)
+        let begin = data.indexOf("ShortDescription", mne+1)
+        begin = data.indexOf('"', begin + 18) + 1
+        let sde = data.indexOf('"', begin+3)
+        let descriptionString = data.slice(begin, sde)
+        descriptionString = removeSpecialChar(descriptionString)
+        resultString = removeSpecialChar(resultString)
+        try {
+            let existing = await newcombSchema.find({"item.itemName" : resultString, "item.timeFrame": getNewcombTimeFrame(), "stationName" : newcombstations[stationId]})
+            const objLength = Object.keys(existing).length
+            if (existing != undefined && existing != null && objLength !== 0 && existing[objLength-1].activeDate[existing[objLength-1].activeDate.length-1] != curDate) {
+                try {
+                    await newcombSchema.updateOne({_id: existing[objLength-1]._id, "item.timeFrame" : getNewcombTimeFrame()}, {$push: {activeDate: curDate}})
                 }
-                else {
-                    if (!(stationId in newcombstations)) { console.log(stationId); return}
-                    const obj = {
-                        stationName: newcombstations[stationId],
-                        item: {
-                            itemName: resultString,
-                            itemDesc: descriptionString,
-                            timeFrame: getNewcombTimeFrame()
-                        },
-                        activeDate: [curDate]
-                    }
-                    if (obj && obj.item.timeFrame !== 'Unavailable') {
-                        let newcomb1 = new newcombSchema(obj)
-                        newcomb1.save()
-                    }
-                    
+                catch (err) {
+                    throw err
                 }
-            })
-            iterator = sde + 1
+            }
+            else {
+                if (!(stationId in newcombstations)) { console.log(stationId); return}
+                const obj = {
+                    stationName: newcombstations[stationId],
+                    item: {
+                        itemName: resultString,
+                        itemDesc: descriptionString,
+                        timeFrame: getNewcombTimeFrame(),
+                        itemReview: {
+                            stars: [],
+                            starsLength: 0
+                        }
+                    },
+                    activeDate: [curDate]
+                }
+                if (obj && obj.item.timeFrame !== 'Unavailable') {
+                    let newcomb1 = new newcombSchema(obj)
+                    await newcomb1.save()
+                }
+            }
         }
-       //console.log(currentOhillDiningOptions)
+        catch (err) {
+            throw err
+        }
+        iterator = sde + 1
+    }
+    //console.log(currentOhillDiningOptions)
     return true
-    }).catch(err => console.error(err))
 
 }
-
-
-
-
 module.exports = router

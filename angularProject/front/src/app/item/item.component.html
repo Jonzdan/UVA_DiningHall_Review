@@ -2,7 +2,7 @@
 <!-- should be item name, div, etc-->
 <div class="w-full h-full perp pb-2">
     <div class="transform duration-1000 style relative w-full h-full" [ngClass]="{'flip-horizontal': flip}">
-        <div class="front item min-w-[320px] bg-neutral-100 absolute hide-backface rounded-md shadow-lg border-gray-900 h-full w-full"   #front>
+        <div class="front item min-w-[300px] bg-neutral-100 absolute hide-backface rounded-md shadow-lg border-gray-900 h-full w-full"   #front>
             <h3 class=" bg-orange-500/40 rounded-t-sm bg-blend-lighten p-1 text-neutral-800 font-light font-serif shadow-md" > {{ item.itemName }} </h3> <!-- should create item-header-component, item-desc-comp, and create stationid-comp in dininghall-->
             <h4 *ngIf="item.itemDesc" class="m-1 p-1 sm:m-[2px] text-neutral-800 font-extralight"> {{ item.itemDesc }} </h4>
             <div class="review flex flex-col">  

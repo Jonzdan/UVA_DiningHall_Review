@@ -17,6 +17,15 @@ module.exports = {
       animation: {
         bgShift: 'colorChange .6s linear forwards',
         oppBgShift:'oppColorChange .6s linear forwards'
+      },
+      gridTemplateColumns: {
+        'fluid': 'repeat(4, minmax(0px, 1fr))',
+        'fluid-1': 'repeat(3, minmax(0px, 1fr))',
+        'fluid-2': 'repeat(2, minmax(0px, 1fr))',
+        'fluid-3': 'repeat(1, minmax(0px, 1fr))',
+      },
+      gridAutoRows: {
+        'zero': '0',
       }
         
       

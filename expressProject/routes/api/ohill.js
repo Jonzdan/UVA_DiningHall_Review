@@ -27,12 +27,14 @@ router.get('/', async(req, res) => {
     try {
         let date = getCurDateAsString()
         let time = getOhillTimeFrame(new Date().getDay(), getCurHour())
-        const data = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0}).sort({
+        const data = await ohillSchema.find({activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0, "item.itemReview.reviews": 0, "item.itemReview.starsLength": 0, activeDate: 0,}).sort({
             "item.itemReview.starsLength": -1,
         })
         if (data && Object.keys(data).length === 0) {
-            await getData() //this works, but data isn't loading...
-            const data1 = await ohillSchema.find( { activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0})
+            await getData()
+            const data1 = await ohillSchema.find({activeDate: {$in : [date]}, 'item.timeFrame': time}, {_id: 0, "item.itemReview.reviews": 0, "item.itemReview.starsLength": 0, activeDate: 0,}).sort({
+            "item.itemReview.starsLength": -1,
+        })
             res.json(data1)
         }
         else {
@@ -168,9 +170,7 @@ async function getData() { //figure out a faster way --> perhaps load only 3, th
             //console.log(resultString, stationId, ohillstations[stationId])
         const objLength = Object.keys(existing).length
         if (existing != undefined && existing != null && objLength !== 0 && existing[objLength-1].activeDate[existing[objLength-1].activeDate.length-1]) {
-            ohillSchema.updateOne({_id: existing[objLength-1]._id, "item.timeFrame" : timeFrame}, {$push: {activeDate: curDate}}, (err, res ) => {
-                if (err) console.error(err)
-            })
+            await ohillSchema.updateOne({_id: existing[objLength-1]._id, "item.timeFrame" : timeFrame}, {$push: {activeDate: curDate}})
         }
         else {
             if (!(stationId in ohillstations)) { /* We should audit this, and then stop the process */ return }
