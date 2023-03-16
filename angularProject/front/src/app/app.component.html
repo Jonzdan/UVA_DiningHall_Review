@@ -6,12 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title> {{ title }}</title>
 </head>
-<body class="bg-slate-100 select-none">
+<body class="bg-slate-100 select-none h-[100vh] transition-[margin-left] duration-300" [ngClass]="{'overflow-hidden ml-[-250px]  ':showIconMenu, ' ml-0 ': !showIconMenu}">
   <!--
     #232D48 - blue
   #EB5F0C - orange
   -->
   <app-nav class="text-center font-extralight xl:6xl lg:text-4xl sm:text-lg md:text-lg text-sm flex flex-row flex-wrap flex-auto bg-gradient-to-b from-[#232D48] to-[#182341] text-gray-100 sticky top-0 z-10 border-b-[1px]"></app-nav>
-  <router-outlet></router-outlet>
+  <router-outlet class=" "></router-outlet>
 </body>
 </html>

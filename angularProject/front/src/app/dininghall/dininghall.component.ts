@@ -33,18 +33,7 @@ export class DininghallComponent implements OnInit, AfterViewInit {
 
   //create interface that simulates runk/ohill/newcomb dining data api fetch content
 
-  replaceDisplay(s:string): string{
-    if (s == null) {
-      return ''
-    }
-    console.log(s)
-    if (s != null && s.indexOf('display:') != -1) {
-      let end = s.indexOf('display:') + 8
-      let end1 = s.indexOf(';', end) + 1
-      s = s.slice(0,s.indexOf('display:')) + s.slice(end1)
-    }
-    return s
-  }
+  
 
 
 }

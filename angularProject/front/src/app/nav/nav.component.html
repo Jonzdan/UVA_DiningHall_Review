@@ -1,6 +1,6 @@
-<div id="navbar" class="flex align-middle justify-center w-full shadow-md" *ngIf="!hideNavBar">
-    <h1 class="text xl:first-letter:text-5xl xl:text-4xl lg:first-letter:text-4xl lg:text-3xl sm:first-letter:text-2xl sm:text-lg md:first-letter:text-3xl md:text-2xl first-letter:text-xl text-base align-center justify-center self-center tracking-tight first-letter:text-amber-400 indent-3 " appTextShadow> HOO<span class="italic"></span><span class="xl:text-5xl lg:text-4xl md:text-3xl sm:text-2xl text-xl">F</span>OOD </h1> 
-    <ul class="font-semibold xl:text-sm lg:text-sm sm:text-xs md:text-xs text-xs flex justify-end items-center w-full flex-1">
+<div id="navbar" class="flex align-middle justify-center w-full shadow-md py-2" *ngIf="!hideNavBar">
+    <h1 class=" text xl:first-letter:text-5xl xl:text-4xl lg:first-letter:text-4xl lg:text-3xl first-letter:text-2xl text-lg md:first-letter:text-3xl md:text-2xl text-start self-center tracking-tight first-letter:text-amber-400 indent-3 " appTextShadow> HOO<span class="italic"></span><span class="xl:text-5xl lg:text-4xl md:text-3xl sm:text-2xl text-xl">F</span>OOD </h1> 
+    <ul class="font-semibold xl:text-sm lg:text-sm sm:text-xs md:text-xs text-xs flex justify-end items-center w-full flex-1 flex-grow" *ngIf="!navBarToIcon">
         <li class="lg:mr-2 mr-1 lg:ml-2 ml-1">
             <button class="hover:text-amber-400/70 scale-105" routerLink="../reviews" appTextShadow>
                 REVIEWS
@@ -125,4 +125,112 @@
             <h3 class="lg:text-sm text-xs font-light hover:scale-[1.02]" appTextShadow > <span *ngIf="accountText !== 'Not Signed In'" > Welcome </span>{{ accountText }} </h3>
         </li>
     </ul>
+    <div *ngIf="navBarToIcon" class="flex justify-end flex-grow z-10 flex-row items-center h-full "> <!-- alt option when screen size gets too small-->
+        <svg class="ml-auto mr-3 hover:cursor-pointer self-center " fill="#eaeadc" height="20px" width="20px" (click)="openSideBar($event)"  version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 150 150" xml:space="preserve" stroke="#000000" stroke-width="0.0015"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="XMLID_240_"> <path id="XMLID_241_" d="M15,30h120c8.284,0,15-6.716,15-15s-6.716-15-15-15H15C6.716,0,0,6.716,0,15S6.716,30,15,30z"></path> <path id="XMLID_242_" d="M135,60H15C6.716,60,0,66.716,0,75s6.716,15,15,15h120c8.284,0,15-6.716,15-15S143.284,60,135,60z"></path> <path id="XMLID_243_" d="M135,120H15c-8.284,0-15,6.716-15,15s6.716,15,15,15h120c8.284,0,15-6.716,15-15S143.284,120,135,120z"></path> </g> </g></svg>
+        <!-- <div class="h-full my-auto ml-auto mr-3 hover:cursor-pointer text-[#eaeadc] text-4xl" *ngIf="showIconMenu" (click)="openSideBar($event)" type="button">&times;</div> -->
+    </div>
+    
 </div>
+<ul class="absolute max-w-[100vw] transition-[width] ease-linear h-[100vh] top-0 bg-[#232D48] overflow-x-hidden right-0 rounded-l-sm drop-shadow-sm shadow-md shadow-[#232D48] flex flex-col items-center text-lg content-evenly " [ngClass]="{'w-[250px]': showIconMenu, 'w-[0px]': !showIconMenu}">
+    <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 mt-12 w-full">
+        <button class="hover:text-amber-400/70 scale-105 duration-100" routerLink="../reviews" appTextShadow>
+            REVIEWS
+        </button>
+        
+    </li>
+    <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 w-full">
+        <button class="hover:text-amber-400/70  scale-105 duration-100 "  routerLink="../aboutus"  appTextShadow>ABOUT US</button>
+        
+
+    </li>
+    <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 w-full" *ngIf="!signedIn">
+        <button class="hover:text-amber-400/70 scale-105 duration-100 " routerLink="../login" appTextShadow>SIGN IN</button>
+        
+    </li>
+    <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 w-full" *ngIf="!signedIn">
+        <button class="hover:text-amber-400/70 scale-105 duration-100 " routerLink="../register" appTextShadow>REGISTER</button>
+        
+    </li>
+    <li class="lg:mr-2 mr-1 lg:ml-2 ml-1 relative overflow-hidden flex flex-row items-center duration-100 text-inherit w-full" >
+        <!-- Written by Treer (gitlab.com/Treer) -->
+        <div class="flex flex-col flex-grow relative m-1 mt-5 w-full" [ngClass]="{'hidden': !signedIn, 'flex':signedIn}"> <!-- fix height later (when screen size is small)-->
+            <div [ngClass]="{'hidden': !signedIn, 'flex':signedIn}" class="flex-col relative w-full h-full" id="dropdown_container">
+                <ul class="items-center w-full z-30  text-inherit rounded-md m-1 flex flex-col overflow-auto"> <!-- fix where svg appears on smaller screens... -->
+                    <li class="flex flex-shrink flex-row border-b-[1px] border-b-neutral-600 w-full p-2 "> <!-- user info -->
+                        <img src="" alt="N/A" class="flex flex-grow">
+                        <div class="flex flex-grow-[4] flex-col text-start indent-1 text-neutral-300">
+                            <h3 class="flex-wrap flex overflow-auto text-xs font-normal leading-tight" > {{accountText}} </h3> <!-- name -->
+                            <h3 class="flex-wrap flex text-xs font-normal leading-tight"> @{{accountText}} </h3> <!-- some type of @ -->
+                        </div>
+                    </li>
+                    <li class=" flex flex-col w-full"> <!-- apperance/your account? -->
+                        <div class="flex flex-grow flex-row w-full hover:cursor-pointer mt-2 hover:text-amber-400/70 scale-105"> <!-- your account -->
+                            <!-- <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> -->
+                            <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+                            <svg class="my-auto flex flex-shrink  indent-2 mx-4" fill="#FFF" height="20px" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64.00 64.00" enable-background="new 0 0 64 64" xml:space="preserve" stroke="#FFF" stroke-width="1.28">
+                                <g fill="#FFF" id="SVGRepo_bgCarrier" stroke-width="0"/>
+
+                                <g fill="#FFF" id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+
+                                <g fill="#FFF" id="SVGRepo_iconCarrier"> <path id="Moon" fill="#FFF" d="M63.4374046,38.4606323c-0.4258003-0.2060013-0.9384995-0.0848999-1.2276001,0.2910995 c-1.2803001,1.6650009-2.9452972,3.2001991-4.9501991,4.5625c-11.6180992,7.8808022-27.544899,4.9248009-35.4971008-6.5956993 c-7.8154011-11.3204002-4.9902-26.9736996,6.2968998-34.8936005c0.3799-0.2666,0.5263996-0.7588,0.3544998-1.1895001 c-0.1728001-0.4316-0.625-0.6835-1.0771008-0.6181c-4.6474991,0.6953-9.2070999,2.4902-13.1875,5.1893997 C6.9706059,10.0759325,2.1415057,17.427433,0.5526057,25.9079323c-1.582,8.4414024,0.2402,16.9932022,5.1308002,24.0791016 c6.2872,9.1054993,16.4864006,14.0058975,26.8554993,14.0058975c6.3173981,0,12.6982994-1.819397,18.2939987-5.6161995 c6.5800018-4.461998,11.2461014-11.1298981,13.1406021-18.7753983 C64.0877075,39.142334,63.8631058,38.6657333,63.4374046,38.4606323z M49.7098045,56.7224312 c-13.8710976,9.410099-32.8847961,5.8828011-42.3798981-7.872097c-4.5858998-6.642601-6.2948999-14.660202-4.8114996-22.5742016 C4.0086055,18.3239326,8.5379057,11.4294329,15.2723055,6.861033c2.5801001-1.75,5.4189997-3.0937002,8.3643007-3.9726 c-9.3916006,9.0702991-11.1416006,23.9258003-3.5205002,34.9668007 c8.5741997,12.4188995,25.7422009,15.6094017,38.2666016,7.1133003c0.8260994-0.5606003,1.5996017-1.149498,2.3182983-1.764698 C58.4803047,48.6472321,54.6766052,53.3542328,49.7098045,56.7224312z"/> </g> 
+                            </svg>
+                            <h3 class="text-left text-base my-auto font-normal tracking-tight flex flex-grow"> Theme: {{ appearanceColor }}</h3>
+                        </div>
+                        <div class="flex flex-row flex-grow w-full leading-3 hover:cursor-pointer mb-2 hover:text-amber-400/70 scale-105"> <!-- dark mode / apperance-->
+                            <!-- <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> -->
+                            <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+                            <svg class="my-auto flex flex-shrink  indent-2 mx-4" fill="#FFF" height="20px" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64.00 64.00" enable-background="new 0 0 64 64" xml:space="preserve" stroke="#FFF" stroke-width="1.28">
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+
+                                <g id="SVGRepo_iconCarrier"> <path id="Moon" fill="#FFF" d="M63.4374046,38.4606323c-0.4258003-0.2060013-0.9384995-0.0848999-1.2276001,0.2910995 c-1.2803001,1.6650009-2.9452972,3.2001991-4.9501991,4.5625c-11.6180992,7.8808022-27.544899,4.9248009-35.4971008-6.5956993 c-7.8154011-11.3204002-4.9902-26.9736996,6.2968998-34.8936005c0.3799-0.2666,0.5263996-0.7588,0.3544998-1.1895001 c-0.1728001-0.4316-0.625-0.6835-1.0771008-0.6181c-4.6474991,0.6953-9.2070999,2.4902-13.1875,5.1893997 C6.9706059,10.0759325,2.1415057,17.427433,0.5526057,25.9079323c-1.582,8.4414024,0.2402,16.9932022,5.1308002,24.0791016 c6.2872,9.1054993,16.4864006,14.0058975,26.8554993,14.0058975c6.3173981,0,12.6982994-1.819397,18.2939987-5.6161995 c6.5800018-4.461998,11.2461014-11.1298981,13.1406021-18.7753983 C64.0877075,39.142334,63.8631058,38.6657333,63.4374046,38.4606323z M49.7098045,56.7224312 c-13.8710976,9.410099-32.8847961,5.8828011-42.3798981-7.872097c-4.5858998-6.642601-6.2948999-14.660202-4.8114996-22.5742016 C4.0086055,18.3239326,8.5379057,11.4294329,15.2723055,6.861033c2.5801001-1.75,5.4189997-3.0937002,8.3643007-3.9726 c-9.3916006,9.0702991-11.1416006,23.9258003-3.5205002,34.9668007 c8.5741997,12.4188995,25.7422009,15.6094017,38.2666016,7.1133003c0.8260994-0.5606003,1.5996017-1.149498,2.3182983-1.764698 C58.4803047,48.6472321,54.6766052,53.3542328,49.7098045,56.7224312z"/> </g> 
+                            </svg>
+                            <h3 class="text-left text-base my-auto font-normal tracking-tight flex flex-grow"> Theme: {{ appearanceColor }}</h3>
+                            <button> > </button>
+                        </div>
+                    </li>
+                    <!-- any collapsible options -->
+                    <li class="w-full border-y-2 border-neutral-800/10">
+                        <div class=" flex flex-row justify-center text-center w-full my-2 hover:cursor-pointer py-1 hover:text-amber-400/70 scale-105" routerLink="../settings">
+                            <!-- <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> -->
+                            <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+                            <svg class="my-auto flex flex-shrink indent-1 mx-3" width="26px" height="26px" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg" fill="#FFF" transform="rotate(90)matrix(1, 0, 0, 1, 0, 0)" stroke="#FFF">
+                                <g fill="#FFF"id="SVGRepo_bgCarrier" stroke-width="0"/>
+                                <g fill="#FFF" id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+                                <g fill="#FFF" id="SVGRepo_iconCarrier">
+                                <path fill="#FFF" d="m80.16 29.054-5.958-.709 5.958.71Zm31.68 0-5.958.71 5.958-.71Zm34.217 19.756-2.365-5.515 2.365 5.514Zm10.081 3.352 5.196-3-5.196 3Zm7.896 13.676 5.196-3-5.196 3Zm-2.137 10.407-3.594-4.805 3.594 4.805Zm0 39.51 3.593-4.805-3.593 4.805Zm2.137 10.407 5.196 3-5.196-3Zm-7.896 13.676-5.196-3 5.196 3Zm-10.081 3.353 2.364-5.515-2.364 5.515Zm-34.217 19.755 5.958.709-5.958-.709Zm-31.68 0-5.958.709 5.958-.709Zm-34.217-19.755-2.364-5.515 2.364 5.515Zm-10.08-3.353-5.197 3 5.196-3Zm-7.897-13.676 5.196-3-5.196 3Zm2.137-10.407 3.594 4.805-3.594-4.805Zm0-39.51L26.51 81.05l3.593-4.805Zm-2.137-10.407 5.196 3-5.196-3Zm7.896-13.676-5.196-3 5.196 3Zm10.081-3.352-2.364 5.514 2.364-5.514Zm7.85 3.365-2.365 5.515 2.364-5.515Zm0 87.65 2.364 5.514-2.365-5.514ZM36.235 111.17l-3.594-4.805 3.594 4.805Zm76.823 41.535 5.958.71-5.958-.71Zm39.854-69.742-3.593-4.805 3.593 4.805Zm-16.369-30.074 2.364 5.514-2.364-5.514Zm-23.485-13.594-5.958.709 5.958-.71ZM88.104 16a14 14 0 0 0-13.902 12.345l11.916 1.419A2 2 0 0 1 88.104 28V16Zm15.792 0H88.104v12h15.792V16Zm13.902 12.345A14 14 0 0 0 103.896 16v12a2 2 0 0 1 1.986 1.764l11.916-1.419Zm1.219 10.24-1.219-10.24-11.916 1.419 1.219 10.24 11.916-1.419Zm24.675 4.71-9.513 4.08 4.729 11.028 9.513-4.08-4.729-11.028Zm17.642 5.867a14 14 0 0 0-17.642-5.867l4.729 11.029a2 2 0 0 1 2.521.838l10.392-6Zm7.896 13.676-7.896-13.676-10.392 6 7.896 13.676 10.392-6Zm-3.74 18.212a14 14 0 0 0 3.74-18.212l-10.392 6a2 2 0 0 1-.535 2.602l7.187 9.61Zm-8.984 6.718 8.984-6.718-7.187-9.61-8.983 6.718 7.186 9.61Zm8.984 23.182-8.984-6.718-7.186 9.61 8.983 6.718 7.187-9.61Zm3.74 18.212a14 14 0 0 0-3.74-18.212l-7.187 9.61a2 2 0 0 1 .535 2.602l10.392 6Zm-7.896 13.676 7.896-13.676-10.392-6-7.896 13.676 10.392 6Zm-17.642 5.867a14 14 0 0 0 17.642-5.867l-10.392-6a2.001 2.001 0 0 1-2.521.838l-4.729 11.029Zm-9.513-4.08 9.513 4.08 4.729-11.029-9.512-4.079-4.73 11.028Zm-16.381 19.03 1.219-10.24-11.916-1.419-1.219 10.24 11.916 1.419ZM103.896 176a14 14 0 0 0 13.902-12.345l-11.916-1.419a2 2 0 0 1-1.986 1.764v12Zm-15.792 0h15.792v-12H88.104v12Zm-13.902-12.345A14 14 0 0 0 88.104 176v-12a2 2 0 0 1-1.986-1.764l-11.916 1.419Zm-1.012-8.504 1.012 8.504 11.916-1.419-1.012-8.504-11.916 1.419ZM51.428 134.31l-7.85 3.366 4.73 11.029 7.849-3.366-4.73-11.029Zm-7.85 3.366a2 2 0 0 1-2.52-.838l-10.392 6a14 14 0 0 0 17.642 5.867l-4.73-11.029Zm-2.52-.838-7.896-13.676-10.392 6 7.896 13.676 10.392-6Zm-7.896-13.676a2 2 0 0 1 .535-2.602l-7.187-9.61a14 14 0 0 0-3.74 18.212l10.392-6Zm.535-2.602 6.132-4.585-7.187-9.61-6.132 4.585 7.187 9.61ZM26.51 81.05l6.132 4.586 7.187-9.61-6.132-4.586-7.187 9.61Zm-3.74-18.212a14 14 0 0 0 3.74 18.212l7.187-9.61a2 2 0 0 1-.535-2.602l-10.392-6Zm7.896-13.676L22.77 62.838l10.392 6 7.896-13.676-10.392-6Zm17.642-5.867a14 14 0 0 0-17.642 5.867l10.392 6a2 2 0 0 1 2.52-.838l4.73-11.029Zm7.849 3.366-7.85-3.366-4.729 11.029 7.85 3.366 4.729-11.029Zm18.045-18.316-1.012 8.504 11.916 1.419 1.012-8.504-11.916-1.419Zm-1.754 27.552c6.078-3.426 11.69-9.502 12.658-17.63L73.19 36.85c-.382 3.209-2.769 6.415-6.635 8.595l5.893 10.453Zm-21.02 1.793c7.284 3.124 15.055 1.57 21.02-1.793l-5.893-10.453c-3.704 2.088-7.481 2.468-10.398 1.217l-4.73 11.029ZM49 96c0-7.1-2.548-15.022-9.171-19.975l-7.187 9.61C35.36 87.668 37 91.438 37 96h12Zm23.448 40.103c-5.965-3.363-13.736-4.917-21.02-1.793l4.729 11.029c2.917-1.251 6.694-.871 10.398 1.218l5.893-10.454Zm-32.62-20.128C46.452 111.022 49 103.1 49 96H37c0 4.563-1.64 8.333-4.358 10.365l7.187 9.61Zm78.679 19.575c-5.536 3.298-10.517 8.982-11.406 16.446l11.916 1.419c.329-2.765 2.318-5.582 5.632-7.557l-6.142-10.308Zm20.402-1.953c-7.094-3.042-14.669-1.463-20.402 1.953l6.142 10.308c3.382-2.015 6.872-2.372 9.53-1.233l4.73-11.028Zm-53.803 20.135c-.968-8.127-6.58-14.202-12.658-17.629l-5.893 10.454c3.866 2.179 6.253 5.385 6.635 8.594l11.916-1.419ZM141 96c0 6.389 2.398 13.414 8.32 17.842l7.186-9.61C154.374 102.638 153 99.668 153 96h-12Zm8.32-17.842C143.398 82.586 141 89.61 141 96h12c0-3.668 1.374-6.638 3.506-8.232l-7.186-9.61ZM118.507 56.45c5.733 3.416 13.308 4.995 20.401 1.953l-4.729-11.029c-2.658 1.14-6.148.782-9.53-1.233l-6.142 10.31Zm-11.406-16.446c.889 7.464 5.87 13.148 11.406 16.446l6.142-10.309c-3.314-1.974-5.303-4.79-5.632-7.556l-11.916 1.419Z"/>
+                                <path fill="#FFF" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="9.6" d="M96 120c13.255 0 24-10.745 24-24s-10.745-24-24-24-24 10.745-24 24 10.745 24 24 24Z"/>
+                            </g>
+
+                            </svg>
+
+                            <h3 class="text-left indent-1 text-base my-auto font-normal tracking-tight flex flex-grow"> Settings </h3>
+                        </div>
+                        
+                    </li> <!-- settings-->
+                    <li class="w-full"> 
+                        <div class="flex  flex-row justify-center text-center w-full my-2 hover:cursor-pointer py-1 hover:text-amber-400/70 scale-105">
+                            <!-- <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> -->
+
+                            <!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+                            <svg class="my-auto flex flex-shrink  indent-2 mx-4" fill="#FFF" height="20px" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 490.69 490.69" xml:space="preserve" stroke="#232D48" stroke-width="2.81386" transform="matrix(1, 0, 0, 1, 0, 0)rotate(0)">
+
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"/>
+
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.581386"/>
+
+                                <g id="SVGRepo_iconCarrier"> <g> <g> <g> <path d="M289.6,373.453c-6.613-0.96-12.267,4.16-12.267,10.56v74.667h-256V32.013h256v74.347c0,5.333,3.84,10.133,9.067,10.88 c6.613,0.96,12.267-4.16,12.267-10.56V21.347c0-5.867-4.8-10.667-10.667-10.667H10.667C4.8,10.68,0,15.48,0,21.347v448 c0,5.867,4.8,10.667,10.667,10.667H288c5.867,0,10.667-4.8,10.667-10.667v-85.013C298.667,379,294.827,374.2,289.6,373.453z"/> <path d="M487.573,237.88L380.907,131.213c-4.267-4.053-10.987-3.947-15.04,0.213c-3.947,4.16-3.947,10.667,0,14.827 l88.427,88.427H128.32c-5.227,0-9.92,3.627-10.773,8.853c-1.173,6.72,4.053,12.48,10.56,12.48H454.4l-88.533,88.427 c-4.267,4.053-4.373,10.88-0.213,15.04c4.053,4.267,10.88,4.373,15.04,0.213c0.107-0.107,0.213-0.213,0.213-0.213 l106.667-106.667C491.733,248.867,491.733,242.04,487.573,237.88z"/> </g> </g> </g> </g>
+
+                            </svg>
+                            <h3 class="text-left  text-base my-auto font-normal tracking-tight flex flex-grow" (click)="signOut($event)"> Sign out </h3>
+                        </div>
+                        
+                    </li> <!-- sign out-->
+                </ul>
+            </div>
+        </div>
+        
+        <h3 *ngIf="accountText !== 'Not Signed In'" class="lg:text-sm text-xs font-light hover:scale-[1.02] text-center" appTextShadow >Welcome {{ accountText }} </h3>
+    </li>
+</ul>
