@@ -1,7 +1,5 @@
 import { Component, OnInit, ElementRef, AfterViewInit, ViewChildren, QueryList } from '@angular/core';
 
-type NewType = ElementRef;
-
 @Component({
   selector: 'app-switch',
   templateUrl: './switch.component.html',
@@ -11,10 +9,10 @@ export class SwitchComponent implements OnInit {
 
   //change this to default angular supported
 
-  @ViewChildren('swi')
+  /* @ViewChildren('swi')
   public navSwi!: QueryList<ElementRef<HTMLLIElement>>
   @ViewChildren('change')
-  public navBtnItems!: QueryList <ElementRef<HTMLLIElement>>
+  public navBtnItems!: QueryList <ElementRef<HTMLLIElement>> */
 
   name1:string = 'Observatory Hill Dining Hall'; name1Boolean:boolean = true;
   name2:string = 'Newcomb Dining Hall'; name2Boolean:boolean = false;

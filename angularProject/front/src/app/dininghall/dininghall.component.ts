@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit, ElementRef, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ElementRef, OnChanges, SimpleChanges, HostListener } from '@angular/core';
 import { AppService} from '../app.service'
 import { Observable } from 'rxjs'
 
@@ -13,8 +13,16 @@ export class DininghallComponent implements OnInit, AfterViewInit {
   @Input() text!: string
   @Input() show?: string
   @Input() short!: string
+  showTitleText:boolean = false
   headers: any
-
+  @HostListener('window:resize', []) //might be unnecessary
+    clarifyTab() {
+      if (window.innerWidth <= 418) {
+        this.showTitleText = true
+      } else { 
+        this.showTitleText = false
+      }
+    }
 
   constructor(private elementRef: ElementRef, private appService: AppService) {
 
@@ -23,7 +31,11 @@ export class DininghallComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
      //thi
     this.headers = this.appService.getHeaders(this.short)
-    
+    if (window.innerWidth <= 418) {
+      this.showTitleText = true
+    } else { 
+      this.showTitleText = false
+    }
   }
 
 

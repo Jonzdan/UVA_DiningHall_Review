@@ -26,7 +26,7 @@ module.exports = {
       },
       gridAutoRows: {
         'zero': '0',
-      }
+      },
         
       
     },
