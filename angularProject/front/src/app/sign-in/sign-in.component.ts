@@ -29,7 +29,7 @@ export class SignInComponent implements OnInit {
   ngOnInit(): void {
     this.inputForm = new FormGroup({
       user: new FormControl('', []),
-      pass1: new FormControl('', [])
+      password: new FormControl('', [])
     })
     
     const userObs = this.user?.valueChanges.pipe(
@@ -42,15 +42,13 @@ export class SignInComponent implements OnInit {
       if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.userError = true} 
       else { this.userError = false }
     })
-    const passObs = this.pass?.valueChanges.pipe(
+    const passObs = this.password?.valueChanges.pipe(
       tap(()=>{this.passLoading = true; this.passError = false}),
       debounceTime(400),
     ).subscribe((res)=>{
-      console.log(1)
       this.passLoading = false; this.invalidPassSubmit = false;
-      const obj = this.helper("password", this.pass)
-      this.pass?.setErrors(obj);
-      console.log(this.pass.errors)
+      const obj = this.helper("password", this.password)
+      this.password?.setErrors(obj);
       if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.passError = true} 
       else { this.passError = false }
     })
@@ -80,6 +78,7 @@ export class SignInComponent implements OnInit {
           setTimeout(() => {
             this.inputDefault(); this.invalidPassSubmit = true; this.invalidUserSubmit = true;
             this.userError = true; this.passError = true;
+            this.password.setErrors({'timeout':true})
           }, 400);
           break
         }
@@ -100,7 +99,7 @@ export class SignInComponent implements OnInit {
         case "PASS_WHITESPACE_ERROR": { //whitespace case -- add validator for whitespace
           setTimeout(() => {
             this.inputDefault(); this.passError = true;
-            this.pass.setErrors({'whitespace':true})
+            this.password.setErrors({'whitespace':true})
           }, 400);
           break
         }
@@ -122,14 +121,14 @@ export class SignInComponent implements OnInit {
         case "PASS_ERROR_MIN": {
           setTimeout(() => {
             this.inputDefault(); this.passError = true;
-            this.pass.setErrors({'minlength':true})
+            this.password.setErrors({'minlength':true})
           }, 400);
           break
         }
         case "PASS_ERROR_MAX": {
           setTimeout(() => {
             this.inputDefault(); this.passError = true;
-            this.pass.setErrors({'maxlength':true})
+            this.password.setErrors({'maxlength':true})
           }, 400);
           break
         }
@@ -182,7 +181,8 @@ export class SignInComponent implements OnInit {
     if (this.validate(this.inputForm)) {
       //submit form
 
-      const msg = await this.as.pullAccount(this.inputForm)
+      await this.as.pullAccount(this.inputForm)
+      //just in case
 
     }
     else {
@@ -201,8 +201,8 @@ export class SignInComponent implements OnInit {
     this.hideUserErrorText = false; this.hideErrorText = false;
   }
 
-  get pass() {
-    return this.inputForm.get('pass1') as FormControl
+  get password() {
+    return this.inputForm.get('password') as FormControl
   }
 
   get user() {
@@ -215,7 +215,6 @@ export class SignInComponent implements OnInit {
   }
 
   helper(field:string, control:AbstractControl) {
-    console.log(13)
     const obj: {[index:string]:any} = {}
     if (control.value.length === 0) {
       obj['required'] = true

@@ -235,6 +235,12 @@ export class RegisterComponent implements OnInit {
           }, 400);
           break
         }
+        case "TIMEOUT_ERROR": {
+          setTimeout(() => {
+            this.inputDefault();
+            this.secondPass.setErrors({'timeout': true})
+          }, 400);
+        }
       }
 
     })
@@ -271,7 +277,7 @@ export class RegisterComponent implements OnInit {
     if (this.validate(this.inputForm)) {
       //submit form
     
-      const msg = await this.as.createAccount(this.inputForm)
+      await this.as.createAccount(this.inputForm)
 
       
     }

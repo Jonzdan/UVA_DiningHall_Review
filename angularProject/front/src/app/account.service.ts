@@ -65,7 +65,7 @@ export class AccountService {
 
     let sent:boolean = false
 
-    return this.http.post(url, JSON.stringify(obj), {
+    const b = this.http.post(url, JSON.stringify(obj), {
       'headers': {
         'content-type':'application/json'
       },
@@ -112,6 +112,9 @@ export class AccountService {
         else if (err.error?.code !== undefined) {
           this.eventMsg.next(err.error?.code)
         }
+        else {
+          this.eventMsg.next("TIMEOUT_ERROR")
+        }
         throw err
       }),
       ).subscribe((res)=> {
@@ -139,7 +142,6 @@ export class AccountService {
     })
     const url = `./user/login`
     this.eventLoginMsg.next("Submitting...")
-
     const req =  this.http.post(url, JSON.stringify(obj), {
       'headers': {
         'content-type':'application/json'
@@ -189,33 +191,42 @@ export class AccountService {
         else if (err instanceof TimeoutError || err.status === 504) {
           this.eventLoginMsg.next("TIMEOUT_ERROR")
         }
+        else {
+          this.eventLoginMsg.next("TIMEOUT_ERROR")
+        }
         throw err
       })
     )
-  
-    //** NEXT STEP::: FINISH INVALID FORM APPEARNCE */
 
-      req.subscribe((res: HttpResponse<Object>)=> {
+
+    const b = req.subscribe((res: HttpResponse<Object>)=> {
+      try {
         if (res.body !== null) { 
-        this.accountInfo['username'] = (res.body as loginResponse)?.username
-        this.accountText = (res.body as loginResponse)?.username
-        this._signedIn = true
-        setTimeout(() => {
-          this.eventLoginMsg.next("Done!")
-          setTimeout(()=>{
-            this.eventLoginMsg.next("LOGIN") //ew??
-            this.router.navigateByUrl('/')
-          },400)
-        }, 400);
-        //redirect to signed in navigation...
-        //remove sign-in option/register when signed in
-        //add sign-out option
+          this.accountInfo['username'] = (res.body as loginResponse)?.username
+          this.accountText = (res.body as loginResponse)?.username
+          this._signedIn = true
+          setTimeout(() => {
+            this.eventLoginMsg.next("Done!")
+            setTimeout(()=>{
+              this.eventLoginMsg.next("LOGIN") //ew??
+              this.router.navigateByUrl('/')
+            },400)
+          }, 400);
+          //redirect to signed in navigation...
+          //remove sign-in option/register when signed in
+          //add sign-out option
+        }
+        else {
+          console.log(res.headers)
+        } 
       }
-      else {
-        console.log(res.headers)
-      } 
+      catch (err) {
+        console.error(err);
+      }
+        
 
     })
+
 
 
     
