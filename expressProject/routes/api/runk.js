@@ -188,9 +188,9 @@ async function getData() {
         //loop thru and follow model
     if (getRunkTimeFrame(time) === 'Dinner (4:30pm-8pm)') {
         let b1 = res.data.indexOf("c-tab")
-        b1 = res.data.indexOf("c-tab", b+10)
-        b1 = res.data.indexOf("c-tab", b+10)
-        b1 = res.data.indexOf("c-tab", b +10)
+        b1 = res.data.indexOf("c-tab", b1+10)
+        b1 = res.data.indexOf("c-tab", b1+10)
+        b1 = res.data.indexOf("c-tab", b1 +10)
         let endTime1 = res.data.indexOf('class="bound-layout"')
         let i1 = b1
         while(res.data.indexOf("toggle-menu-station-data", i1) < endTime1) {

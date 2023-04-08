@@ -50,31 +50,31 @@
                     <div class="flex flex-col w-full flex-grow justify-center">
                         <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 indent-2"> Password </label>
                         <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': passError , 'border-gray-300': !passError}">
-                            <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="lg:text-base text-sm w-full align-middle mb-0 text-gray-800 font-medium  outline-none py-2 focus:placeholder:text-transparent indent-3" >
+                            <input type="password" name="pass1" placeholder="Type your password" formControlName="pass1" appNoAutocompleteBg class="lg:text-base text-sm w-full align-middle mb-0 text-gray-800 font-medium  outline-none py-2 focus:placeholder:text-transparent indent-3" >
                         </div>
                         <div class="relative mb-2 mt-1" >   
-                            <div *ngIf="(password?.dirty || password?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                            <div *ngIf="(pass?.dirty || pass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
                                 <div class="rounded-full border-none border-0 spin justify-center w-[17px] h-[17px] visible " [ngClass]="{'animate-spin flex': passLoading, 'hidden': !passLoading}">
                                     <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                         <!-- implement check later -->
                                     </div>
                                 </div>
-                                <div *ngIf="password?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
-                                    <h3 *ngIf="password?.errors?.['required']; else minLengthValid"> Required Field </h3>
+                                <div *ngIf="pass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
+                                    <h3 *ngIf="pass?.errors?.['required']; else minLengthValid"> Required Field </h3>
                                     <ng-template #minLengthValid>
-                                        <h3 *ngIf="password?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
+                                        <h3 *ngIf="pass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
                                     </ng-template>
                                     <ng-template #maxLengthValid>
-                                        <h3 *ngIf="password?.errors?.['maxlength']; else invalidPass" > Password Length Must Be Less Than 32 Characters </h3>
+                                        <h3 *ngIf="pass?.errors?.['maxlength']; else invalidPass" > Password Length Must Be Less Than 32 Characters </h3>
                                     </ng-template>
                                     <ng-template #invalidPass> 
                                         <h3 *ngIf="invalidPassSubmit; else whitespace_p"> The username or password is incorrect </h3> <!-- start here next time-->
                                     </ng-template>
                                     <ng-template #whitespace_p> 
-                                        <h3 *ngIf="password?.errors?.['whitespace']; else timeout"> Password cannot contain spaces </h3> <!-- start here next time-->
+                                        <h3 *ngIf="pass?.errors?.['whitespace']; else timeout"> Password cannot contain spaces </h3> <!-- start here next time-->
                                     </ng-template>
                                     <ng-template #timeout> 
-                                        <h3 *ngIf="password?.errors?.['timeout']; else timeout"> Something went wrong </h3> <!-- start here next time-->
+                                        <h3 *ngIf="pass?.errors?.['timeout']"> Something went wrong </h3> <!-- start here next time-->
                                     </ng-template>
                                 </div>
                             </div>

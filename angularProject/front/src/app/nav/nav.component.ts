@@ -1,7 +1,7 @@
-import { Component, OnInit, Input, AfterViewInit, ElementRef, Output, EventEmitter, HostListener, Host} from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, Host} from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { AccountService } from '../account.service';
-import { filter, map, tap } from 'rxjs'
+import { Subscription, filter, map, tap } from 'rxjs'
 import { NavSideBarService } from '../nav-side-bar.service';
 
 @Component({
@@ -12,7 +12,7 @@ import { NavSideBarService } from '../nav-side-bar.service';
 
 export class NavComponent implements OnInit {
 
-
+  private _subscription = new Subscription()
   constructor(private navbar: NavSideBarService, private as: AccountService, private router: Router) { }
 
   @HostListener('document:click', ['$event'])
@@ -37,7 +37,7 @@ export class NavComponent implements OnInit {
     }
 
   ngOnInit(): void {
-    this.router.events
+    const routerSub = this.router.events
     .pipe(
       map((event:any)=> {
         
@@ -63,6 +63,7 @@ export class NavComponent implements OnInit {
       
     })
 
+    this._subscription.add(routerSub)
     this.navbar.updateNavBarToIcon(window.innerWidth)
 
   }
@@ -96,6 +97,10 @@ export class NavComponent implements OnInit {
   signOut(e:any) {
     if (!this.as.signedIn) return
     this.as.signOut()
+  }
+
+  ngOnDestroy():void {
+    this._subscription.unsubscribe();
   }
 
   get accountText() { return this.as.accountText }

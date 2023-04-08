@@ -1,6 +1,6 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, ViewChildren, QueryList, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { AppReviewService } from '../app-review.service';
-import  { BehaviorSubject, map } from 'rxjs'
+import  { BehaviorSubject, Subscription, map } from 'rxjs'
 import { StarsComponent } from '../stars/stars.component';
 import { AppService } from '../app.service';
 import { AccountService } from '../account.service';
@@ -21,11 +21,11 @@ export class ItemComponent implements OnInit {
   @Input() indicator!: number
   @ViewChild(StarsComponent) child!:StarsComponent
   @ViewChild('front') mainCard!: any
-  height: BehaviorSubject<string> = new BehaviorSubject(""); width: BehaviorSubject<string> = new BehaviorSubject("") //of item
   textContent:string = ""
   numStars:number = 0
   flip:boolean = false
-  starsReview!: number 
+  starsReview!: number
+  private _subscription = new Subscription(); 
   public item!: any //should probably leave out reviews, since they can get long
 
   //load viewport items first, lazy load other components later
@@ -87,14 +87,17 @@ export class ItemComponent implements OnInit {
       return
     }
     let temp = await this.appReview.sendReview(this.short, content) //add spinner while loading
-    temp.subscribe((res) => { console.log(res) })
+    this._subscription.add(temp.subscribe((res) => { console.log(res) }))
+    
        //
       //console.log(responseBody)
       //pop a little alert that says thx for submitting
-    }
+  }
     
     
-    
+  ngOnDestroy():void {
+    this._subscription.unsubscribe();
+  }  
   
 
   showOptions(e:any):void {
