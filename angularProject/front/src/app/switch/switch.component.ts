@@ -1,4 +1,5 @@
 import { Component, OnInit, ElementRef, AfterViewInit, ViewChildren, QueryList } from '@angular/core';
+import { SwitchDininghallService } from '../switch-dininghall.service';
 
 @Component({
   selector: 'app-switch',
@@ -14,14 +15,11 @@ export class SwitchComponent implements OnInit {
   @ViewChildren('change')
   public navBtnItems!: QueryList <ElementRef<HTMLLIElement>> */
 
-  name1:string = 'Observatory Hill Dining Hall'; name1Boolean:boolean = true;
-  name2:string = 'Newcomb Dining Hall'; name2Boolean:boolean = false;
-  name3:string = 'Runk Dining Hall'; name3Boolean: boolean = false;
   public b1: boolean = true
   public b2: boolean = false
   private bgColor = 'bg-[#EB5F0C]'
 
-  constructor(private elementRef: ElementRef) { }
+  constructor(private elementRef: ElementRef, private sds: SwitchDininghallService) { }
 
   ngOnInit(): void {
   }
@@ -30,30 +28,19 @@ export class SwitchComponent implements OnInit {
     
   }
   
-  changeData(event: any): void { //add changing colors ** DELETE THIS IN FUTURE, AND JUST ADD NGCLASS CONDITIONALS**
+  changeData(event: any): void { //add changing colors 
     const name = event.target.innerText
-    switch (name) {
-      case this.name1: {
-        this.name1Boolean = true; this.name2Boolean = false; this.name3Boolean = false;
-        break
-      }
-      case this.name2: {
-        this.name2Boolean = true; this.name1Boolean = false; this.name3Boolean = false;
-        break
-      }
-      case this.name3: {
-        this.name3Boolean = true; this.name1Boolean = false; this.name2Boolean = false;
-        break
-      }
-      default: {
-        console.error(event)
-      }
-    }
+    this.sds.changeData(name)
 
     //also switch data...
-
-    
   }
+
+  get name1() { return this.sds.name1}
+  get name2() { return this.sds.name2}
+  get name3() { return this.sds.name3}
+  get name1Boolean() { return this.sds.name1Boolean}
+  get name2Boolean() { return this.sds.name2Boolean}
+  get name3Boolean() { return this.sds.name3Boolean}
 
 
 }

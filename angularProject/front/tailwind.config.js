@@ -19,14 +19,18 @@ module.exports = {
         oppBgShift:'oppColorChange .6s linear forwards'
       },
       gridTemplateColumns: {
-        'fluid': 'repeat(4, minmax(0px, 1fr))',
-        'fluid-1': 'repeat(3, minmax(0px, 1fr))',
-        'fluid-2': 'repeat(2, minmax(0px, 1fr))',
-        'fluid-3': 'repeat(1, minmax(0px, 1fr))',
+        'fluid': 'repeat(4, minmax(220px, 1fr))',
+        'fluid-1': 'repeat(3, minmax(220px, 1fr))',
+        'fluid-2': 'repeat(2, minmax(220px, 1fr))',
+        'fluid-3': 'repeat(1, minmax(220px, 1fr))',
       },
       gridAutoRows: {
         'zero': '0',
       },
+      screens: {
+        'h-sm': { 'raw' : '(min-height: 450px)'}
+        // => @media (min-height: 450px) {}
+      }
         
       
     },

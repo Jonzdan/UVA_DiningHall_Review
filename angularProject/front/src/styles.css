@@ -12,6 +12,9 @@
     .inactive-star-fill {
         text-shadow: 0 0 0 #fff;
     }
+    .inactive-star-fill-opaque {
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.100), -1px -1px 1px rgba(53, 50, 50, 0.1), -1px 1px 1px rgba(53, 50, 50, 0.100), 1px 1px 1px rgba(53, 50, 50, 0.100), 1px -1px 1px rgba(53, 50, 50, 0.100);
+    }
     .active-star {
         position: reltaive;
         margin: auto;
@@ -36,6 +39,7 @@
         max-height: min-content;
         width: .7em;
         height: .7em;
+        display:none;
         
     }
     ::-webkit-scrollbar-thumb {

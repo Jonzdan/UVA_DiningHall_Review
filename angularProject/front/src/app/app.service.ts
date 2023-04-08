@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
-import { Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, retry, map } from 'rxjs/operators';
 
 @Injectable({
@@ -18,6 +18,8 @@ export class AppService {
   private runkShopToItems: any = {}
   private ohillShopToItems: any = {}
   private newcombShopToItems: any = {}
+  private _dataLoaded:BehaviorSubject<boolean> = new BehaviorSubject(false);
+  private ohillDone:boolean = false; private newcombDone:boolean = false; private runkDone:boolean = false;
 
 
   getData(target:string) {
@@ -156,14 +158,20 @@ export class AppService {
           for (const elem of Object.keys(this.ohillShopToItems)) {
             this.ohillShopToItems[elem].sort(function(a:itemObject,b:itemObject){return (b.itemName.length + b.itemDesc.length) - (a.itemName.length + a.itemDesc.length)})
           }
+          this.ohillDone = true;
           break
         }
         case "runk": {
+          this.runkDone = true;
           break
         }
         case "newcomb": {
+          this.newcombDone = true;
           break
         }
+      }
+      if (this.newcombDone && this.runkDone && this.ohillDone) {
+        this._dataLoaded.next(true)
       }
     })
   }
@@ -184,6 +192,8 @@ export class AppService {
       return this.ohillShopToItems
     }
   }
+
+  get dataLoaded() { return this._dataLoaded }
 
 }
 

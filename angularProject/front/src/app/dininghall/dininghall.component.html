@@ -1,4 +1,4 @@
-<div id= '{{ short }}' class="w-full">
+<div *ngIf="!skeletonLoader" id='{{ short }}' class="w-full">
     <h2 [ngClass]="{'':showTitleText, 'hidden':!showTitleText}" class="text-center block font-bold font-sans tracking-tighter lg:text-4xl md:text-2xl: sm:text-xl: text-lg w-full m-auto lg:py-5 md:py-4 py-2 px-2 rounded bg-neutral-200 align-middle justify-center text-[#2b3758]" > {{ text }} </h2>
     <!-- create stations here -->
     <div *ngFor="let head of headers">
@@ -7,4 +7,30 @@
         </app-station-name>
     </div>
     
+</div>
+<div *ngIf="skeletonLoader" class="w-full h-fit flex flex-col bg-slate-50">
+    <h2 [ngClass]="{'':showTitleText, 'hidden':!showTitleText}" class="text-transparent px-3 bg-neutral-200 lg:text-2xl md:text-xl: sm:text-lg text-base w-full h-full rounded-full m-auto"> PLACEHOLDER </h2>
+    <div *ngFor="let b of [1,2,3,4,5,6]; let i = index" class="flex-grow flex w-full h-full flex-col bg-slate-50"> <!-- stations -->
+        <div class="block font-medium text-sm self-center w-[95%] mx-auto text-transparent rounded-full relative bg-neutral-200 my-1">
+            <button class="bg-black/10 opacity-80 rounded-full w-full h-full" [ngClass]="{'animate-htl-pulse':animationState != 'a0'}">
+                
+            </button>
+        </div>  <!-- station text -->
+        <div class="grid grid-flow-row xl:grid-cols-fluid lg:grid-cols-fluid-1 sm:grid-cols-fluid-2 grid-cols-fluid-3 xl:grid-rows-1 lg:grid-rows-2 md:grid-rows-2 sm:grid-rows-2 grid-rows-4 w-full overflow-hidden auto-rows-zero gap-3 grid-">
+            <div *ngFor="let item of [1,2,3,4]; let i = index" class="mx-auto my-2 sl_items min-h-[220px] min-w-[300px] max-h-[320px]" [ngClass]="{'animation-none': animationState == 'a0', 'animate-pulses': getProperBooleanForAnimation(i) }"> <!-- items -->
+                <div class=" rounded-sm bg-gradient-to-r from-neutral-200 shadow-black/30 shadow-lg to-neutral-200 flex flex-col">
+                    <button class="bg-black/10 opacity-80 rounded-full w-[95%] h-[10%] m-1 text-transparent"> _________ </button>
+                    <div class="flex-wrap w-[95%] min-w-[220px] h-[120px] mx-auto justify-start self-center bg-neutral-300 rounded-sm text-transparent"> <!-- img  here (h-auto) in the future when I have my img --> 
+                        _______
+                    </div>
+                    <div class="flex flex-row w-max align-middle self-center m-auto ">
+                        <div *ngFor="let star of [1,2,3,4,5]; let i=index">
+                            <span title="⭐" class=" m-auto min-w-[15px] min-h-[15px] text-transparent before:absolute before:content-[attr(title)] before:text-transparent inactive-star-fill-opaque opacity-20"> ⭐ </span>
+                        </div>  
+                    </div>
+                    <button class="font-serif font-light underline w-fit m-auto mb-1 rounded-lg lg:p-[6px] p-[2px] lg:text-base bg-gray-600/20 text-sm justify-end text-transparent"> Write a review...</button>
+                    <!-- various text... -->
+                </div>
+            </div>
+    </div>
 </div>

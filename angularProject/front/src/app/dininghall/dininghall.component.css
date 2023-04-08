@@ -1,0 +1,19 @@
+
+@keyframes pulses {
+    50% {
+        opacity: .5;
+    }
+}
+
+@keyframes pulsehtl {
+    50% {
+        opacity: .2;
+    }
+}
+
+.animate-htl-pulse {
+    animation: pulsehtl 2s cubic-bezier(0.4, 0, 0.6, 1) 
+}
+.animate-pulses {
+    animation: pulses 2s cubic-bezier(0.4, 0, 0.6, 1) ;
+}
