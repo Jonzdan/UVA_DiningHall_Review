@@ -87,6 +87,26 @@ async function loggedIn_Or_Not(req, res, next) {
     
 }
 
+async function loggedOut_Or_Not(req, res, next) {
+    if (req.signedCookies.SESSION_ID !== undefined) {
+        const response = await identifierSchema.find({session_token: req.signedCookies.SESSION_ID})
+        if (response && Object.keys(response).length < 1) {res.status(504).end(); return }
+        if (response && Object.keys(response).length === 1) {
+            if (response[0].userID === undefined) { //associated user, so authenticated session token
+                res.status(400).json({msg: "Not Logged In"}); return
+            }
+            next()
+        }
+        else {
+            res.status(504).end(); return
+        }
+    }
+    else {
+       return
+    }
+    
+}
 
 
-module.exports = { csrf, validateFields, loggedIn_Or_Not } 
+
+module.exports = { csrf, validateFields, loggedIn_Or_Not, loggedOut_Or_Not } 

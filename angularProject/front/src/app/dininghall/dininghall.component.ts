@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, AfterViewInit, ElementRef, OnChanges, SimpleChanges, HostListener, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ElementRef, OnChanges, SimpleChanges, HostListener, OnDestroy, SkipSelf } from '@angular/core';
 import { AppService} from '../app.service'
-import { BehaviorSubject, debounceTime, map, Observable, Subject } from 'rxjs'
+import { BehaviorSubject, debounceTime, map, Observable, Subject, Subscription } from 'rxjs'
 import { NavSideBarService } from '../nav-side-bar.service';
 import { SwitchDininghallService } from '../switch-dininghall.service';
 
@@ -18,7 +18,9 @@ export class DininghallComponent implements OnInit, AfterViewInit {
   showTitleText:boolean = false
   headers: any
   private animationListener:BehaviorSubject<any> = new BehaviorSubject("a0")
+  private sub:Subscription = new Subscription()
   b1:boolean = true; b2: boolean = false; b3: boolean = false; b4: boolean = false;
+  emptyDisplay:boolean = false;
   skeletonLoader:boolean = false; 
   subclosed:boolean = false;
   @HostListener('window:resize', []) //might be unnecessary
@@ -42,10 +44,6 @@ export class DininghallComponent implements OnInit, AfterViewInit {
     } else { 
       this.showTitleText = false
     }
-    this.appService.dataLoaded.asObservable().subscribe((res) => {
-      if (!res) { this.skeletonLoader = true; return}
-      this.skeletonLoader = false;
-    })
     let shortname:string; 
     this.sds.observable.asObservable().subscribe((res) => {
       shortname = res;
@@ -103,6 +101,21 @@ export class DininghallComponent implements OnInit, AfterViewInit {
       
     })
     })
+    const dataloadedState = this.appService.dataLoaded.subscribe((res)=> {
+      if (res) {
+        this.skeletonLoader = false;
+        const items = this.appService.getData(this.short)
+        if (!items || items?.length === 0) {
+          console.log(123)
+          this.emptyDisplay = true;
+        }
+        dataloadedState.unsubscribe();
+      }
+      else {
+        this.skeletonLoader = true;
+      }
+    })
+    this.sub.add(dataloadedState)
     
     
 
@@ -130,6 +143,7 @@ export class DininghallComponent implements OnInit, AfterViewInit {
    this.subclosed = true;
    this.animationListener.unsubscribe();
    this.sds.observable.unsubscribe();
+   this.sub.unsubscribe();
    this.sds.reinstantiate();
   }
 

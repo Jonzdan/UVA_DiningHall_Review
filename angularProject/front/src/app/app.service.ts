@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http'
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, retry, map } from 'rxjs/operators';
+import { catchError, retry, map, last } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -35,9 +35,33 @@ export class AppService {
   }
 
   setData(): void {
-    this.call('ohill').subscribe((data) => {this.ohill = data; this.setHeaders("ohill")})
-    this.call('newcomb').subscribe((data) => { this.newcomb = data; this.setHeaders("newcomb")})
-    this.call('runk').subscribe((data) => { this.runk = data; this.setHeaders("runk")})
+    this.call('ohill').pipe(
+      last(),
+      catchError((err, caught) => {
+        this.ohillDone = true;
+        setTimeout(() => {
+          this._dataLoaded.next(this.newcombDone && this.ohillDone && this.runkDone)
+        }, 400);
+        throw err
+    })).subscribe((data) => {this.ohill = data; this.setHeaders("ohill")})
+    this.call('newcomb').pipe(
+      last(),
+      catchError((err, caught) => {
+        this.newcombDone = true;
+        setTimeout(() => {
+          this._dataLoaded.next(this.newcombDone && this.ohillDone && this.runkDone)
+        }, 400);
+        throw err
+    })).subscribe((data) => { this.newcomb = data; this.setHeaders("newcomb")})
+    this.call('runk').pipe(
+      last(),
+      catchError((err, caught) => {
+        this.runkDone = true;
+        setTimeout(() => {
+          this._dataLoaded.next(this.newcombDone && this.ohillDone && this.runkDone)
+        }, 400);
+        throw err
+    })).subscribe((data) => { this.runk = data; this.setHeaders("runk")})
   }
 
   private call(target: string) {
@@ -152,6 +176,7 @@ export class AppService {
         }
       }
     }
+    console.log(1)
     this.sortItems(target, ()=> {
       switch (target) {
         case "ohill": {

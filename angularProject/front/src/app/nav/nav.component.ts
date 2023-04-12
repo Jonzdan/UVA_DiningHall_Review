@@ -53,6 +53,10 @@ export class NavComponent implements OnInit {
             this.navbar.hideNavbar(true, event)
             break
           }
+          case "/settings": {
+            this.navbar.hideNavbar(true, event);
+            break
+          }
           default: {
             this.navbar.hideNavbar(false, event)
           }

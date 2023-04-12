@@ -3,7 +3,7 @@ const { db } = require('../models/user')
 const router = express.Router()
 const userSchema = require('../models/user')
 const crypto = require('crypto')
-const { csrf, validateFields, loggedIn_Or_Not } = require('../auth')
+const { csrf, validateFields, loggedIn_Or_Not, loggedOut_Or_Not } = require('../auth')
 const tokenSchema = require('../models/token')
 
 router.use(csrf)
@@ -68,7 +68,7 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res)=>{ //m
         if (userQuery && userQuery.equals(foundUser$[0]._id)) { //if the id's match? only match for a day (this could be sketch)
             await tokenSchema.findOneAndUpdate({userID: foundUser$[0]._id, csrf_token: req.headers.h_csrf_token}, {session_token: session})
             res.cookie('SESSION_ID', session, {sameSite: 'strict', httpOnly: true, maxAge: 1000*60*60*6, signed: true})
-            res.status(200).json({username: foundUser$[0].username})
+            res.status(200).json({username: foundUser$[0].username, picture: foundUser$[0].profile.picture})
             
         }
         else if (userQuery && !(userQuery.equals(foundUser$[0]._id))) {
@@ -78,7 +78,7 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res)=>{ //m
             //now we need to associate this csrf with a userid
             await tokenSchema.findOneAndUpdate({csrf_token: req.headers.h_csrf_token}, {session_token: session, userID: foundUser$[0]._id})
             res.cookie('SESSION_ID', session, {sameSite: 'strict', httpOnly: true, maxAge: 1000*60*60*6, expires: 1000*60*60*6, signed: true})
-            res.status(200).json({username: foundUser$[0].username})
+            res.status(200).json({username: foundUser$[0].username, picture: foundUser$[0].profile.picture})
             
         }
          //fix sessionId
@@ -92,7 +92,7 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res)=>{ //m
     
 })
 
-router.post('/signOut', async(req, res)=> { //have some other way to clear users (if they don't log out)
+router.post('/signOut', loggedOut_Or_Not ,async(req, res)=> { //have some other way to clear users (if they don't log out)
     const data = req.body; const session = req.signedCookies.SESSION_ID; const csrf = req.cookies.CSRF_TOKEN
     if (session === undefined) { res.status(401).end(); return }
     const response = await tokenSchema.find({session_token: session, csrf_token: csrf})
@@ -118,6 +118,21 @@ router.post('/signOut', async(req, res)=> { //have some other way to clear users
         res.header('Content-Security-Policy', "default-src 'self'; style-src 'self', 'unsafe-inline'") //??
         res.cookie('CSRF_TOKEN', xsrf, {sameSite: 'strict', maxAge: 1000*60*60*6, expires: 1000*60*60*6})
         res.status(200).json({msg: "Signed Out Successfully"})
+    }
+})
+
+router.post('/settings', loggedOut_Or_Not , async(req, res) => {
+    const data = req.body; const session = req.signedCookies.SESSION_ID; const csrf = req.cookies.CSRF_TOKEN
+    if (session === undefined) { res.status(401).end(); return }
+    const response = await tokenSchema.find({session_token: session, csrf_token: csrf})
+    if (Object.keys(response).length === 0 ) { res.status(401).end('Error')}
+    const user = await userSchema.find({_id: response[0].userID, username: data.username}, {password: 0, _id: 0})
+    if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
+        res.status(401).end(); return
+    }
+    else { //valid user, just return settings
+        console.log(user)
+        res.status(200).json(user)
     }
 })
 

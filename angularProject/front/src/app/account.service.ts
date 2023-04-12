@@ -11,7 +11,9 @@ export class AccountService {
 
   private accountInfo: {[index:string]: any} = {}
   private _logUrl = ''
-  private _authHeaders = {}
+  private _authHeaders = {'headers': {
+    'content-type':'application/json'
+  },}
   public eventMsg:BehaviorSubject<string> = new BehaviorSubject("")
   public eventLoginMsg:BehaviorSubject<string> = new BehaviorSubject("")
   public accountText:string = "Not Signed In"
@@ -232,6 +234,25 @@ export class AccountService {
     
     /*
     */
+  }
+
+  pullAccountDetails() {
+    if (!this._signedIn || Object.keys(this.accountInfo).length === 0) return
+    const url = './settings'
+    this.http.post(url, this.accountInfo, {
+      'headers': {
+        'content-type':'application/json'
+      },
+      observe: 'response'
+    }).pipe(
+      catchError((err, caught)=> {
+        throw err
+      })
+    ).subscribe((res) => {
+      console.log(res)
+      //add a check
+      this.accountInfo = res;
+    })
   }
 
   timeout(ms:number) {

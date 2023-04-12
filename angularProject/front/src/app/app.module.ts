@@ -20,7 +20,8 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 import { TextShadowDirective } from './text-shadow.directive';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NoAutocompleteBgDirective } from './no-autocomplete-bg.directive';
-import { SettingsComponent } from './settings/settings.component'
+import { SettingsComponent } from './settings/settings.component';
+import { SettingsTabComponent } from './settings-tab/settings-tab.component'
 
 
 @NgModule({
@@ -42,6 +43,7 @@ import { SettingsComponent } from './settings/settings.component'
     TextShadowDirective,
     NoAutocompleteBgDirective,
     SettingsComponent,
+    SettingsTabComponent,
   ],
   imports: [
     BrowserModule,
