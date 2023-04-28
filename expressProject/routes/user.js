@@ -23,6 +23,21 @@ router.post('/register', [validateFields, loggedIn_Or_Not], async(req,res)=>{
                 email: data.email,
                 username: data.user,
                 password: data.firstPass,
+                profile: {
+                    bannerColor: "default",
+                    remainAnonymous: false
+                },
+                notifications: {
+                    ohill_opt_in: true,
+                    runk_opt_in: true,
+                    newcomb_opt_in: true,
+                    opt_in_whenToNotify: [],
+                    food_opt_in_bol: true,
+                    food_opt_in_val: [],
+                    reply_to_post: true
+
+                },
+                dateJoined: new Date().getDate()
             }
             const newUser = new userSchema(obj)
             newUser.save()
@@ -121,18 +136,61 @@ router.post('/signOut', loggedOut_Or_Not ,async(req, res)=> { //have some other 
     }
 })
 
-router.post('/settings', loggedOut_Or_Not , async(req, res) => {
+router.post('/settings', loggedOut_Or_Not, async(req, res) => {
     const data = req.body; const session = req.signedCookies.SESSION_ID; const csrf = req.cookies.CSRF_TOKEN
     if (session === undefined) { res.status(401).end(); return }
     const response = await tokenSchema.find({session_token: session, csrf_token: csrf})
     if (Object.keys(response).length === 0 ) { res.status(401).end('Error')}
-    const user = await userSchema.find({_id: response[0].userID, username: data.username}, {password: 0, _id: 0})
+    const user = await userSchema.find({_id: response[0].userID, username: data.username}, {_id:0, password:0, __v: 0})
     if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
         res.status(401).end(); return
     }
     else { //valid user, just return settings
-        console.log(user)
         res.status(200).json(user)
+    }
+})
+
+router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
+    const data = req.body; const session = req.signedCookies.SESSION_ID; const csrf = req.cookies.CSRF_TOKEN
+    if (session === undefined) { res.status(401).end(); return }
+    const response = await tokenSchema.find({session_token: session, csrf_token: csrf})
+    if (Object.keys(response).length === 0 ) { res.status(401).end('Error')}
+    const user = await userSchema.find({_id: response[0].userID, username: data.username}, {_id:0})
+    if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
+        res.status(401).end(); return
+    }
+    else {
+        const foundUser$ = user[0]
+        //update properties in foundUser - will have subgroups
+        const updateObj = {}
+        for (const prop of Object.keys(data)) {
+            if (data[prop] instanceof Object) {
+                for (const key in data[prop]) {
+                    if (foundUser$[prop] === undefined || foundUser$[prop][key] === undefined) { res.status(401).end(); return }
+                    updateObj[`${prop}.${key}`] = data[prop][key]
+                }
+            }
+            else {
+                if (prop === "username" || prop === "dateJoined") continue
+                if (foundUser$[prop] === undefined) { res.status(401).end(); return }
+                if (prop === "email") { //verification later -- implement later
+
+                }
+                else if (prop === "password") { //verification later -- implement later
+
+                }
+
+                updateObj[prop] = data[prop]
+            }
+        }
+        try {
+            await userSchema.findOneAndUpdate({session_token: session, csrf_token: csrf, username: data.username}, { $set: updateObj })
+            res.status(200).json("DONE") //maybe send updated body back
+        }
+        catch (err) {
+            throw err
+        }
+        
     }
 })
 

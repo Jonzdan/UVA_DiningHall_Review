@@ -1,4 +1,4 @@
-<div class="w-full h-full fixed bg-neutral-100 flex-row flex top-0">
+<div class="w-full h-[100vh] bg-neutral-100 flex-row flex top-0">
     <div id="sidebar" class="flex flex-col md:w-20 w-16 p-2 h-full bg-[#232D48] text-white">
         <div>icon</div>
         <div>icon</div>
@@ -12,30 +12,40 @@
             <h2 class="text-3xl"> LOGO </h2>
             <h3 class="text-base"> Settings</h3>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] ">
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
             <!-- icon -->
-            <button type="text" class="indent-1 p-1"> My Details </button>
+            <button type="text" class="indent-1 p-1">My Details</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] ">
-            <button type="text" class="indent-1 p-1"> Profile </button>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+            <button type="text" class="indent-1 p-1">Profile</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] ">
-            <button type="text" class="indent-1 p-1"> Password </button>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+            <button type="text" class="indent-1 p-1">Password</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] ">
-            <button class="indent-1 p-1"> Notifcations </button>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+            <button class="indent-1 p-1">Notifications</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] ">
-            <button class="indent-1 p-1"> Logout</button>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+            <button class="indent-1 p-1">Logout</button>
         </div>
     </div>
-    <div id="options">
-        <h2 class="font-semibold text-2xl indent-2 tracking-tight font-sans ">  Notification Settings </h2> <!-- {{}} Settings -->
-        <h3 class="indent-2"> Lorem ipsum dolor sit, amet consectetur adipisicing elit. </h3> <!-- subtext -->
-        <div *ngFor="let tab of notificationsList" class="flex flex-col">
-            <app-settings-tab [identifier]="tab">
+    <div id="options" class="flex flex-grow flex-col mx-4 py-3">
+        <h2 class="font-semibold text-2xl tracking-tight font-sans ">  {{currentSelected}} Settings </h2> <!-- {{}} Settings -->
+        <h3 class="pb-4 pt-1 border-b-2 indent-0 "> {{whichTitleSubstring(currentSelected)}} </h3> <!-- subtext -->
+        <div *ngFor="let tab of settingsList | keyvalue" class="flex flex-col w-full">
+            <app-settings-tab *ngIf="convertPropertyToView(tab.key) == currentSelected" [identifier]="convertPropertyToView(tab.key)">
+                
+            </app-settings-tab>
+        </div>
+        <div class="flex flex-col w-full">
+            <app-settings-tab *ngIf="currentSelected === 'Password'" [identifier]="convertSideBarViewToProp('Password')">
 
             </app-settings-tab>
         </div>
+        <div class="flex flex-row w-full text-neutral-100">
+            <button *ngIf="pendingChanges" type="submit" class="flex ml-auto mr-2 px-3 py-1 bg-green-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="updateChanges($event)">Save Changes</button>
+            <button *ngIf="pendingChanges" type="submit" class="flex mr-auto ml-2 px-3 py-1 bg-red-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="updateChanges($event)">Discard Changes</button>
+        </div>
+        
     </div>
 </div>

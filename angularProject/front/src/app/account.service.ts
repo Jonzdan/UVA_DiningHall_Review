@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Form, FormGroup } from '@angular/forms';
+import { AbstractControl, Form, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpRequest, HttpResponse } from '@angular/common/http';
 import { BehaviorSubject, catchError, last, map, Subject, take, tap, timeout, TimeoutError } from 'rxjs';
 import { Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 })
 export class AccountService {
 
-  private accountInfo: {[index:string]: any} = {}
+  private _accountInfo: {[index:string]: any} = {}
   private _logUrl = ''
   private _authHeaders = {'headers': {
     'content-type':'application/json'
@@ -18,10 +18,94 @@ export class AccountService {
   public eventLoginMsg:BehaviorSubject<string> = new BehaviorSubject("")
   public accountText:string = "Not Signed In"
   private _signedIn:boolean = false
+  private _tempSettingStore: {[index:string]:any} = {}
+  private _pendingChanges:boolean = false;
+  private _clickedOnTargets:Array<any> = new Array(); //this could be really bad, maybe change later **IMPORTANT**
+  private _notificationsEmailText:string = "Get emails to find out what's going on when you're not online. You can turn these off."
+  private _notificationsPushText:string = "Get push notifications in-app to find out what's going on when you're online."
+  private _passwordText:string = "Configure details about your password"
 
   get signedIn() {
     return this._signedIn
   }
+  get pendingChanges() { return this._pendingChanges}
+  set pendingChanges(b:boolean) { this._pendingChanges = b; }
+  get accountInfo() { return this._accountInfo}
+  get clickedOnTargets() { return this._clickedOnTargets}
+  get tempSettingStore() { return this._tempSettingStore}
+
+  updateAccountSettings():boolean { //only upon save changes button
+    const keys = Object.keys(this.accountInfo)
+    for (const setting in this._tempSettingStore) {
+      /* if (keys.indexOf(setting) === -1) { //uncomment in actual production
+        alert("ERROR HERE"); console.log(this._tempSettingStore, this.accountInfo); return false;
+      } */
+      if (Object.keys(setting).length > 0) {
+        const settings: {[index:string]:any} = this._tempSettingStore[setting]
+        for (const property in settings) { //what if there are more nested properties? Also maybe assume both have same properties to speed this up?
+          //if (settings[property] !== 1 || settings[property] !== 0) return false
+            try {
+              this.accountInfo[setting][property] = settings[property]
+            }
+            catch (err) {
+              throw err
+            }
+          
+        } 
+      }
+      else {
+        this.accountInfo[setting] = this._tempSettingStore[setting] as {[index:string]:any}
+      }
+      
+    }
+   
+    //http request to backend
+    const url = "./user/updateSettings"
+    //add username to tempSettingStore
+    this._tempSettingStore['username'] = this._accountInfo['username']
+    this.http.post(url, this._tempSettingStore, {
+      'headers': {
+        'content-type':'application/json'
+      },
+      reportProgress: true
+    }).pipe(
+      timeout(5000),
+      catchError((err, caught) => {
+        console.error(err)
+        throw err
+      })
+    ).subscribe((res) => {
+      console.log(res)
+    }) 
+    this._tempSettingStore = {} //reset only on accurate info
+    this._pendingChanges = false;
+    return true
+  }
+
+  addTempSettingStore(identifier_key:string, obj_key: string, value: any):void { 
+    if (typeof(obj_key) !== 'string') return
+    obj_key.trim();
+    if (this._tempSettingStore[identifier_key] === undefined) { this._tempSettingStore[identifier_key] = {} }
+    this._tempSettingStore[identifier_key] [obj_key] = value;
+    this._pendingChanges = true;
+    //console.log(this._tempSettingStore)
+
+  }
+
+  resetSettingsToDefault():void {
+    //probably put this in the component
+    this._tempSettingStore = {}
+    this._clickedOnTargets = []
+  }
+
+  addToTargetsArray(e:any, actualPropName:string) {
+    console.log(e)
+    if (!(e.target instanceof HTMLInputElement) || !(e instanceof PointerEvent)) return
+    if (this._clickedOnTargets.indexOf({target:  e.target, prop: actualPropName}) !== -1) return
+    this._clickedOnTargets.push({target:  e.target, prop: actualPropName});
+  }
+
+
 
   constructor(private http: HttpClient, private router: Router) { }
 
@@ -35,7 +119,7 @@ export class AccountService {
         return
       }
       this._signedIn = true; this.accountInfo['username'] = (res.body as loginResponse)?.username; this.accountText = (res.body as loginResponse)?.username
-
+      if (this.router.url === '/settings') { this.pullAccountDetails()}
     })
   }
 
@@ -236,9 +320,9 @@ export class AccountService {
     */
   }
 
-  pullAccountDetails() {
+  async pullAccountDetails() {
     if (!this._signedIn || Object.keys(this.accountInfo).length === 0) return
-    const url = './settings'
+    const url = './user/settings'
     this.http.post(url, this.accountInfo, {
       'headers': {
         'content-type':'application/json'
@@ -248,10 +332,10 @@ export class AccountService {
       catchError((err, caught)=> {
         throw err
       })
-    ).subscribe((res) => {
+    ).subscribe((res: HttpResponse<any>) => {
       console.log(res)
       //add a check
-      this.accountInfo = res;
+      this._accountInfo = res?.body[0]
     })
   }
 
@@ -280,7 +364,7 @@ export class AccountService {
     } )
     clearCookies.subscribe((res: HttpResponse<Object>)=> {
       if ((res.body as signOutResponse)?.msg === "Signed Out Successfully") { //signed out successfully
-        this._signedIn = false; this.accountInfo = {}; this.accountText = "Not Signed In"
+        this._signedIn = false; this._accountInfo = {}; this.accountText = "Not Signed In"
       }
       else {
         console.error(res)
@@ -291,6 +375,148 @@ export class AccountService {
     
   }
 
+  convertPropertyToView(s:string):string {
+    switch (s) {
+      case "dateJoined": {
+        return "Date Joined"
+      }
+      case "email": {
+        return "Email"
+      }
+      case "notifications": {
+        return "Notification"
+      }
+      case "profile": {
+        return "Profile" 
+      }
+      case "username": {
+        return "Username"
+      }
+      case "password": {
+        return "Password"
+      }
+      default: 
+        return ""
+    }
+  }
+
+  convertViewToProperty(s:string):string {
+    switch (s) {
+      case "Date Joined": {
+        return "dateJoined"
+      }
+      case "Email": {
+        return "email"
+      }
+      case "Notification": {
+        return "notifications"
+      }
+      case "Profile": {
+        return "profile" 
+      }
+      case "Username": {
+        return "username"
+      }
+      case "Password": {
+        return "password"
+      }
+      default: 
+        return ""
+    }
+  }
+
+  convertNotificationPropIntoView(s:string) {
+    switch (s) {
+      case "food_opt_in_bol": return "Food Notifications"
+      case "newcomb_opt_in": return "Newcomb Notifications"
+      case "ohill_opt_in": return "Ohill Notifications"
+      case "opt_in_whenToNotify": return "Notification Times"
+      case "reply_to_post": return "Comment Notifications"
+      case "runk_opt_in": return "Runk Notifications"
+      default: return ""
+    }
+  }
+
+  convertViewIntoNotificationProp(s:string) {
+    switch (s) {
+      case "Food Notifications": return "food_opt_in_bol"
+      case "Newcomb Notifications": return "newcomb_opt_in"
+      case "Ohill Notifications": return "ohill_opt_in"
+      case "Notification Times": return "opt_in_whenToNotify"
+      case "Comment Notifications": return "reply_to_post"
+      case "Runk Notifications": return "runk_opt_in"
+      default: return ""
+    }
+  }
+
+  getNotificationSubtext(s:string) {
+    switch (s) {
+      case "food_opt_in_bol": return "Get notified when a certain food(s) arrives"
+      case "newcomb_opt_in": return "Recieve notifications from Newcomb Dining Hall"
+      case "ohill_opt_in": return "Recieve notifications from Observatory Hill Dining Hall"
+      case "opt_in_whenToNotify": return "Opt in to recieve notifications from a specific time period"
+      case "reply_to_post": return "Comment Notifications"
+      case "runk_opt_in": return "Recieve notifications from Runk Dining Hall"
+      default: return ""
+    }
+  }
+
+  getStringsForIdentifiers(identifier:string):{[index:string]:any} {
+    const strings:{[index:string]:any} = {}
+    switch (identifier) {
+      case "Notification": {
+        strings['title'] = `Email ${identifier}s`
+        strings['subtext'] = this._notificationsEmailText;
+        break
+      }
+      case "Password": {
+        strings['title'] = `Change your ${identifier}`
+        strings['subtext'] = this._passwordText;
+        break
+      }
+      case "My Profile": {
+        break
+      }
+      default: {
+        break
+      }
+    }
+    return strings
+  }
+
+  convertIdentifierToActualPropNames(o:{[index:string]:any}, i:string):{[index:string]:any} {
+    const retObj:{[index:string]:any} = {}
+    console.log(i)
+    switch (i) {
+      case "Date Joined": {
+        break
+      }
+      case "Email": {
+        break
+      }
+      case "Notification": {
+        retObj['name'] = this.convertNotificationPropIntoView(o['key'])
+        retObj['subtext'] = this.getNotificationSubtext(o['key'])
+        break 
+      }
+      case "Profile": {
+        break
+      }
+      case "Username": {
+        break
+      }
+      case "Password": {
+        retObj['name'] = "temp"
+        retObj['subtext'] = "placeholder"
+        break
+      }
+      default: 
+        break
+    }
+    return retObj
+  }
+
+  
 }
 
 interface loginResponse {

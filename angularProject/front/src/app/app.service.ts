@@ -176,7 +176,6 @@ export class AppService {
         }
       }
     }
-    console.log(1)
     this.sortItems(target, ()=> {
       switch (target) {
         case "ohill": {

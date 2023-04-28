@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
             type:Boolean,
             required:true
         },
-        food_opt_in_val: {
+        food_opt_in_val: { //specific types of food?
             type:Array,
             required:true
         },

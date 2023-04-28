@@ -45,7 +45,7 @@
                     <circle cx="25" cy="45.83" r="17.1" clip-path="url(#circular-border)" />
                 
                 </svg>
-                <div [ngClass]="{'flex': dropDown && signedIn, 'hidden': !dropDown || !signedIn}" class="flex-col relative w-full h-full" id="dropdown_container">
+                <div [ngClass]="{'flex': dropDown && signedIn, 'hidden': !dropDown || !signedIn}" class="flex-col relative w-full h-full z-50" id="dropdown_container">
                     <ul class="fixed items-center z-50 max-h-[300px] h-fit lg:w-[15vw] md:w-[20vw] sm:w-[25vw] w-[30vw] lg:left-[84vw] md:left-[79vw] sm:left-[74vw] left-[69vw] top-[50px] bg-neutral-50 text-black rounded-md shadow-black/15 shadow-lg drop-shadow-md flex flex-col overflow-auto"> <!-- fix where svg appears on smaller screens... -->
                         <li class="flex flex-shrink flex-row border-b-[1px] border-b-neutral-600 w-full p-2"> <!-- user info -->
                             <img src="" alt="N/A" class="flex flex-grow">

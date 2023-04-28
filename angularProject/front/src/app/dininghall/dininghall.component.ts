@@ -109,7 +109,7 @@ export class DininghallComponent implements OnInit, AfterViewInit {
           console.log(123)
           this.emptyDisplay = true;
         }
-        dataloadedState.unsubscribe();
+        //dataloadedState.unsubscribe();
       }
       else {
         this.skeletonLoader = true;

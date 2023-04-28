@@ -18,10 +18,11 @@ import { SignInComponent } from './sign-in/sign-in.component';
 import { AboutUsComponent } from './about-us/about-us.component';
 import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
 import { TextShadowDirective } from './text-shadow.directive';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NoAutocompleteBgDirective } from './no-autocomplete-bg.directive';
 import { SettingsComponent } from './settings/settings.component';
-import { SettingsTabComponent } from './settings-tab/settings-tab.component'
+import { SettingsTabComponent } from './settings-tab/settings-tab.component';
+import { ToggleComponent } from './toggle/toggle.component'
 
 
 @NgModule({
@@ -44,6 +45,7 @@ import { SettingsTabComponent } from './settings-tab/settings-tab.component'
     NoAutocompleteBgDirective,
     SettingsComponent,
     SettingsTabComponent,
+    ToggleComponent,
   ],
   imports: [
     BrowserModule,
@@ -54,7 +56,8 @@ import { SettingsTabComponent } from './settings-tab/settings-tab.component'
     HttpClientXsrfModule.withOptions({
       cookieName: 'CSRF_TOKEN',
       headerName: 'H_CSRF_TOKEN'
-    })
+    }),
+    FormsModule
     
   ],
   providers: [],
