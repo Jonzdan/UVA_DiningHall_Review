@@ -3,7 +3,7 @@ const { db } = require('../models/user')
 const router = express.Router()
 const userSchema = require('../models/user')
 const crypto = require('crypto')
-const { csrf, validateFields, loggedIn_Or_Not, loggedOut_Or_Not } = require('../auth')
+const { csrf, validateFields, loggedIn_Or_Not, loggedOut_Or_Not, validateFieldsReset } = require('../auth')
 const tokenSchema = require('../models/token')
 
 router.use(csrf)
@@ -37,7 +37,7 @@ router.post('/register', [validateFields, loggedIn_Or_Not], async(req,res)=>{
                     reply_to_post: true
 
                 },
-                dateJoined: new Date().getDate()
+                dateJoined: new Date()
             }
             const newUser = new userSchema(obj)
             newUser.save()
@@ -150,7 +150,7 @@ router.post('/settings', loggedOut_Or_Not, async(req, res) => {
     }
 })
 
-router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
+router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => { //validates through csrf, session, and username
     const data = req.body; const session = req.signedCookies.SESSION_ID; const csrf = req.cookies.CSRF_TOKEN
     if (session === undefined) { res.status(401).end(); return }
     const response = await tokenSchema.find({session_token: session, csrf_token: csrf})
@@ -172,12 +172,17 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
             }
             else {
                 if (prop === "username" || prop === "dateJoined") continue
-                if (foundUser$[prop] === undefined) { res.status(401).end(); return }
+                if (prop !== 'firstPass' && prop !== 'secondPass' && foundUser$[prop] === undefined) { res.status(401).end(); return }
                 if (prop === "email") { //verification later -- implement later
 
                 }
                 else if (prop === "password") { //verification later -- implement later
-
+                    if (foundUser$[prop] !== data[prop]) {res.status(401).end("Invalid Password Given"); return} //check correct password
+                    codes = validateFieldsReset(data[prop], data['firstPass'], data['secondPass'])
+                    if (Object.keys(codes).length !== 0) {res.status(401).end("Unahotira"); return }
+                    if (data['secondPass'] == foundUser$[prop]) { res.status(401).end("Same Password")}
+                    updateObj[prop] = data['secondPass']
+                    continue
                 }
 
                 updateObj[prop] = data[prop]
@@ -193,6 +198,7 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
         
     }
 })
+
 
 
 module.exports = router

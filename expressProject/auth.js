@@ -51,6 +51,18 @@ async function validateFields(req, res, next) {
     next()
 }
 
+function validateFieldsReset(password, firstPass, secondPass) {
+    let codes = hasWhiteSpace([password, firstPass, secondPass], [])
+    if (password.length < 6) { codes.push("1101") }
+    else if ( password.length > 16) { codes.push("1100")}
+    if (firstPass.length < 8 ) { codes.push("1001") }
+    else if (firstPass.length > 32) { codes.push("1000")}
+    if (secondPass.length < 8 ) { codes.push("2001") }
+    else if (secondPass.length > 32) { codes.push("2000")}
+    if (firstPass != secondPass) { codes.push("3000")}
+    return codes
+}
+
 function hasWhiteSpace(array, codes) { //expand a bit
     for (let i = 0; i < array.length; i++) {
         if (array[i] !== undefined && /\s/.test(array[i])) {
@@ -67,7 +79,7 @@ function hasWhiteSpace(array, codes) { //expand a bit
 }
 
 
-async function loggedIn_Or_Not(req, res, next) {
+async function loggedIn_Or_Not(req, res, next) { //checks if user is already logged in
     if (req.signedCookies.SESSION_ID !== undefined) {
         const response = await identifierSchema.find({session_token: req.signedCookies.SESSION_ID})
         if (response && Object.keys(response).length > 1) {res.status(504).end(); return }
@@ -87,7 +99,7 @@ async function loggedIn_Or_Not(req, res, next) {
     
 }
 
-async function loggedOut_Or_Not(req, res, next) {
+async function loggedOut_Or_Not(req, res, next) { //checks if user is logged in or not
     if (req.signedCookies.SESSION_ID !== undefined) {
         const response = await identifierSchema.find({session_token: req.signedCookies.SESSION_ID})
         if (response && Object.keys(response).length < 1) {res.status(504).end(); return }
@@ -109,4 +121,4 @@ async function loggedOut_Or_Not(req, res, next) {
 
 
 
-module.exports = { csrf, validateFields, loggedIn_Or_Not, loggedOut_Or_Not } 
+module.exports = { csrf, validateFields, loggedIn_Or_Not, loggedOut_Or_Not, validateFieldsReset } 

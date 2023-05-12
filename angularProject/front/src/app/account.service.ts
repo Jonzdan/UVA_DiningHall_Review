@@ -339,6 +339,68 @@ export class AccountService {
     })
   }
 
+  async resetPassword(form:FormGroup) {
+    let obj: {[index:string]: any} = {}
+    obj['username'] = this._accountInfo['username']
+    Object.keys(form.controls).forEach((field)=> {
+      const control = form.get(field)
+      if (control instanceof FormGroup) { //only assuming one nested group
+        Object.keys(control.controls).forEach((f)=> {
+          const data = control.get(f)
+          obj[f] = data?.value
+        })
+      }
+      else {
+        obj[field] = control?.value //could just ban spaces
+      }
+      
+    })
+    const url = `./user/updateSettings`
+    this.eventLoginMsg.next("Submitting...")
+    const req =  this.http.post(url, JSON.stringify(obj), {
+      'headers': {
+        'content-type':'application/json'
+      },
+      observe: 'response',
+      reportProgress: true
+    }).pipe(
+      tap(()=> {
+        
+      }),
+      timeout(5000),
+      last(),
+      catchError((err, caught) => { //* handle ERROR HANDLING LATER *
+        this.eventMsg.next("401")
+        throw err
+      })
+    )
+
+
+    const b = await new Promise((resolve, reject)=> {
+      req.subscribe((res: HttpResponse<Object>)=> {
+            try {
+              if (res.body !== null) { 
+                //do something...
+                resolve(res);
+              }
+              else {
+                resolve(res);
+                console.log(res.headers)
+              } 
+            }
+            catch (err) {
+              console.error(err);
+              reject(res);
+            }
+          })
+    }).then((res) => {
+      return res;
+    })
+
+    return b;
+    
+  }
+
   timeout(ms:number) {
     return new Promise(resolve => setTimeout(resolve, ms))
   }

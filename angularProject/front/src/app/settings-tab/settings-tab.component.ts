@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { AccountService } from '../account.service';
 import { Subscription, debounceTime, tap } from 'rxjs';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 export class SettingsTabComponent implements OnInit {
 
   @Input() identifier!: any;
+  @ViewChild('modal') modal:any;
   options:{[index:string]:any} = {}
   text:{[index:string]:any} = {}
   firstTime: boolean = true
@@ -24,13 +25,13 @@ export class SettingsTabComponent implements OnInit {
   private currentSubmission:boolean = false;
   resetPassbtn: string = "Reset Password"
   passError:boolean = false; secondPassError: boolean = false; firstPassError:boolean = false; bothPassError:boolean = false
+  dialogText:string = "Invalid Password"; subDialogText:string = "Our system detected an error with one of the entered passwords. Please check your passwords and try again."
   private _subscription:Subscription = new Subscription()
   constructor(private acc:AccountService, private elementRef:ElementRef, private router:Router) { }
 
   ngOnInit(): void {
     this.options = this.acc.accountInfo[this.acc.convertViewToProperty(this.identifier)]
     this.text = this.acc.getStringsForIdentifiers(this.identifier)
-    console.log(this.text)
     this.inputForm = new FormGroup({
       password: new FormControl('', []),
       passGroup: new FormGroup({
@@ -38,27 +39,23 @@ export class SettingsTabComponent implements OnInit {
         secondPass: new FormControl('', []),
       }, this.matchingPasswords()),
     })
+
   
     const passObs = this.password?.valueChanges.pipe(
-      tap(()=>{this.passLoading = true; this.passError = false}),
+      tap(()=>{ this.passError = false}),
       debounceTime(400),
     ).subscribe((res)=>{
       this.passLoading = false; this.invalidPassSubmit = false;
       const obj = this.helper("password", this.password)
       this.password?.setErrors(obj);
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.passError = true} 
-      else { this.passError = false }
     })
 
     const passgroup = this.passGroup?.valueChanges.pipe(
-      tap(()=> { this.firstPassLoading = true; this.secondPassLoading = true; this.hideErrorText = true}),
+      tap(()=> { /* this.firstPassLoading = true; */ this.secondPassLoading = true;}),
       debounceTime(400),
     ).subscribe((res)=> {
-      this.firstPassLoading = false; this.secondPassLoading = false; this.hideErrorText = false; 
       //this.passGroup?.setErrors(this.matchingPasswords())
-      if (this.passGroup?.errors?.['matchingPasswords']) { this.bothPassError = true}
-      else { this.bothPassError = false}
-      
+      this.secondPassLoading = false;
     })
 
     const fp = this.firstPass?.valueChanges.pipe(
@@ -67,8 +64,8 @@ export class SettingsTabComponent implements OnInit {
     ).subscribe((res)=>{
       const obj: {[index:string]:any} = this.helper('firstPass', this.firstPass)
       this.firstPass?.setErrors(obj)
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.firstPassError = true} 
-      else { this.firstPassError = false }
+      /* if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.firstPassError = true} 
+      else { this.firstPassError = false } */
       //this.firstPassLoading = false; this.secondPassLoading = false
     })
 
@@ -79,12 +76,17 @@ export class SettingsTabComponent implements OnInit {
       const obj: {[index:string]:any} = this.helper("secondPass", this.secondPass)
       //this.secondPassLoading = false; this.firstPassLoading = false
       this.secondPass?.setErrors(obj)
-      if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.secondPassError = true} 
-      else { this.secondPassError = false }
+      /* if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.secondPassError = true} 
+      else { this.secondPassError = false } */
     })
 
     const regEventMsg = this.acc.eventMsg.subscribe((res)=> { //* Good Enough For Now*
       switch (res) {
+        case "401": {
+          this.inputDefault(); this.passError = true;
+          this.showModals('');
+          break
+        }
         case "Submitting...":{
           this.resetPassbtn = "Reset Password", this.currentSubmission = true; this.hideErrorText = true; 
           this.firstPassLoading = false; this.secondPassLoading = false; 
@@ -192,20 +194,21 @@ export class SettingsTabComponent implements OnInit {
 
   async onSubmit(e:any) {
     //Pretty shit solution, change to rxjs subject later...
-    if (this.passLoading) {
+    if (this.firstPassLoading || this.secondPassLoading) {
       setTimeout(()=>{
         this.onSubmit(e)
       },500)
       return
     }  
 
-    if (this.invalidPassSubmit || this.invalidUserSubmit || this.currentSubmission || this.passError) {
+    if (this.invalidPassSubmit || this.invalidUserSubmit || this.currentSubmission || this.passError || this.firstPassError || this.secondPassError) {
       return
     }
     if (this.validate(this.inputForm)) {
       //submit form
 
-      await this.acc.pullAccount(this.inputForm)
+      const res = await this.acc.resetPassword(this.inputForm)
+      console.log(res);
       //just in case
 
     }
@@ -273,12 +276,21 @@ export class SettingsTabComponent implements OnInit {
   matchingPasswords():ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const password = control.get('firstPass')?.value; const confirmPassword = control.get('secondPass')?.value
-      if (password.length < 8 || password.length > 32 || confirmPassword.length < 8 || confirmPassword > 32) { return null } //doesn't fit
+      //if (password.length < 8 || password.length > 32 || confirmPassword.length < 8 || confirmPassword > 32) { return null } //doesn't fit
       return password === confirmPassword ? null : { matchingPasswords: true}
     }
   }
 
   ngAfterViewInit():void {
+    
+  }
+
+  showModals(e:any) {
+    this.modal.nativeElement.showModal();
+  }
+
+  closeModal(e:any) {
+    this.modal.nativeElement.close();
   }
 
   checkIfPropIsChecked(specificSetting:string) { //don't need general since it's specific to component

@@ -14,128 +14,65 @@
         </div>
     </div>
    <!-- Potentially add push notifications later -->
-   <ng-template #singleValue class="flex flex-row w-fit overflow-auto bg-inherit h-fit ">
-        <div class="font-sans text-sm text-start w-full">
-            <h2 class="font-semibold"> {{title}} </h2>
-            <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden mb-3"> {{subtext}} </h3>
-            <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="h-fit flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
-                <div class="flex flex-col w-full flex-grow justify-center">
-                    <label for="pass1" class="text-left font-medium  text-xs text-gray-800 block pt-1 "> Current Password </label>
-                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': passError , 'border-gray-300': !passError}">
-                        <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="text-xs border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-2" >
-                    </div>
-                    <div class="relative mb-2 mt-1" >   
-                        <div *ngIf="(password?.dirty || password?.touched)" class="text-red-800 text-left font-bold flex flex-row text-xs align-bottom absolute z-10 italic">
-                            <div class="rounded-full border-none border-0 spin justify-center w-[17px] h-[17px] visible " [ngClass]="{'animate-spin flex': passLoading, 'hidden': !passLoading}">
-                                <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
-                                    <!-- implement check later -->
-                                </div>
-                            </div>
-                            <div *ngIf="password?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}">
-                                <h3 *ngIf="password?.errors?.['required']; else minLengthValid"> Required Field </h3>
-                                <ng-template #minLengthValid>
-                                    <h3 *ngIf="password?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
-                                </ng-template>
-                                <ng-template #maxLengthValid>
-                                    <h3 *ngIf="password?.errors?.['maxlength']; else invalidPass" > Password Length Must Be Less Than 32 Characters </h3>
-                                </ng-template>
-                                <ng-template #invalidPass> 
-                                    <h3 *ngIf="invalidPassSubmit; else whitespace_p"> The username or password is incorrect </h3> <!-- start here next time-->
-                                </ng-template>
-                                <ng-template #whitespace_p> 
-                                    <h3 *ngIf="password?.errors?.['whitespace']; else timeout"> Password cannot contain spaces </h3> <!-- start here next time-->
-                                </ng-template>
-                                <ng-template #timeout> 
-                                    <h3 *ngIf="password?.errors?.['timeout']"> Something went wrong </h3> <!-- start here next time-->
-                                </ng-template>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-                <ng-container [formGroup]="passGroup" class="flex flex-grow">
-                    <div class="inline-flex flex-col w-full flex-grow justify-center">
-                        <label for="pass1" class="text-left font-medium text-xs text-gray-800 block pt-1 "> New Password </label>
-                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': firstPassError || bothPassError, 'border-gray-300': !firstPassError && !bothPassError}">
-                            <input type="password" name="pass1" placeholder="Must be at least 8 characters" formControlName="firstPass" appNoAutocompleteBg class="text-xs border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-2" >
-                        </div>
-                        <div class="relative mb-2 mt-1" >
-                            
-                            <div *ngIf="(firstPass?.dirty || firstPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': firstPassLoading, 'hidden': !firstPassLoading}">
-                                    <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
-                                        <!-- implement check later -->
-                                    </div>
-                                </div>
-                                <div *ngIf="firstPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}" class="indent-2">
-                                    <h3 *ngIf="firstPass?.errors?.['required']; else minLengthValid"> Required Field </h3>
-                                    <ng-template #minLengthValid>
-                                        <h3 *ngIf="firstPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #maxLengthValid>
-                                        <h3 *ngIf="firstPass?.errors?.['maxlength']; else whitespace_fp" > Password Length Must Be Less Than 32 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #whitespace_fp> 
-                                        <h3 *ngIf="firstPass?.errors?.['whitespace']; else matchingPasswords"> Password cannot contain spaces </h3> <!-- start here next time-->
-                                    </ng-template>
-                                    <ng-template #matchingPasswords>
-                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']; "> Passwords Must Match </h3>
-                                    </ng-template>
-                                    
-                                </div>
-                            </div>
-                            
+   <ng-template #singleValue class="flex flex-row w-full h-fit">
+        <div class="flex flex-row w-fit overflow-auto bg-inherit h-fit flex-grow">
+            <div class="font-sans text-sm text-start min-w-[220px] w-fit">
+                <h2 class="font-semibold"> {{title}} </h2>
+                <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden mb-3"> {{subtext}} </h3>
+                <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="h-fit flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
+                    <div class="flex flex-col w-full flex-grow justify-center">
+                        <label for="pass1" class="text-left font-medium  text-xs text-gray-800 block pt-1 "> Current Password </label>
+                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': passError , 'border-gray-300': !passError}">
+                            <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="text-xs border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-2" >
                         </div>
                     </div>
-                    <div class="inline-flex flex-col w-full flex-grow justify-center">
-                        <label for="pass2" class="text-left font-medium text-xs mb-0 text-gray-800 block lg:pt-3 pt-2"> Re-enter Password </label>
-                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': secondPassError || bothPassError, 'border-gray-300': !secondPassError && !bothPassError}">
-                            <input type="password" name="pass2" placeholder="Must be at least 8 characters" formControlName="secondPass" appNoAutocompleteBg class="text-xs  align-middle text-gray-800 font-medium outline-none py-1 focus:placeholder:text-transparent indent-2 w-full" >
-                        </div>
-                        <div class="relative mb-2 mt-1" >
-                            <div *ngIf="(secondPass?.dirty || secondPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': secondPassLoading, 'hidden': !secondPassLoading}">
-                                    <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
-                                        <!-- implement check later -->
-                                    </div>
-                                </div>
-                                <div *ngIf="secondPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}" class="indent-2">
-                                    <h3 *ngIf="secondPass?.errors?.['required']; else minLengthValid" > Required Field </h3>
-                                    <ng-template #minLengthValid>
-                                        <h3 *ngIf="secondPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #maxLengthValid>
-                                        <h3 *ngIf="secondPass?.errors?.['maxlength']; else whitespace_sp" > Password Length Must Be Less Than 32 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #whitespace_sp> 
-                                        <h3 *ngIf="secondPass?.errors?.['whitespace']; else matchingPasswords"> Password cannot contain spaces </h3> <!-- start here next time-->
-                                    </ng-template>
-                                    <ng-template #matchingPasswords>
-                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']; else timeout"> Passwords Must Match </h3>
-                                    </ng-template>
-                                    <ng-template #timeout> 
-                                        <h3 *ngIf="secondPass?.errors?.['timeout']"> Something went wrong </h3> <!-- start here next time-->
-                                    </ng-template>
-                                </div>
+                    <ng-container [formGroup]="passGroup" class="flex flex-grow">
+                        <div class="inline-flex flex-col w-full flex-grow justify-center">
+                            <label for="pass1" class="text-left font-medium text-xs text-gray-800 block pt-1 "> New Password </label>
+                            <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': firstPassError || bothPassError, 'border-gray-300': !firstPassError && !bothPassError}">
+                                <input type="password" name="pass1" placeholder="Must be at least 8 characters" formControlName="firstPass" appNoAutocompleteBg class="text-xs border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-2" >
                             </div>
-                            
                         </div>
+                        <div class="inline-flex flex-col w-full flex-grow justify-center">
+                            <label for="pass2" class="text-left font-medium text-xs mb-0 text-gray-800 block lg:pt-3 pt-2"> Re-enter Password </label>
+                            <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': secondPassError || bothPassError, 'border-gray-300': !secondPassError && !bothPassError}">
+                                <input type="password" name="pass2" placeholder="Must be at least 8 characters" formControlName="secondPass" appNoAutocompleteBg class="text-xs  align-middle text-gray-800 font-medium outline-none py-1 focus:placeholder:text-transparent indent-2 w-full" >
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container class="w-full flex flex-col"> <!-- Password Requirements -->
+                        <h2 class="font-medium" [ngClass]="{'text-red-600': (firstPass.errors?.['minlength'] || firstPass.errors?.['maxlength'] || secondPass.errors?.['maxlength'] || secondPass.errors?.['minlength'])}" > Passwords Must Be Between 8-32 Characters long </h2>
+                        <h2 class="font-medium" [ngClass]="{'text-red-600': (secondPass.errors?.['whitespace'] || firstPass.errors?.['whitespace'])}" > No spaces are allowed </h2>
+                        <h2 class="font-medium" [ngClass]="{'text-red-600': (passGroup.errors?.['matchingPasswords'])}" > Passwords Must Match </h2>
+                        <h2> Must have one Uppercase character (optional right now -- implement later) </h2>
+                        <h2> Must contain one special character  (optional right now -- implement later)</h2>
+                    </ng-container>
+                    <div class="w-full flex flex-grow flex-col justify-center px-1">
+                        <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-[#EB5F0C] via-[#ee874b] to-[#f5a679]  py-3 text-center my-3 shadow-black shadow-inner rounded-full"> {{resetPassbtn}} </button>
                     </div>
-                </ng-container>
-                <ng-container class="w-full flex flex-col"> <!-- Password Requirements -->
-                    <h2> Password Must Be Between 8-32 Characters long </h2>
-                    <h2> No spaces are allowed </h2>
-                    <h2> Must have one Uppercase character (optional right now -- implement later) </h2>
-                    <h2> Must contain one special character  (optional right now -- implement later)</h2>
-                </ng-container>
-                <div class="w-full flex flex-grow flex-col justify-center">
-                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-[#EB5F0C] via-[#ee874b] to-[#f5a679]  py-3 text-center my-3 shadow-black shadow-inner rounded-full"> {{resetPassbtn}} </button>
-                </div>
-                
-            </form>
+                    
+                </form>
+            </div>
+            <!-- <div class="flex flex-col">
+                <app-toggle  class="flex flex-col"></app-toggle>
+            </div> -->
         </div>
-        <!-- <div class="flex flex-col">
-            <app-toggle  class="flex flex-col"></app-toggle>
+        <!-- <div class="flex flex-col flex-grow">
+            fasd
         </div> -->
    </ng-template>
 </div>
+<dialog #modal class="bg-neutral-50 text-center min-w-[200px] w-[30%] min-h-[250px] p-0 rounded-md">
+    <div class="flex flex-col fixed min-w-[200px] w-[30%] min-h-[250px] p-0 m-auto rounded-md">
+        <div class="flex flex-row w-full bg-[#232D48] text-start indent-1 text-neutral-200 font-sans font-semibold h-full">
+            Alert
+        </div>
+        <div class="flex flex-grow flex-col w-full h-full tracking-tight"> 
+            <h2 class="w-full text-xl py-1 border-b-2 font-bold"> {{dialogText}} </h2> 
+            <h4 class="font-light"> {{subDialogText}} </h4>
+        </div>
+        <button (click)="closeModal($event)" class="align-bottom mt-auto text-center h-full mb-1 border-t-2 hover:text-lg" > Close </button>
+    </div>
+    
+</dialog>
+<button (click)="showModals($event)"> TEMP MODAL TESTING BUTTON </button>
