@@ -1,20 +1,42 @@
 <div class="flex flex-grow flex-row flex-wrap overflow-x-hidden border-b-2 py-3">
-    <div class="flex flex-row w-fit " *ngIf="identifier !== 'Password'; else singleValue">
+    <div class="flex flex-row w-fit " *ngIf="identifier !== 'Password'; else singleValue" [ngClass]="{'flex-row' : identifier=='Notification', 'flex-col' : identifier!='Notification'}">
         <div id="subtext" class="font-sans text-sm text-start w-[40%]">
             <h2 class="font-semibold"> {{title}} </h2>
-            <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden min-w-[220px] h-fit min-h-[200px]"> {{subtext}}</h3>
+            <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden min-w-[220px] h-fit"> {{subtext}}</h3>
         </div>
-        <div class="flex flex-col">
+        <div class="flex flex-col" *ngIf="identifier === 'Notification'">
             <div *ngFor="let option of options | keyvalue" class=""> <!-- this is good if we have a nested object, but what about just plain values -->
-                <div class="my-4" *ngIf="identifier === 'Notification' && skipFoodProperty(option.key)"> 
+                <div class="my-4" *ngIf="skipFoodProperty(option.key)"> 
                     <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col"></app-toggle>
                 </div>
-                <div class="my-4" *ngIf="identifier === 'Profile'"> 
-                    <div class="flex flex-row ">
-                        {{option}}
-                    </div>
+            </div>
+        </div>
+        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4" *ngIf="identifier === 'Profile'"> <!-- if I need to reuse, I can always turn this into a component later -->
+            <div class="bg-neutral-300 w-[50vw] h-[40vh] m-0 rounded-lg relative">
+                <div class="bg-blue-500 rounded-t-lg h-[10vh]"> 
+                        das
                 </div>
-            
+                <div class="flex flex-row">
+                    <img src="https://www.timeoutdubai.com/cloud/timeoutdubai/2021/09/11/udHvbKwV-IMG-Dubai-UAE-1.jpg" alt="" height="50px" width="80px" class="rounded-full">
+                    <h2> NAME </h2>
+                </div>
+                <div class="bg-neutral-200 flex m-5 flex-grow h-[20vh] ">
+                    hey
+                </div>
+            </div>
+            <div *ngFor="let option of options | keyvalue" class="my-2">
+                <div *ngIf="option.key === 'remainAnonymous'; else others">
+                    <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col"> </app-toggle>
+                </div>
+                <ng-template #others>
+                    <h3> {{option.key}} : {{option.value}}</h3>
+                </ng-template>
+            </div>
+            <h2 class="font-semibold text-sm text-start font-sans tracking-tight w-full border-t-2 pt-3"> ACCOUNT REMOVAL </h2>
+            <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden my-0 text-sm text-start font-sans"> Disabling your account means you can recover it at any time after taking this action </h3>
+            <div class="flex flex-row pt-3 pb-1">
+                <button class="font-medium text-center border border-red-400 ml-0 mr-2 bg-red-500 p-1 rounded-md transition-[background-color]"> Disable Account </button> 
+                <button class="font-medium inline-block text-center border border-red-600 p-1 ml-2 mr-0 rounded-md hover:bg-red-700/30 shadow-black transition-[background-color]"> Delete Account </button> <!-- No clue why this shifts text when opacity is 100 -->
             </div>
         </div>
     </div>

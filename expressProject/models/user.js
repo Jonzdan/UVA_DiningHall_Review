@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     //potentially add logs
     profile: {
         picture: { //just send this on long in
-            type:String, //base 64 string for img
+            type:String, //base 64 string for img -> change
             required:false,
         },
         subMessage: {

@@ -16,6 +16,7 @@ export class AccountService {
   },}
   public eventMsg:BehaviorSubject<string> = new BehaviorSubject("")
   public eventLoginMsg:BehaviorSubject<string> = new BehaviorSubject("")
+  private _currentSelected = "Profile"
   public accountText:string = "Not Signed In"
   private _signedIn:boolean = false
   private _tempSettingStore: {[index:string]:any} = {}
@@ -24,6 +25,7 @@ export class AccountService {
   private _notificationsEmailText:string = "Get emails to find out what's going on when you're not online. You can turn these off."
   private _notificationsPushText:string = "Get push notifications in-app to find out what's going on when you're online."
   private _passwordText:string = "Configure details about your password"
+  private _profileText:string = "View Details About Your Profile"
 
   get signedIn() {
     return this._signedIn
@@ -33,6 +35,15 @@ export class AccountService {
   get accountInfo() { return this._accountInfo}
   get clickedOnTargets() { return this._clickedOnTargets}
   get tempSettingStore() { return this._tempSettingStore}
+  get currentSelected() { return this._currentSelected}
+  set currentSelected(s:string) {
+    if (this.convertViewToProperty(s) === "") {
+      alert("Unknown Request") //probably use modal or something to showcase
+      return
+    }
+    this._currentSelected = s;
+    console.log(this._currentSelected)
+  }
 
   updateAccountSettings():boolean { //only upon save changes button
     const keys = Object.keys(this.accountInfo)
@@ -536,7 +547,9 @@ export class AccountService {
         strings['subtext'] = this._passwordText;
         break
       }
-      case "My Profile": {
+      case "Profile": {
+        strings['title'] = `View your ${identifier}`
+        strings['subtext'] = this._profileText
         break
       }
       default: {
@@ -562,6 +575,8 @@ export class AccountService {
         break 
       }
       case "Profile": {
+        retObj['name'] = o['key']
+        retObj['subText'] = 'WHERE IS THIS'
         break
       }
       case "Username": {

@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 export class SettingsComponent {
 
   private saveChanges:string = "Save Changes"; private discardChanges:string = "Discard Changes";
-  private _currentSelected:string = "Password"
+  private _currentSelected:string = "Profile"
   private notificationString:string = "Select the kinds of notifications you get about your activities and recommendations"
   checked:boolean = false;
 
@@ -24,10 +24,7 @@ export class SettingsComponent {
   }
 
   get settingsList() { return this.acc.accountInfo}
-  get currentSelected() { return this._currentSelected}
-  set currentSelected(s:string) {
-    this.acc.convertPropertyToView(s);
-  }
+  get currentSelected() { return this.acc.currentSelected}
 
   convertPropertyToView(s:string) {
     return this.acc.convertPropertyToView(s)
@@ -40,6 +37,9 @@ export class SettingsComponent {
         return "Notification"
       case "Password":
           return "Password"
+      case "Profile": {
+        return "Profile"
+      }
       default: 
         return ""
     }
@@ -53,6 +53,9 @@ export class SettingsComponent {
       case "Password": {
         return "View Password Details and Options"
       }
+      case "Profile": {
+        return "View Profile Details and Security"
+      }
       default: //add more obvs
         return
     }
@@ -63,7 +66,7 @@ export class SettingsComponent {
   }
 
   switchContent(e:any) {
-    this._currentSelected = this.convertSideBarViewToProp(e.target.textContent)
+    this.acc.currentSelected = this.convertSideBarViewToProp(e.target.textContent)
     console.log(this._currentSelected === this.convertSideBarViewToProp('Password'))
     //switch content, meaning add functionality/variables to hold info and use conditionals to display conditionally...
   }
