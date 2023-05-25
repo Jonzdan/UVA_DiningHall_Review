@@ -82,7 +82,7 @@ export class SettingsTabComponent implements OnInit {
 
     const regEventMsg = this.acc.eventMsg.subscribe((res)=> { //* Good Enough For Now*
       switch (res) {
-        case "401": {
+        case "401": { //temporary
           this.inputDefault(); this.passError = true;
           this.showModals('');
           break

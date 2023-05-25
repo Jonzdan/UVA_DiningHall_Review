@@ -9,6 +9,11 @@
                 <div class="my-4" *ngIf="identifier === 'Notification' && skipFoodProperty(option.key)"> 
                     <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col"></app-toggle>
                 </div>
+                <div class="my-4" *ngIf="identifier === 'Profile'"> 
+                    <div class="flex flex-row ">
+                        {{option}}
+                    </div>
+                </div>
             
             </div>
         </div>
