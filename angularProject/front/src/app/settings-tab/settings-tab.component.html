@@ -1,27 +1,69 @@
-<div class="flex flex-grow flex-row flex-wrap overflow-x-hidden border-b-2 py-3">
-    <div class="flex flex-row w-fit " *ngIf="identifier !== 'Password'; else singleValue" [ngClass]="{'flex-row' : identifier=='Notification', 'flex-col' : identifier!='Notification'}">
+<div class="flex flex-grow flex-row flex-wrap overflow-x-hidden border-b-2 py-3 w-full">
+    <div class="flex flex-row w-full " *ngIf="identifier !== 'Password'; else singleValue" [ngClass]="{'flex-row' : identifier=='Notification', 'flex-col' : identifier!='Notification'}">
         <div id="subtext" class="font-sans text-sm text-start w-[40%]">
             <h2 class="font-semibold"> {{title}} </h2>
             <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden min-w-[220px] h-fit"> {{subtext}}</h3>
         </div>
-        <div class="flex flex-col" *ngIf="identifier === 'Notification'">
+        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full" *ngIf="identifier === 'Notification'">
             <div *ngFor="let option of options | keyvalue" class=""> <!-- this is good if we have a nested object, but what about just plain values -->
                 <div class="my-4" *ngIf="skipFoodProperty(option.key)"> 
                     <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col"></app-toggle>
                 </div>
             </div>
         </div>
-        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4" *ngIf="identifier === 'Profile'"> <!-- if I need to reuse, I can always turn this into a component later -->
-            <div class="bg-neutral-300 w-[50vw] h-[40vh] m-0 rounded-lg relative">
-                <div class="bg-blue-500 rounded-t-lg h-[10vh]"> 
-                        das
+        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full" *ngIf="identifier === 'Profile'"> <!-- if I need to reuse, I can always turn this into a component later -->
+            <div class="bg-neutral-300 m-0 rounded-lg relative flex items-center justify-center flex-col">
+                <div class="bg-[#232D48] rounded-t-lg h-[10vh] flex flex-grow w-full"> 
+                    <div class="flex items-center m-5 text-neutral-200">
+                        <img src="path_to_profile_image.jpg" alt="Profile Picture" class="w-16 h-16 rounded-full">
+                        <div class="ml-4">
+                          <h2 class="text-lg font-semibold"> {{username}} </h2>
+                          <p class="text-neutral-300">Food Reviewer</p>
+                        </div>
+                      </div>
                 </div>
-                <div class="flex flex-row">
-                    <img src="https://www.timeoutdubai.com/cloud/timeoutdubai/2021/09/11/udHvbKwV-IMG-Dubai-UAE-1.jpg" alt="" height="50px" width="80px" class="rounded-full">
-                    <h2> NAME </h2>
-                </div>
-                <div class="bg-neutral-200 flex m-5 flex-grow h-[20vh] ">
-                    hey
+                <div class="bg-neutral-200 flex m-5 flex-grow h-fit">
+                    <div class="container mx-auto">
+                        <div class="max-w-full w-fit mx-auto bg-white shadow-md rounded-md overflow-hidden">
+                          <div class="p-4">
+                            <div class="grid grid-cols-2 gap-4">
+                              <div>
+                                <h3 class="text-lg font-medium">About me</h3>
+                                <p class="text-gray-500">I am a passionate food critic who loves exploring different cuisines and sharing my experiences with others. Follow me for the latest restaurant reviews and culinary adventures!</p>
+                                <div class="mt-4">
+                                  <h3 class="text-lg font-medium">Favorite Campus Dining Halls</h3>
+                                  <ol class="list-disc list-inside text-gray-500">
+                                    <li>Observatory Hill Dining Hall</li>
+                                    <li>Runk Dining Hall</li>
+                                    <li>Newcomb Dining Hall</li>
+                                  </ol>
+                                </div>
+                              </div>
+                              <div>
+                                <h3 class="text-lg font-medium">Contact</h3>
+                                <p class="text-gray-500">Email: {{email}} </p>
+                                <div class="mt-4">
+                                  <h3 class="text-lg font-medium">Favorite Foods</h3>
+                                  <ul class="list-disc list-inside text-gray-500">
+                                    <li><a href="https://twitter.com/johndoe" target="_blank" class="text-blue-500">Twitter</a></li>
+                                    <li><a href="https://linkedin.com/in/johndoe" target="_blank" class="text-blue-500">LinkedIn</a></li>
+                                    <li><a href="https://github.com/johndoe" target="_blank" class="text-blue-500">GitHub</a></li>
+                                  </ul>
+                                </div>
+                                <div class="mt-4">
+                                  <h3 class="text-lg font-medium">Badges</h3>
+                                  <div class="flex items-center mt-2">
+                                    <img src="path_to_badge1.png" alt="Badge 1" class="w-6 h-6 rounded-full" title="A fresh review critic">
+                                    <img src="path_to_badge2.png" alt="Badge 2" class="w-6 h-6 rounded-full ml-2">
+                                    <img src="path_to_badge3.png" alt="Badge 3" class="w-6 h-6 rounded-full ml-2">
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
                 </div>
             </div>
             <div *ngFor="let option of options | keyvalue" class="my-2">
@@ -29,7 +71,10 @@
                     <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col"> </app-toggle>
                 </div>
                 <ng-template #others>
-                    <h3> {{option.key}} : {{option.value}}</h3>
+                    <div class="flex flex-row gap-1">
+                        <h3> {{option.key}} is currently {{option.value}} - Click to change</h3>
+                        <button class="w-5 h-5 rounded-sm" [ngClass]="{'bg-[#232D48]': option.value === 'default', 'bg-[#{{option.value}}]': option.value !== 'default' }"></button>
+                    </div>
                 </ng-template>
             </div>
             <h2 class="font-semibold text-sm text-start font-sans tracking-tight w-full border-t-2 pt-3"> ACCOUNT REMOVAL </h2>

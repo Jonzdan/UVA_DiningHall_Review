@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { NavSideBarService } from '../nav-side-bar.service';
 import { AccountService } from '../account.service';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router'
 
 @Component({
   selector: 'app-settings',
@@ -15,7 +16,7 @@ export class SettingsComponent {
   private notificationString:string = "Select the kinds of notifications you get about your activities and recommendations"
   checked:boolean = false;
 
-  constructor(private navbar:NavSideBarService, private acc:AccountService, private cd:ChangeDetectorRef) {
+  constructor(private navbar:NavSideBarService, private acc:AccountService, private router:Router) {
 
   }
 
@@ -39,6 +40,9 @@ export class SettingsComponent {
           return "Password"
       case "Profile": {
         return "Profile"
+      }
+      case "Logout": {
+        return s
       }
       default: 
         return ""
@@ -67,6 +71,7 @@ export class SettingsComponent {
 
   switchContent(e:any) {
     this.acc.currentSelected = this.convertSideBarViewToProp(e.target.textContent)
+    this.acc.currentSelected === 'Logout' ? this.router.navigateByUrl("/") : null
     console.log(this._currentSelected === this.convertSideBarViewToProp('Password'))
     //switch content, meaning add functionality/variables to hold info and use conditionals to display conditionally...
   }

@@ -493,6 +493,10 @@ export class AccountService {
       case "Password": {
         return "password"
       }
+      case "Logout": {
+        this.signOut()
+        return s
+      }
       default: 
         return ""
     }

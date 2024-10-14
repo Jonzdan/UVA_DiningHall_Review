@@ -308,6 +308,8 @@ export class SettingsTabComponent implements OnInit {
   get password() {
     return this.inputForm.get('password') as FormControl
   }
+  get username() { return this.acc.accountInfo['username']}
+  get email() { return this.acc.accountInfo['email']}
 
   get firstPass() { return this.passGroup?.get('firstPass') as FormControl}
   get secondPass() { return this.passGroup?.get('secondPass') as FormControl}

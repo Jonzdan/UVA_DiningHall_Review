@@ -1,39 +1,61 @@
-<div class="w-full h-[100vh] bg-neutral-100 flex-row flex top-0">
-    <div id="sidebar" class="flex flex-col md:w-20 w-16 p-2 h-full bg-[#232D48] text-white">
+<div class="w-full h-[100vh] bg-neutral-100 flex-row flex flex-grow top-0 relative">
+    <!-- <div id="sidebar" class="flex flex-col md:w-20 w-16 p-2 h-full bg-[#232D48] text-white items-center justify-center left-0 absolute">
         <div>icon</div>
         <div>icon</div>
         <div>icon</div>
         <div>icon</div>
         <div>icon</div>
-        <div class=" mt-auto"><button>user profile</button></div>
-    </div>
-    <div id="expandable-sidebar" class="bg-[#232D48] md:min-w-[15%] md:max-w-[20%] max-w-[70%] h-full flex flex-col box-border shadow-gray-400 shadow-sm px-2 font-semibold tracking-tighter text-base"> 
-        <div class="flex flex-col text-base text-neutral-50 my-1"> <!-- logo -->
-            <h2 class="text-3xl"> LOGO </h2>
+    </div> -->
+    <div id="expandable-sidebar" class="bg-[#232D48] w-fit h-full flex flex-col items-center justify-center shadow-gray-400 shadow-sm px-5 font-semibold tracking-tighter text-base relative"> 
+        <div class="flex flex-col text-base text-neutral-50 my-2 items-start justify-start w-full"> <!-- logo -->
+            <h2 class="text-3xl w-full"> LOGO </h2>
             <h3 class="text-base"> Settings</h3>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent($event)">
             <!-- icon -->
             <button type="text" class="indent-1 p-1">My Details</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent($event)">
             <button type="text" class="indent-1 p-1">Profile</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent($event)">
             <button type="text" class="indent-1 p-1">Password</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent($event)">
             <button class="indent-1 p-1">Notifications</button>
         </div>
-        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] " (click)="switchContent($event)">
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent($event)">
             <button class="indent-1 p-1">Logout</button>
+        </div>
+        <div class=" mt-auto">
+            <svg class="scale-[.4] lg:scale-[.5] lg:hover:scale-[.55] hover:scale-[.45] m-0 hover:cursor-pointer rounded-full shadow-lg shadow-black/20 "  
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg" 
+                    xmlns:xlink="http://www.w3.org/1999/xlink" 
+                    width="50" 
+                    height="50"
+                    fill="white">
+                    
+                    <defs>
+                        <clipPath id="circular-border">
+                        <circle cx="25" cy="25" r="23.33" />
+                        </clipPath>
+                        <clipPath id="avoid-antialiasing-bugs">
+                        <rect width="100%" height="41.5" />
+                        </clipPath>
+                    </defs>
+                    
+                    <circle cx="25" cy="25" r="23.33" fill="black" clip-path="url(#avoid-antialiasing-bugs)" />
+                    <circle cx="25" cy="19.17" r="9.58" />
+                    <circle cx="25" cy="45.83" r="17.1" clip-path="url(#circular-border)" />
+            </svg>
         </div>
     </div>
     <div id="options" class="flex flex-grow flex-col mx-4 py-3">
         <h2 class="font-semibold text-2xl tracking-tight font-sans ">  {{currentSelected}} Settings </h2> <!-- {{}} Settings -->
         <h3 class="pb-4 pt-1 border-b-2 indent-0 "> {{whichTitleSubstring(currentSelected)}} </h3> <!-- subtext -->
         <div *ngFor="let tab of settingsList | keyvalue" class="flex flex-col w-full">
-            <app-settings-tab *ngIf="convertPropertyToView(tab.key) == currentSelected" [identifier]="convertPropertyToView(tab.key)">
+            <app-settings-tab *ngIf="convertPropertyToView(tab.key) == currentSelected" [identifier]="convertPropertyToView(tab.key)" class="w-full">
                 
             </app-settings-tab>
         </div>
@@ -42,6 +64,7 @@
 
             </app-settings-tab>
         </div>
+
         <div class="flex flex-row w-full text-neutral-100">
             <button *ngIf="pendingChanges" type="submit" class="flex ml-auto mr-2 px-3 py-1 bg-green-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="updateChanges($event)">Save Changes</button>
             <button *ngIf="pendingChanges" type="submit" class="flex mr-auto ml-2 px-3 py-1 bg-red-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="updateChanges($event)">Discard Changes</button>

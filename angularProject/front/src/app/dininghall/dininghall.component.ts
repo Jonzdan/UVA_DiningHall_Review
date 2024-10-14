@@ -51,7 +51,7 @@ export class DininghallComponent implements OnInit, AfterViewInit {
         debounceTime(100)
       ).subscribe((res) => {
          //test that only 1 is calling this
-        if (this.short != shortname || this.subclosed) { //try to figure out a way to maybe unsubscribe instead of doing this shit.
+        if (this.short != shortname || this.subclosed) { //try to figure out a way to maybe unsubscribe instead of doing this.
           if (!this.animationListener.closed) {
             this.animationListener.next("a0")
           }
