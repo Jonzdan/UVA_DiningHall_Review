@@ -266,9 +266,14 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
         res.status(401).end('Error');
         return;
     }
-    const user = await userSchema.find({
-        _id: response[0].userID,
-        username: data.username}, {_id:0},
+    const user = await userSchema.find(
+        {
+            _id:      response[0].userID,
+            username: data.username,
+        },
+        {
+            _id: 0,
+        },
     );
     if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
         res.status(401).end();
