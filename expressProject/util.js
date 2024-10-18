@@ -6,10 +6,14 @@ const SESSION_HEX_BYTE_LENGTH = 128;
 
 async function updateCSRF() {
     let csrfToken = crypto.randomBytes(CSRF_HEX_BYTE_LENGTH).toString('hex');
-    let csrfTokenExists = await tokenSchema.find({csrf_token: csrfToken});
+    let csrfTokenExists = await tokenSchema.find({
+        csrf_token: csrfToken,
+    });
     while (Object.keys(csrfTokenExists).length > 0) {
         csrfToken = crypto.randomBytes(CSRF_HEX_BYTE_LENGTH).toString('hex');
-        csrfTokenExists = await tokenSchema.find({csrf_token: csrfToken});
+        csrfTokenExists = await tokenSchema.find({
+            csrf_token: csrfToken,
+        });
     }
     const tokenObject = {
         csrf_token: csrfToken,
