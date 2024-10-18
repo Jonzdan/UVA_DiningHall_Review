@@ -1,9 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const session = require('express-session');
 const cookieParser = require('cookie-parser');
-const crypto = require('crypto');
 const mongoose = require('mongoose');
 const runkRouter = require('./routes/api/runk');
 const ohillRouter = require('./routes/api/ohill');
@@ -11,6 +9,7 @@ const newcombRouter = require('./routes/api/newcomb');
 const userRouter = require('./routes/user');
 const tokenSchema = require('./models/token');
 const userSchema = require('./models/user');
+const { updateCSRF, updateSession } = require('./util');
 
 mongoose.connect(process.env.DATABASE_URL);
 const db = mongoose.connection;
@@ -22,8 +21,6 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 
-const CSRF_HEX_BYTE_LENGTH = 64;
-const SESSION_HEX_BYTE_LENGTH = 128;
 const REFRESH_CSRF_SUCCESS_CODE = '1110111';
 const TOKEN_AGE = 1000*60*60*64;
 
@@ -88,44 +85,6 @@ app.post("/authConfirm", async (req, res)=> {
         res.status(200).json(REFRESH_CSRF_SUCCESS_CODE);
     }
 })
-
-async function updateCSRF() {
-    let csrfToken = crypto.randomBytes(CSRF_HEX_BYTE_LENGTH).toString('hex');
-    let csrfTokenExists = await tokenSchema.find({csrf_token: csrfToken});
-    while (Object.keys(csrfTokenExists).length > 0) {
-        csrfToken = crypto.randomBytes(CSRF_HEX_BYTE_LENGTH).toString('hex');
-        csrfTokenExists = await tokenSchema.find({csrf_token: csrfToken});
-    }
-    const tokenObject = {
-        csrf_token: csrfToken,
-    };
-    const newToken = new tokenSchema(tokenObject);
-    await newToken.save();
-    return csrfToken;
-}
-
-async function updateSession() {
-    let sessionId = crypto.randomBytes(SESSION_HEX_BYTE_LENGTH).toString('hex');
-    let sessionIdExists = await tokenSchema.find({
-        session_token: sessionId,
-    });
-    while (Object.keys(sessionIdExists).length > 0) {
-        sessionId = crypto.randomBytes(SESSION_HEX_BYTE_LENGTH).toString('hex');
-        sessionIdExists = await tokenSchema.find({
-            session_token: sessionId,
-        });
-    }
-    await tokenSchema.findOneAndUpdate(
-        {
-            userID: user,
-        },
-        {
-            session_token: sessionId,
-            csrf_token:    csrfToken,
-        }
-    )
-    return sessionId
-}
 
 app.use('/api/runk', runkRouter);
 app.use('/api/ohill', ohillRouter);
