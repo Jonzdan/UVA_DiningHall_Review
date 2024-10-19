@@ -4,7 +4,7 @@ const router = express.Router();
 const userSchema = require('../models/user');
 const { csrf, validateFields, loggedIn_Or_Not, loggedOut_Or_Not, validateFieldsReset } = require('../auth');
 const tokenSchema = require('../models/token');
-const { updateCSRF, updateSession } = require('./util');
+const { updateCSRF, updateSession } = require('../util');
 
 const REGISTER_SUCCESS_RETURN_BODY = "DONE";
 const EMAIL_EXISTS_CODE = "001";
@@ -80,14 +80,28 @@ router.post('/register', [validateFields, loggedIn_Or_Not], async(req, res) => {
 
 router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res) => {
     const data = req.body;
-    const foundUser$ = await userSchema.find({
-        username: data.user,
-        password: data.password,
-    });
+    const foundUser$ = await (async () => {
+        try {
+            return await userSchema.find({
+                username: data.user,
+                password: data.password,
+            });
+        } catch (error) {
+            console.log("Unable to authorize user", error);
+            return null;
+        }
+    })();
     if (foundUser$ && Object.keys(foundUser$).length === 1) {
-        const result = await tokenSchema.find({
-            csrf_token: req.headers.h_csrf_token,
-        });
+        const result = await (async () => {
+            try {
+                return await tokenSchema.find({
+                    csrf_token: req.headers.h_csrf_token,
+                });
+            } catch (error) {
+                console.log("Invalid authentication tokens", error);
+                return null;
+            }
+        })();
         if (!result || Object.keys(result).length > 1) {
             res.status(403).json({
                 message: "Invalid CSRF"
@@ -96,17 +110,21 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res) => {
         }
         const tokenID = result[0]._id;
         const userQuery = result[0].userID;
-        const sessionId = updateSession();
+        const sessionId = await updateSession(userQuery, req.headers.h_csrf_token);
         if (!userQuery) {
-            await tokenSchema.findOneAndUpdate(
-                {
-                    csrf_token: req.headers.h_csrf_token,
-                },
-                {
-                    session_token: sessionId,
-                    userID:        foundUser$[0]._id,
-                }
-            );
+            try {
+                await tokenSchema.findOneAndUpdate(
+                    {
+                        csrf_token: req.headers.h_csrf_token,
+                    },
+                    {
+                        session_token: sessionId,
+                        userID:        foundUser$[0]._id,
+                    }
+                );
+            } catch (error) {
+                console.log("Could not update authentication", error);
+            }
             res.cookie('SESSION_ID', sessionId, {
                 sameSite: 'strict',
                 httpOnly: true,
@@ -116,21 +134,24 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res) => {
             });
             res.status(200).json({
                 username: foundUser$[0].username,
-                picture:  foundUser$[0].profile.picture
+                picture:  foundUser$[0].profile.picture,
             });
             return;
         }
-
         if (userQuery.equals(foundUser$[0]._id)) {
-            await tokenSchema.findOneAndUpdate(
-                {
-                    userID: foundUser$[0]._id,
-                    csrf_token: req.headers.h_csrf_token,
-                },
-                {
-                    session_token: sessionId,
-                }
-            );
+            try {
+                await tokenSchema.findOneAndUpdate(
+                    {
+                        userID: foundUser$[0]._id,
+                        csrf_token: req.headers.h_csrf_token,
+                    },
+                    {
+                        session_token: sessionId,
+                    }
+                );
+            } catch (err) {
+                console.log("Failed to update tokens in login", err);
+            }
             res.cookie('SESSION_ID', sessionId, {
                 sameSite: 'strict',
                 httpOnly: true,
@@ -139,12 +160,12 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res) => {
             });
             res.status(200).json({
                 username: foundUser$[0].username,
-                picture: foundUser$[0].profile.picture  // *TODO*: Remove this
+                picture: foundUser$[0].profile.picture,  // *TODO*: Remove this
             });
         }
         else {
             res.status(403).json({
-                message: "Invalid CSRF"
+                message: "Invalid CSRF",
             }).end();
             return; 
         }
@@ -156,51 +177,72 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res) => {
     }
 })
 
-router.post('/signOut', loggedOut_Or_Not ,async(req, res)=> {
+router.post('/signOut', loggedOut_Or_Not, async(req, res) => {
     const data = req.body;
     const sessionId = req.signedCookies.SESSION_ID;
     const csrf = req.cookies.CSRF_TOKEN;
-    if (sessionId === undefined) {
+    if (!csrf || !sessionId || Object.keys(sessionId).length === 0) {
         res.status(401).end();
         return; 
     }
-    const response = await tokenSchema.find({
-        session_token: sessionId,
-        csrf_token:    csrf,
-    });
-    if (Object.keys(response).length === 0 ) {
+    const response = await (async () => {
+        try {
+            return await tokenSchema.find({
+                session_token: sessionId,
+                csrf_token:    csrf,
+            });
+        } catch (error) {
+            console.log(error);
+            return null;
+        }    
+    })();
+    
+    if (!response || Object.keys(response).length === 0 ) {
         res.status(401).end('Failed Authentication');
         return;
     }
-    const user = await userSchema.find({
-        _id:      response[0].userID,
-        username: data.username
-    });
+
+    const user = await (async () => {
+        try {
+            return await userSchema.find({
+                _id:      response[0].userID,
+                username: data.username
+            });
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    })();
+
     if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
         res.status(401).end();
         return;
     }
-    await tokenSchema.findOneAndUpdate(
-        {
-            session_token: sessionId,
-            csrf_token:    csrf,
-        },
-        {
-            $unset: {
-                userID:        '',
-                session_token: '',
-                csrf_token:    '',
+    try {
+        await tokenSchema.findOneAndUpdate(
+            {
+                session_token: sessionId,
+                csrf_token:    csrf,
+            },
+            {
+                $unset: {
+                    userID:        '',
+                    session_token: '',
+                    csrf_token:    '',
+                }
             }
-        }
-    );
+        );
+    } catch (error) {
+        console.log(error);
+    }
     res.clearCookie(CSRF_TOKEN_NAME);
     res.clearCookie(SESSION_TOKEN_NAME);
-    const newCSRFToken = updateCSRF();
+    const newCSRFToken = await updateCSRF();
     const tokenObject = {
         csrf_token: newCSRFToken,
     }
-    const newToken = new tokenSchema(tokenObject)
-    await newToken.save()
+    const newToken = new tokenSchema(tokenObject);
+    await newToken.save();
     res.header('Content-Security-Policy', "default-src 'self'; style-src 'self', 'unsafe-inline'");
     res.cookie(CSRF_TOKEN_NAME, newCSRFToken, {
         sameSite: 'strict',
@@ -217,7 +259,7 @@ router.post('/settings', loggedOut_Or_Not, async(req, res) => {
     const data = req.body;
     const sessionId = req.signedCookies.SESSION_ID;
     const csrf = req.cookies.CSRF_TOKEN;
-    if (sessionId === undefined || csrf === undefined) {
+    if (!sessionId || !csrf || Object.keys(sessionId).length === 0) {
         res.status(401).end("Cannot find authentication tokens");
         return;
     }
@@ -254,8 +296,8 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
     const data = req.body;
     const sessionId = req.signedCookies.SESSION_ID;
     const csrf = req.cookies.CSRF_TOKEN;
-    if (sessionId === undefined || csrf === undefined) {
-        res.status(401).end();
+    if (!sessionId || !csrf || Object.keys(sessionId).length === 0) {
+        res.status(401).end("Cannot find authentication tokens");
         return;
     }
     const response = await tokenSchema.find({
@@ -263,7 +305,7 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
         csrf_token:    csrf,
     });
     if (Object.keys(response).length === 0 ) {
-        res.status(401).end('Error');
+        res.status(401).end('Failed Authentication');
         return;
     }
     const user = await userSchema.find(
@@ -339,8 +381,6 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
         }
     }
 })
-
-
 
 module.exports = router;
 

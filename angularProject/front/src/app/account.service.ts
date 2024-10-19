@@ -437,15 +437,13 @@ export class AccountService {
     } )
     clearCookies.subscribe((res: HttpResponse<Object>)=> {
       if ((res.body as signOutResponse)?.msg === "Signed Out Successfully") { //signed out successfully
-        this._signedIn = false; this._accountInfo = {}; this.accountText = "Not Signed In"
+        this._signedIn = false; this._accountInfo = {}; this.accountText = "Not Signed In";
+        this.authBeginning();
       }
       else {
         console.error(res)
       }
-      
     })
-    //send request to backend to clear all cookies/tokens
-    
   }
 
   convertPropertyToView(s:string):string {

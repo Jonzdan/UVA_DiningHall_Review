@@ -6,14 +6,28 @@ const SESSION_HEX_BYTE_LENGTH = 128;
 
 async function updateCSRF() {
     let csrfToken = crypto.randomBytes(CSRF_HEX_BYTE_LENGTH).toString('hex');
-    let csrfTokenExists = await tokenSchema.find({
-        csrf_token: csrfToken,
-    });
+    let csrfTokenExists = await (async () => {
+        try {
+            return await tokenSchema.find({
+                csrf_token: csrfToken,
+            });
+        } catch (error) {
+            console.log("Failed CSRF Validation", error);
+            return null;
+        }
+    })();
     while (Object.keys(csrfTokenExists).length > 0) {
         csrfToken = crypto.randomBytes(CSRF_HEX_BYTE_LENGTH).toString('hex');
-        csrfTokenExists = await tokenSchema.find({
-            csrf_token: csrfToken,
-        });
+        csrfTokenExists = await (async () => {
+            try {
+                return await tokenSchema.find({
+                    csrf_token: csrfToken,
+                });
+            } catch (error) {
+                console.log("Failed CSRF Validation", error);
+                return null;
+            }
+        })();
     }
     const tokenObject = {
         csrf_token: csrfToken,
@@ -23,7 +37,7 @@ async function updateCSRF() {
     return csrfToken;
 }
 
-async function updateSession() {
+async function updateSession(user, csrfToken) {
     let sessionId = crypto.randomBytes(SESSION_HEX_BYTE_LENGTH).toString('hex');
     let sessionIdExists = await tokenSchema.find({
         session_token: sessionId,
@@ -46,4 +60,4 @@ async function updateSession() {
     return sessionId;
 }
 
-export { updateSession, updateCSRF };
+module.exports = { updateSession, updateCSRF };

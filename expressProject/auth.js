@@ -80,7 +80,7 @@ function hasWhiteSpace(array, codes) { //expand a bit
 
 
 async function loggedIn_Or_Not(req, res, next) { //checks if user is already logged in
-    if (req.signedCookies.SESSION_ID !== undefined) {
+    if (req.signedCookies.SESSION_ID && Object.keys(req.signedCookies.SESSION_ID).length > 0) {
         const response = await identifierSchema.find({session_token: req.signedCookies.SESSION_ID})
         if (response && Object.keys(response).length > 1) {res.status(504).end(); return }
         if (response && Object.keys(response).length === 1) {
@@ -100,7 +100,7 @@ async function loggedIn_Or_Not(req, res, next) { //checks if user is already log
 }
 
 async function loggedOut_Or_Not(req, res, next) { //checks if user is logged in or not
-    if (req.signedCookies.SESSION_ID !== undefined) {
+    if (req.signedCookies.SESSION_ID && Object.keys(req.signedCookies.SESSION_ID).length > 0) {
         const response = await identifierSchema.find({session_token: req.signedCookies.SESSION_ID})
         if (response && Object.keys(response).length < 1) {res.status(504).end(); return }
         if (response && Object.keys(response).length === 1) {
