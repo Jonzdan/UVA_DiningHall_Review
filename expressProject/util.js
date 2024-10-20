@@ -16,7 +16,7 @@ async function updateCSRF() {
             return null;
         }
     })();
-    while (Object.keys(csrfTokenExists).length > 0) {
+    while (csrfTokenExists && csrfTokenExists.length > 0) {
         csrfToken = crypto.randomBytes(CSRF_HEX_BYTE_LENGTH).toString('hex');
         csrfTokenExists = await (async () => {
             try {
@@ -42,7 +42,7 @@ async function updateSession(user, csrfToken) {
     let sessionIdExists = await tokenSchema.find({
         session_token: sessionId,
     });
-    while (Object.keys(sessionIdExists).length > 0) {
+    while (sessionIdExists.length > 0) {
         sessionId = crypto.randomBytes(SESSION_HEX_BYTE_LENGTH).toString('hex');
         sessionIdExists = await tokenSchema.find({
             session_token: sessionId,

@@ -36,7 +36,7 @@ app.post("/authConfirm", async (req, res) => {
             csrf_token:    req.cookies.CSRF_TOKEN,
         });
 
-        if (Object.keys(response).length != 1) {
+        if (response.length != 1) {
             res.clearCookie(CSRF_TOKEN_NAME);
             res.clearCookie(SESSION_TOKEN_NAME);
             res.status(400).end("Error Detected");
@@ -57,7 +57,7 @@ app.post("/authConfirm", async (req, res) => {
         const person = await userSchema.find({
             _id: user,
         });
-        if (Object.keys(person).length === 0) {
+        if (person.length === 0) {
             res.status(401).end();
             return;
         }

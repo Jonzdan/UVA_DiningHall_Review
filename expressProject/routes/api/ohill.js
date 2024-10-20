@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const ohillSchema = require('../../models/ohill');
 const axios = require('axios');
+const cheerio = require('cheerio');
 const { csrf } = require('../../auth');
+const fs = require('fs');
 
-const ohillStations = { //tentative -- seems to change
+const ohillStations = { //Change to DB to persist data
     "22869": "Copper Hood",
     "22868": "The Iron Skillet", //Was also Umami
     "22867": "The Iron Skillet", //was Umami/Stir-Fry
@@ -24,6 +26,8 @@ const ohillStations = { //tentative -- seems to change
 //22868/22867 change for lunch/dinner (only ironskillet for breakrfast, then it is both)
 
 router.get('/', async(req, res) => {
+    await getData();
+    return;
     try {
         let curDate = getCurDateAsString();
         let ohillTimeFrame = getOhillTimeFrame(new Date().getDay(), getCurHour());
@@ -44,10 +48,10 @@ router.get('/', async(req, res) => {
             "item.itemReview.starsLength": -1,
         });
         if (!data) {
-            res.status(500).end();
+            res.status(500).end("Error querying data");
             return;
         }
-        if (Object.keys(data).length === 0) {
+        if (data.length === 0) {
             await getData();
             data = await ohillSchema.find(
                 {
@@ -133,12 +137,12 @@ function getCurDateAsString() {
     return new Date().toISOString().slice(0, 10).replace(/-/g, '');
 }
 
+/**
+ * 
+ * @returns Military Hour in the format of HH00 (i.e. 1800)
+ */
 function getCurHour() {
-    let hour = new Date().getHours().toString();
-    if (hour.length === 1) {
-        hour = '0' + hour;
-    }
-    return hour;
+    return new Date().getHours() * 100;
 }
 
 function getOhillTimeFrame(date, time) {
@@ -163,8 +167,21 @@ function getOhillTimeFrame(date, time) {
     }
 }
 
-function getFoodProducts(data) {
-    let iterator = 0;
+
+// *TODO*: Add nutrition information
+/**
+ * Method of scraping data from website.
+ * However, it also provides nutrition information - suitable for lazy loading
+ * @param {*} data 
+ * @param {*} itemNames 
+ * @returns List of Food Products that has Name, StationId, and Short Description
+ */
+function getDetailedFoodProducts(data, itemNames) {
+    let iterator = data.indexOf('"Product":');
+    if (iterator === -1) {
+        return null;
+    }
+    data = data.slice(iterator-1, data.length);
     const foodProducts = [];
     while (iterator < data.length) {
         const newProductIndex = data.indexOf('"Product":', iterator);
@@ -197,7 +214,42 @@ function getFoodProducts(data) {
 
         iterator = endOfShortDescriptionIndex + 1;
     }
-    return foodProducts;
+    const stationIdToName = new Map();
+    const startOfStationMappingIndex = data.indexOf('"MenuStations":[{"StationId":', iterator);
+    iterator = startOfStationMappingIndex;
+    while (iterator < data.length) {
+        const startOfStationIdIndex = data.indexOf('"StationId":', iterator) + 13;
+
+        if (startOfStationIdIndex - 13 === -1) {
+            break;
+        }
+
+        const endOfStationIdIndex = data.indexOf('"', startOfStationIdIndex);
+        const stationId = data.slice(startOfStationIdIndex, endOfStationIdIndex);
+
+        if (stationIdToName.has(stationId)) {
+            data = data.slice(endOfStationIdIndex + 1);
+            continue;
+        }
+
+        const startOfStationNameIndex = data.indexOf('"Name":', endOfStationIdIndex) + 8;
+        const endOfStationNameIndex = data.indexOf('"', startOfStationNameIndex);
+        const stationName = removeSpecialChar(data.slice(startOfStationNameIndex, endOfStationNameIndex));
+
+        stationIdToName.set(stationId, stationName);
+
+        // Skip to last stationId Index if valid
+        const lastStationIdIndex = data.lastIndexOf(`{"StationId":"${stationId}"}`, endOfStationNameIndex) + 13;
+        if (lastStationIdIndex - endOfStationIdIndex > 500 || lastStationIdIndex === -1) {  // Arbitrary number that signifies how far the last stationId can be
+            iterator = endOfStationNameIndex + 1;
+            continue;
+        }
+
+        iterator = lastStationIdIndex;
+    }
+
+
+    return [foodProducts, stationIdToName];
 }
 
 /**
@@ -210,12 +262,17 @@ function getFoodProducts(data) {
  * @param {*} stationMapping 
  * @returns An array of MongoDB write operations
  */
-function bulkProcessFoodProducts(data, existingFoodProductsMapping, curDate, timeFrame, stationMapping) {
-    const foodProducts = getFoodProducts(data);
+function bulkProcessFoodProducts(foodProducts, existingFoodProductsMapping, curDate, timeFrame, stationMapping) {
     const bulkOperations = [];
     for (const products of foodProducts) {
         const { stationId, marketingName, shortDescription } = products;
-        const existingProduct = existingFoodProductsMapping.get(`${products.item.itemName}-${products.stationName}`)
+
+        if (!(stationId in stationMapping)) {
+            console.log(`${stationId} is unknown`);
+            continue;
+        }
+
+        const existingProduct = existingFoodProductsMapping.get(`${marketingName}-${stationMapping[stationId]}`)
 
         if (existingProduct) {
             bulkOperations.push({
@@ -231,11 +288,6 @@ function bulkProcessFoodProducts(data, existingFoodProductsMapping, curDate, tim
                 }
             });
         } else {
-            if (!(stationId in stationMapping)) {
-                console.log(`${stationId} is unknown`);
-                return;
-            }
-
             const stationProduct = {
                 stationName: stationMapping[stationId],
                 item: {
@@ -262,21 +314,48 @@ function bulkProcessFoodProducts(data, existingFoodProductsMapping, curDate, tim
     return bulkOperations;
 }
 
-async function getData() { //figure out a faster way --> perhaps load only 3, then lazy load the rest?
-    const res = await axios.get('https://virginia.campusdish.com/LocationsAndMenus/ObservatoryHillDiningRoom');
+function compareFunctionRuntimes(function1, args1, function2, args2, iterations=1) {
+    let start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        function1(...args1);
+    }
+    let end = performance.now();
+    const function1Time = (end - start) / iterations;
+
+    start = performance.now();
+    for (let j = 0; j < iterations; j++) {
+        function2(...args2);
+    }
+    end = performance.now();
+    const function2Time = (end - start) / iterations;
+
+    console.log(`Average time for function1: ${function1Time.toFixed(4)} ms`);
+    console.log(`Average time for function2: ${function2Time.toFixed(4)} ms`);
+}
+
+async function getActualOrTestData(testMode=false) {
+    if (testMode) {
+        return fs.readFileSync("temp.txt", { encoding: 'utf-8'});
+    } else {
+        const res = await axios.get('https://virginia.campusdish.com/LocationsAndMenus/ObservatoryHillDiningRoom');
+        return res.data;
+    }
+}
+
+async function getData() {
+    const res = await getActualOrTestData(true);
     const curDate = getCurDateAsString().trim();
     const timeFrame = getOhillTimeFrame(new Date().getDay(), getCurHour());
     const itemNames = new Set();
     const existingFoodProductsMapping = new Map();
 
+    const foodProducts = getDetailedFoodProducts(res, itemNames);
+
     const existingFoodProducts = await ohillSchema.find({
         "item.timeFrame": timeFrame,
-        stationName: {
+        "stationName": {
             $in: Object.values(ohillStations),
         },
-        "item.itemName": {
-            $in: [...itemNames],
-        }
     });
 
     for (const product of existingFoodProducts) {
@@ -286,7 +365,7 @@ async function getData() { //figure out a faster way --> perhaps load only 3, th
         );
     }
 
-    bulkOperations = bulkProcessFoodProducts(res.data, existingFoodProductsMapping, curDate, timeFrame, ohillStations);
+    bulkOperations = bulkProcessFoodProducts(foodProducts, existingFoodProductsMapping, curDate, timeFrame, ohillStations);
 
     if (bulkOperations.length > 0) {
         try {

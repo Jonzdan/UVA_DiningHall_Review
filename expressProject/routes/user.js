@@ -29,7 +29,7 @@ router.post('/register', [validateFields, loggedIn_Or_Not], async(req, res) => {
                 }
             ]
         })
-        if (existingUser$ && Object.keys(existingUser$).length === 0) {
+        if (existingUser$ && existingUser$.length === 0) {
             const userObj = {
                 email:    data.email,
                 username: data.user,
@@ -91,7 +91,7 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res) => {
             return null;
         }
     })();
-    if (foundUser$ && Object.keys(foundUser$).length === 1) {
+    if (foundUser$ && foundUser$.length === 1) {
         const result = await (async () => {
             try {
                 return await tokenSchema.find({
@@ -102,7 +102,7 @@ router.post('/login', [validateFields, loggedIn_Or_Not] , async(req, res) => {
                 return null;
             }
         })();
-        if (!result || Object.keys(result).length > 1) {
+        if (!result || result.length > 1) {
             res.status(403).json({
                 message: "Invalid CSRF"
             }).end(); 
@@ -197,7 +197,7 @@ router.post('/signOut', loggedOut_Or_Not, async(req, res) => {
         }    
     })();
     
-    if (!response || Object.keys(response).length === 0 ) {
+    if (!response || response.length === 0 ) {
         res.status(401).end('Failed Authentication');
         return;
     }
@@ -214,7 +214,7 @@ router.post('/signOut', loggedOut_Or_Not, async(req, res) => {
         }
     })();
 
-    if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
+    if (!user || user.length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
         res.status(401).end();
         return;
     }
@@ -267,7 +267,7 @@ router.post('/settings', loggedOut_Or_Not, async(req, res) => {
         session_token: sessionId,
         csrf_token:    csrf,
     });
-    if (Object.keys(response).length === 0 ) {
+    if (response.length === 0 ) {
         res.status(401).end('Failed Authentication');
         return;
     }
@@ -283,7 +283,7 @@ router.post('/settings', loggedOut_Or_Not, async(req, res) => {
             __v:      0,  // Internal MongoDB Version Number
         }
     );
-    if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
+    if (!user || user.length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
         res.status(401).end();
         return;
     }
@@ -304,7 +304,7 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
         session_token: sessionId,
         csrf_token:    csrf,
     });
-    if (Object.keys(response).length === 0 ) {
+    if (response.length === 0 ) {
         res.status(401).end('Failed Authentication');
         return;
     }
@@ -317,7 +317,7 @@ router.post('/updateSettings', loggedOut_Or_Not, async(req, res) => {
             _id: 0,
         },
     );
-    if (Object.keys(user).length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
+    if (!user || user.length === 0 || response[0].userID === undefined || user[0].username !== data.username) {
         res.status(401).end();
         return;
     }
