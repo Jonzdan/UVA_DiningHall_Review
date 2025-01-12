@@ -60,4 +60,23 @@ async function updateSession(user, csrfToken) {
     return sessionId;
 }
 
-module.exports = { updateSession, updateCSRF };
+function compareFunctionRuntimes(function1, args1, function2, args2, iterations=1) {
+    let start = performance.now();
+    for (let i = 0; i < iterations; i++) {
+        function1(...args1);
+    }
+    let end = performance.now();
+    const function1Time = (end - start) / iterations;
+
+    start = performance.now();
+    for (let j = 0; j < iterations; j++) {
+        function2(...args2);
+    }
+    end = performance.now();
+    const function2Time = (end - start) / iterations;
+
+    console.log(`Average time for function1: ${function1Time.toFixed(4)} ms`);
+    console.log(`Average time for function2: ${function2Time.toFixed(4)} ms`);
+}
+
+module.exports = { updateSession, updateCSRF, compareFunctionRuntimes };

@@ -90,7 +90,7 @@ app.post("/authConfirm", async (req, res) => {
 //app.use('/api/runk', runkRouter);
 app.use('/api/ohill', ohillRouter);
 app.use('/api/newcomb', newcombRouter);
-app.use('/user', userRouter);
+//app.use('/user', userRouter);
 
 app.listen(process.env.PORT || 4000);
 
