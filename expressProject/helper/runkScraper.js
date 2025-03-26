@@ -1,4 +1,4 @@
-const { DiningHallDataParser } = require('../../helper/scraper');
+const { DiningHallDataParser } = require('./scraper');
 class RunkDataParser extends DiningHallDataParser {
     getDiningHallTimeFrame(date, time) {
         if (date == 0 || date == 6) {

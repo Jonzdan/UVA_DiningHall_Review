@@ -73,9 +73,10 @@ async function validateFields(req, res, next) {
         if (codes.length !== 0) { res.status(400).json({codes: codes}).end(); return }
     }
     else {
-        res.status(400).end(); return
+        res.status(400).end();
+        return;
     }
-    next()
+    next();
 }
 
 function validateFieldsReset(password, firstPass, secondPass) {
@@ -107,20 +108,15 @@ function hasWhiteSpace(array, codes) { //expand a bit
 
 
 async function loggedIn_Or_Not(req, res, next) {
-    if (req.signedCookies.SESSION_ID && Object.keys(req.signedCookies.SESSION_ID).length === 0) {
+    if (!req.signedCookies.SESSION_ID || req.signedCookies.SESSION_ID.length === 0) {
         return next();
     }
     const response = await identifierSchema.find({
         session_token: req.signedCookies.SESSION_ID,
     });
 
-    if (response && Object.keys(response).length > 1) {
-        res.status(504).end();
-        return;
-    }
-
     if (!response || response.length !== 1) {
-        res.status(504).end();
+        res.status(400).end("Unable to verify authentication");
         return;
     }
 

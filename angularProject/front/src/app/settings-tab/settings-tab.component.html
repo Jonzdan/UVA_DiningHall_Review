@@ -1,14 +1,18 @@
-<div class="flex flex-grow flex-row flex-wrap overflow-x-hidden border-b-2 py-3 w-full">
-    <div class="flex flex-row w-full " *ngIf="identifier !== 'Password'; else singleValue" [ngClass]="{'flex-row' : identifier=='Notification', 'flex-col' : identifier!='Notification'}">
+<div class="flex flex-grow flex-row flex-wrap overflow-x-hidden border-b-2 py-3 w-full min-w-[300px]">
+    <div class="flex flex-grow flex-col w-full " *ngIf="identifier !== 'Password'; else singleValue" [ngClass]="{'lg:flex-row' : identifier=='Notification', '' : identifier!='Notification'}">
         <div id="subtext" class="font-sans text-sm text-start w-[40%]">
             <h2 class="font-semibold"> {{title}} </h2>
             <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden min-w-[220px] h-fit"> {{subtext}}</h3>
         </div>
-        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full" *ngIf="identifier === 'Notification'">
-            <div *ngFor="let option of options | keyvalue" class=""> <!-- this is good if we have a nested object, but what about just plain values -->
-                <div class="my-4" *ngIf="skipFoodProperty(option.key)"> 
-                    <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col"></app-toggle>
+        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full px-1" *ngIf="identifier === 'Notification'">
+            <div *ngFor="let option of options | keyvalue" class="my-auto flex flex-grow h-full justify-center align-middle items-center px-1"> <!-- this is good if we have a nested object, but what about just plain values -->
+                <div class="my-4 flex flex-grow overflow-scroll h-full justify-center align-middle items-center" *ngIf="skipFoodProperty(option.key)"> 
+                    <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col flex-grow h-full justify-center p-1"></app-toggle>
                 </div>
+            </div>
+            <div class="flex flex-row w-full text-neutral-100">
+                <button *ngIf="pendingChanges" type="submit" class="flex ml-auto mr-2 px-3 py-1 bg-green-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="saveChange($event)">Save Changes</button>
+                <button *ngIf="pendingChanges" type="submit" class="flex mr-auto ml-2 px-3 py-1 bg-red-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="discardChange($event)">Discard Changes</button>
             </div>
         </div>
         <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full" *ngIf="identifier === 'Profile'"> <!-- if I need to reuse, I can always turn this into a component later -->
@@ -66,9 +70,9 @@
                       
                 </div>
             </div>
-            <div *ngFor="let option of options | keyvalue" class="my-2">
+            <div *ngFor="let option of options | keyvalue" class="my-2 overflow-scroll flex flex-grow">
                 <div *ngIf="option.key === 'remainAnonymous'; else others">
-                    <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col"> </app-toggle>
+                    <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="m-auto"> </app-toggle>
                 </div>
                 <ng-template #others>
                     <div class="flex flex-row gap-1">
@@ -86,7 +90,7 @@
         </div>
     </div>
    <!-- Potentially add push notifications later -->
-   <ng-template #singleValue class="flex flex-row w-full h-fit">
+   <ng-template #singleValue class="flex flex-row w-full h-fit ">
         <div class="flex flex-row w-fit overflow-auto bg-inherit h-fit flex-grow">
             <div class="font-sans text-sm text-start min-w-[220px] w-fit">
                 <h2 class="font-semibold"> {{title}} </h2>
