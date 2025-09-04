@@ -17,7 +17,9 @@ export async function findUserById(user: Types.ObjectId): Promise<HydratedDocume
 
 export async function findUserByBasicAuth(username: string, password: string): Promise<HydratedDocument<UserSchemaType> | null> {
     const result = await findUserWithQuery({
-        username:  sanitizeInput(username)
+        username:  {
+            $eq: username
+        }
     });
 
     if (result[0] && await verifyPassword(password, result[0].password)) {
@@ -29,14 +31,9 @@ export async function findUserByBasicAuth(username: string, password: string): P
 
 export async function findUserByEmailOrUser(username: string, email: string): Promise<HydratedDocument<UserSchemaType>[]> {
     return await findUserWithQuery({
-        $or: 
-        [
-            {
-                email: sanitizeInput(email)
-            },
-            {
-                username: sanitizeInput(username)
-            }
+        $or: [
+            { email: { $eq: email } },
+            { username: { $eq: username } }
         ]
     });
 }
