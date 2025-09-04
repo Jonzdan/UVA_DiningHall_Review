@@ -1,10 +1,10 @@
 import type { HydratedDocument, Model } from "mongoose";
 import { DiningHallsEnum, NewcombModel, OhillModel, RunkModel, type DiningHalls, type SchemaTypes, type TimeFrameTypes } from "src/models";
 import { getCurDateAsString } from "../scraper";
-import type { StationFoodItemOutput, StationFoodItemOutputs, StationFoodItemInput } from "@shared/api";
+import { type StationFoodItemOutput, type StationFoodItemOutputs, type StationFoodItemInput, MAX_REVIEWS } from "@shared/api";
 import { type ReviewSchemaType } from 'src/models';
 
-async function baseUpdateFoodSettings<T extends Model<SchemaTypes>>(model: T, foodItem: StationFoodItemInput, timeframe: TimeFrameTypes): Promise<HydratedDocument<SchemaTypes>[] | null> {
+async function baseUpdateFoodSettings<T extends SchemaTypes>(model: Model<T>, foodItem: StationFoodItemInput, timeframe: TimeFrameTypes): Promise<HydratedDocument<T>[] | null> {
     const { item: { name, reviewOptions }, stationName } = foodItem; 
     return await model.findOneAndUpdate(
         {
@@ -25,11 +25,12 @@ async function baseUpdateFoodSettings<T extends Model<SchemaTypes>>(model: T, fo
         },
         {
             returnOriginal: false,
+            sanitizeFilter: true
         }
     );
 }
 
-async function baseFindCurrentFoodData<T extends Model<SchemaTypes>>(model: T, curDate: string, timeFrame: TimeFrameTypes): Promise<HydratedDocument<SchemaTypes>[]> {
+async function baseFindCurrentFoodData<T extends SchemaTypes>(model: Model<T>, curDate: string, timeFrame: TimeFrameTypes): Promise<HydratedDocument<T>[]> {
     return await model.find(
         {
             activeDate: {
@@ -40,22 +41,25 @@ async function baseFindCurrentFoodData<T extends Model<SchemaTypes>>(model: T, c
         {
             _id:                           0,
             activeDate:                    0,
+        }, {
+            sanitizeFilter: true,
+            sanitizeProjection: true
         }
     ).sort({
-        "item.itemReview.starsLength": -1,
+        "item.itemReview.itemReviewCount": -1,
     });
 }
 
 export async function updateFoodSettings(diningHall: DiningHalls, foodItem: StationFoodItemInput, timeFrame: TimeFrameTypes): Promise<void> {
     switch (diningHall) {
         case DiningHallsEnum.Runk:
-            await baseUpdateFoodSettings<typeof RunkModel>(RunkModel, foodItem, timeFrame);
+            await baseUpdateFoodSettings(RunkModel, foodItem, timeFrame);
             break;
         case DiningHallsEnum.Newcomb:
-            await baseUpdateFoodSettings<typeof NewcombModel>(NewcombModel, foodItem, timeFrame);
+            await baseUpdateFoodSettings(NewcombModel, foodItem, timeFrame);
             break;
         case DiningHallsEnum.Ohill:
-            await baseUpdateFoodSettings<typeof OhillModel>(OhillModel, foodItem, timeFrame);
+            await baseUpdateFoodSettings(OhillModel, foodItem, timeFrame);
             break;
     }
 }
@@ -64,13 +68,13 @@ export async function findCurrentFoodData(diningHall: DiningHalls, timeFrame: Ti
     let data: HydratedDocument<SchemaTypes>[] | undefined;
     switch (diningHall) {
         case DiningHallsEnum.Runk:
-            data = await baseFindCurrentFoodData<typeof RunkModel>(RunkModel, getCurDateAsString(), timeFrame);
+            data = await baseFindCurrentFoodData(RunkModel, getCurDateAsString(), timeFrame);
             break;
         case DiningHallsEnum.Newcomb:
-            data = await baseFindCurrentFoodData<typeof NewcombModel>(NewcombModel, getCurDateAsString(), timeFrame);
+            data = await baseFindCurrentFoodData(NewcombModel, getCurDateAsString(), timeFrame);
             break;
         case DiningHallsEnum.Ohill:
-            data = await baseFindCurrentFoodData<typeof OhillModel>(OhillModel, getCurDateAsString(), timeFrame);
+            data = await baseFindCurrentFoodData(OhillModel, getCurDateAsString(), timeFrame);
             break;
     }
 
@@ -83,16 +87,16 @@ export async function findCurrentFoodData(diningHall: DiningHalls, timeFrame: Ti
 
 export function transformMongoDataToApi<T extends SchemaTypes>(data: HydratedDocument<T>[]): StationFoodItemOutputs {
     return data.map((value: T) => {
-        const { item, stationName } = value;
+        const { item: { itemDesc, itemName, itemReview }, stationName } = value;
         return {
             stationName,
             item: {
-                name: item!.itemName,
-                description: item!.itemDesc,
-                reviewOptions: item?.itemReview
+                name: itemName,
+                description: itemDesc,
+                reviewOptions: itemReview
                     ? {
-                        starRating: item.itemReview.reduce((prev, cur) => prev + cur.stars, 0) / item.itemReview.length,
-                        details: item.itemReview
+                        starRating: itemReview.reduce((prev, cur) => prev + cur.stars, 0) / itemReview.length,
+                        details: itemReview.slice(0, MAX_REVIEWS)
                     }
                     : undefined
             }

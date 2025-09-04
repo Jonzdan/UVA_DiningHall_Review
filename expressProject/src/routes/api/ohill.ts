@@ -6,6 +6,7 @@ import { axios } from 'src/services/scraper';
 import { HttpStatusCode } from 'axios';
 import { findCurrentFoodData, updateFoodSettings } from 'src/services';
 import { StationFoodItemSchemaInput } from '@shared/api';
+import { mongoSanitizerMiddleware } from 'src/utils';
 
 const url = 'https://virginia.campusdish.com/LocationsAndMenus/ObservatoryHillDiningRoom';
 export const ohillRouter = Router();
@@ -36,7 +37,7 @@ ohillRouter.get('/', async(_req, res): Promise<void> => {
     }
 })
 
-ohillRouter.post('/', csrf, validateBody(StationFoodItemSchemaInput), async (req, res) => {
+ohillRouter.post('/', csrf, mongoSanitizer, validateBody(StationFoodItemSchemaInput), async (req, res) => {
     try {
         await updateFoodSettings(DiningHallsEnum.Ohill, req.body, parser.getDiningHallTimeFrame(new Date().getDay(), getCurHour()));
         res.status(HttpStatusCode.NoContent).end();

@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 
 import { newcombRouter, ohillRouter, runkRouter, userRouter } from './routes';
-import { updateCSRF, updateSession, findToken, findUserById, CSRF_TOKEN, SESSION_ID } from './services';
+import { updateCSRF, updateSession, findToken, findUserById, CSRF_TOKEN, SESSION_ID, sanitizeHtml } from './services';
 import { HttpStatusCode } from 'axios';
 
 dotenv.config();
@@ -22,6 +22,7 @@ db.once('open', () => { console.log('Connected') });
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser(process.env['COOKIE_PARSER_SECRET']));
+app.use(sanitizeHtml);
 
 // 1000 ms * 60s * 60m * 24h
 const TOKEN_AGE = 86_400_000;

@@ -6,6 +6,7 @@ import { axios } from 'src/services/scraper';
 import { HttpStatusCode } from 'axios';
 import { findCurrentFoodData, updateFoodSettings } from 'src/services';
 import { StationFoodItemSchemaInput } from '@shared/api';
+import { mongoSanitizerMiddleware } from 'src/utils';
 
 const url = 'https://virginia.campusdish.com/LocationsAndMenus/FreshFoodCompany';
 export const newcombRouter = Router();
@@ -37,7 +38,7 @@ newcombRouter.get('/', async (_req, res) => {
     }
 })
 
-newcombRouter.post('/', csrf, validateBody(StationFoodItemSchemaInput), async (req, res) => {
+newcombRouter.post('/', csrf, mongoSanitizer, validateBody(StationFoodItemSchemaInput), async (req, res) => {
     try {
         await updateFoodSettings(DiningHallsEnum.Newcomb, req.body, parser.getDiningHallTimeFrame(new Date().getDay(), getCurHour()));
         res.status(HttpStatusCode.NoContent).end();

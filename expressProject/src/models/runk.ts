@@ -1,33 +1,14 @@
 import { Model, Schema } from 'mongoose';
 import type { InferSchemaType } from 'mongoose';
 import { RunkTimeFrameEnum } from './types';
-import { ReviewSchema } from './review';
+import { createItemSchema } from './item';
 
 export const RunkDiningHall = new Schema({
     stationName: {
         type: String,
         required: true
     },
-    item: {
-        itemName: {
-            type: String,
-            required: true
-        },
-        itemDesc: {
-            type: String,
-            required: true
-        },
-        itemReview: {
-            type: [ReviewSchema],
-            required: true,
-            default: []
-        },
-        timeFrame: {
-            type: String,
-            enum: RunkTimeFrameEnum,
-            required: true,
-        },
-    },
+    item: { type: createItemSchema(RunkTimeFrameEnum), required: true },
     activeDate: { 
         type: Array,
         required: true

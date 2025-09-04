@@ -24,7 +24,9 @@ export async function csrf(req: Request, res: Response, next: NextFunction): Pro
             return;
         }
         else {
-            next(); return;
+            req.userId = result[0]?.userID!;
+            next();
+            return;
         }
     }
     else {
@@ -64,12 +66,14 @@ export async function blockLoggedOutUsers(req: Request, res: Response, next: Nex
         return;
     }
 
-    const response = await findToken(req.cookies[CSRF_TOKEN], req.signedCookies[SESSION_ID]);
-    if (!response?.length || !response[0]?.userID) {
-        res.status(HttpStatusCode.Unauthorized).end();
-        return;
-    }
+    if (!req.userId) {
+        const response = await findToken(req.cookies[CSRF_TOKEN], req.signedCookies[SESSION_ID]);
+        if (!response?.length || !response[0]?.userID) {
+            res.status(HttpStatusCode.Unauthorized).end();
+            return;
+        }
 
-    req.userId = response[0].userID;
+        req.userId = response[0].userID;
+    }
     next();
 }

@@ -6,6 +6,7 @@ import { axios } from 'src/services/scraper';
 import { HttpStatusCode } from 'axios';
 import { findCurrentFoodData, updateFoodSettings } from 'src/services';
 import { StationFoodItemSchemaInput } from '@shared/api';
+import { mongoSanitizerMiddleware } from 'src/utils';
 
 const url = 'https://virginia.campusdish.com/en/locationsandmenus/runk/';
 export const runkRouter = Router();
@@ -36,7 +37,7 @@ runkRouter.get('/', async (_req, res) => {
     }
 });
 
-runkRouter.post('/', csrf, validateBody(StationFoodItemSchemaInput), async (req, res) => {
+runkRouter.post('/', csrf, mongoSanitizer, validateBody(StationFoodItemSchemaInput), async (req, res) => {
     try {
         await updateFoodSettings(DiningHallsEnum.Runk, req.body, parser.getDiningHallTimeFrame(new Date().getDay(), getCurHour()));
         res.status(HttpStatusCode.NoContent).end();

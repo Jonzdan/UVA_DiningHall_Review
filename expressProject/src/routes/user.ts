@@ -2,6 +2,7 @@ import { HttpStatusCode } from 'axios';
 import { Router} from 'express';
 import { csrf, blockLoggedInUsers, blockLoggedOutUsers, CSRF_TOKEN_HEADER, findHeader, SESSION_ID, CSRF_TOKEN, validateBody, createUserWithDefaults, findUserWithQuery, resetTokens, updateSession, updateUserSettings, findUserByBasicAuth, findUserByEmailOrUser } from 'src/services';
 import { loginSchema, signupSchema, updateUserApiSchema } from '@shared/api';
+import { mongoSanitizerMiddleware } from 'src/utils';
 
 export const userRouter = Router();
 userRouter.use(csrf);
@@ -29,12 +30,11 @@ userRouter.post('/login', validateBody(loginSchema), blockLoggedInUsers, async (
 
     const existingUser = await findUserByBasicAuth(user, password);
     
-    if (!existingUser.length) {
+    if (!existingUser) {
         return res.status(HttpStatusCode.BadRequest).end();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const userId = existingUser[0]!._id;
+    const userId = existingUser._id;
     
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const csrfToken = findHeader(req.headers, CSRF_TOKEN_HEADER)!;
@@ -49,8 +49,8 @@ userRouter.post('/login', validateBody(loginSchema), blockLoggedInUsers, async (
 
     // TODO: Set this as a shared API interface
     return res.status(HttpStatusCode.Ok).json({
-        username: existingUser[0]?.username,
-        picture:  existingUser[0]?.profile?.picture,
+        username: existingUser?.username,
+        picture:  existingUser?.profile?.picture,
     });
 });
 
@@ -90,7 +90,7 @@ userRouter.get('/settings', blockLoggedOutUsers, async(req, res) => {
     }
 });
 
-userRouter.put('/settings', validateBody(updateUserApiSchema), blockLoggedOutUsers, async(req, res) => {
+userRouter.put('/settings', validateBody(updateUserApiSchema), blockLoggedOutUsers, mongoSanitizerMiddleware, async(req, res) => {
     const { email } = req.body;
     if (email) {
         /**

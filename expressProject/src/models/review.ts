@@ -9,7 +9,8 @@ export const ReviewSchema = new Schema({
     },
     review: {
         type: String,
-        required: false
+        required: false,
+        maxLength: 500
     }
 });
 

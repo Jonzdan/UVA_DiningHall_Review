@@ -2,10 +2,12 @@ import { Axios } from 'axios';
 import type { SchemaTypes, TimeFrameTypes } from 'src/models';
 import { readFileSync } from 'fs';
 import { Document, Model, Types, type Condition } from 'mongoose';
-import type { AnyBulkWriteOperation } from 'mongodb';
+import type { AnyBulkWriteOperation } from 'mongoose';
 import type { FoodProducts } from './util';
 import { DiningHallDataParserError, getCurDateAsString, removeSpecialChar } from './util';
-import type { StationFoodItemOutputs } from "@shared/api/food"
+import type { StationFoodItemOutputs } from "@shared/api/food";
+import { sanitizeInput } from '../validation';
+import ExpressMongoSanitize from 'express-mongo-sanitize';
 
 export class DiningHallDataParser {
     private readonly axios: Axios;
@@ -56,10 +58,10 @@ export class DiningHallDataParser {
     
         const existingFoodProducts = await this.model.find({
             item: {
-                timeFrame: this.timeframe
+                timeFrame: sanitizeInput(this.timeframe)
             },
             stationName: {
-                $in: Object.values(stationIdsToNameMap),
+                $in: sanitizeInput(Object.values(stationIdsToNameMap)),
             },
         });
     
@@ -74,7 +76,9 @@ export class DiningHallDataParser {
 
         if (bulkOperations.length > 0) {
             try {
-                const result = await this.model.bulkWrite(bulkOperations);
+                const result = await this.model.bulkWrite(bulkOperations, {
+                    
+                });
                 if (!result.isOk()) {
                     throw new Error();
                 }
@@ -221,9 +225,10 @@ export class DiningHallDataParser {
     ): AnyBulkWriteOperation<SchemaTypes>[] {
         const bulkOperations: AnyBulkWriteOperation<SchemaTypes>[] = []
         for (const products of foodProducts) {
-            const { stationId, marketingName, shortDescription } = products;
+            const sanitizedProducts = ExpressMongoSanitize.sanitize(products);
+            const { stationId, marketingName, shortDescription } = sanitizedProducts;
 
-            const stationName = stationMapping.get(stationId);
+            const stationName = sanitizeInput(stationMapping.get(stationId));
             if (!stationName) {
                 console.error(`${stationId} is unknown`, stationMapping);
                 continue;
@@ -253,8 +258,8 @@ export class DiningHallDataParser {
                             document: {
                                 stationName,
                                 item: {
-                                    itemName:  marketingName,
-                                    itemDesc:  shortDescription,
+                                    itemName:  sanitizeInput(marketingName),
+                                    itemDesc:  sanitizeInput(shortDescription),
                                     timeFrame: timeFrame,
                                 },
                                 activeDate: [curDate]

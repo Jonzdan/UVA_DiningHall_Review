@@ -1,6 +1,6 @@
 import { Axios } from "axios";
 
-export interface FoodProducts {
+export interface FoodProducts extends Record<string, string> {
     stationId: string,
     marketingName: string,
     shortDescription: string,

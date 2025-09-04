@@ -23,6 +23,8 @@ export async function updateSession(userId: Types.ObjectId, csrfToken: string) {
         {
             session: hashToken(sessionId),
             userID: userId,
+        }, {
+            sanitizeFilter: true
         }
     );
     return sessionId;
@@ -43,6 +45,8 @@ export async function resetTokens(sessionId: string, csrfToken: string): Promise
             $set: {
                 csrf: token
             }
+        }, {
+            sanitizeFilter: true
         }
     );
     return token;
@@ -53,8 +57,12 @@ export async function findToken(csrfToken?: string, sessionId?: string): Promise
         return undefined;
     }
 
-    return await IdentifierModel.find({
-        ...(sessionId && { session: hashToken(sessionId) }),
-        ...(csrfToken && { csrf: csrfToken })
-    });
+    return await IdentifierModel.find(
+        {
+            ...(sessionId && { session: hashToken(sessionId) }),
+            ...(csrfToken && { csrf: csrfToken })
+        }, {}, {
+            sanitizeFilter: true
+        }
+    );
 }
