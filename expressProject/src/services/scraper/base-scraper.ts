@@ -116,7 +116,6 @@ export class DiningHallDataParser {
                 throw new DiningHallDataParserError("Bulk write failed");
             }
         }
-        return this.mapStationIdToFoodSchema(foodProducts, stationIdsToNameMap);
         return undefined;
     }
 
