@@ -1,14 +1,20 @@
 {
   "name": "front",
   "version": "0.0.0",
+  "main": "dist/front/index.js",
   "scripts": {
+    "clean": "rimraf dist .angular/cache",
     "ng": "ng",
     "start": "ng serve",
     "proxy": "ng serve --proxy-config proxy.config.json ",
+    "format": "eslint .",
+    "format:fix": "eslint . --fix",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "release": "npm run format && npm run test && npm run build"
   },
+  "type": "module",
   "private": true,
   "dependencies": {
     "@angular/animations": "^15.2.10",
@@ -19,6 +25,7 @@
     "@angular/platform-browser": "^15.2.10",
     "@angular/platform-browser-dynamic": "^15.2.10",
     "@angular/router": "^15.2.10",
+    "hoorank-shared": "file:../../shared",
     "rxjs": "^7.8.2",
     "tslib": "^2.8.1",
     "zone.js": "~0.11.4"
@@ -27,8 +34,12 @@
     "@angular-devkit/build-angular": "^15.2.11",
     "@angular/cli": "^15.2.11",
     "@angular/compiler-cli": "^15.2.10",
+    "@types/eslint": "^9.6.1",
     "@types/jasmine": "~4.0.0",
     "autoprefixer": "^10.4.21",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
     "jasmine-core": "~4.3.0",
     "karma": "^6.4.4",
     "karma-chrome-launcher": "~3.1.0",
@@ -36,7 +47,10 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^3.4.17",
-    "typescript": "~4.9.5"
+    "typescript": "~4.9.5",
+    "typescript-eslint": "^8.42.0"
   }
 }
