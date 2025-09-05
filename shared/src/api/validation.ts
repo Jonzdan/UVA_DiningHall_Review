@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FormValidationErrorCodes } from './food';
+import { FormValidationErrorCodes } from './food.js';
 
 export const passwordSchema = z.string()
   .min(8, { error: FormValidationErrorCodes.PASSWORD_TOO_WEAK })

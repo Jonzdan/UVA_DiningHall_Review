@@ -1,18 +1,20 @@
 import { z } from "zod";
+import { MAX_REVIEWS } from "./constants.js";
 
 export const FoodItemReviewSchemaDetail = z.object({
-    star: z.number(),
-    review: z.string().optional(),
+    stars: z.int().min(1).max(5),
+    review: z.string().trim().max(500).optional(),
 });
 
+// TODO: Add Pagination
 export const FoodItemReviewSchema = z.object({
     starRating: z.number(),
-    details: z.array(FoodItemReviewSchemaDetail)
+    details: z.array(FoodItemReviewSchemaDetail).max(MAX_REVIEWS),
 });
 
 export const FoodItemSchemaInput = z.object({
     name: z.string(),
-    reviewOptions: FoodItemReviewSchemaDetail.optional(),
+    reviewOptions: FoodItemReviewSchemaDetail,
 });
 
 export const FoodItemSchemaOutput = z.object({

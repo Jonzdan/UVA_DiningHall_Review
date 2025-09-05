@@ -1,3 +1,3 @@
-export * from './scraper';
-export * from './validation';
-export * from './controllers';
+export * from "./scraper/index.js";
+export * from "./validation/index.js";
+export * from "./controllers/index.js";

@@ -1,19 +1,20 @@
-import { Model, Schema } from 'mongoose';
-import type { InferSchemaType } from 'mongoose';
-import { RunkTimeFrameEnum } from './types';
-import { createItemSchema } from './item';
+import { DiningHallsEnum, RunkTimeFrameEnum } from "./types.js";
+import { type InferSchemaType, Model, Schema, model } from "mongoose";
+import { createItemSchema } from "./item.js";
 
 export const RunkDiningHall = new Schema({
     stationName: {
         type: String,
-        required: true
+        required: true,
     },
     item: { type: createItemSchema(RunkTimeFrameEnum), required: true },
-    activeDate: { 
+    activeDate: {
         type: Array,
-        required: true
-    }
+        required: true,
+    },
 });
 
 export type RunkDiningHallSchemaType = InferSchemaType<typeof RunkDiningHall>;
-export const RunkModel: Model<RunkDiningHallSchemaType> = new Model<Schema<RunkDiningHallSchemaType>>(RunkDiningHall);
+export const RunkModel: Model<RunkDiningHallSchemaType> = model<
+    Schema<RunkDiningHallSchemaType>
+>(DiningHallsEnum.Runk, RunkDiningHall);

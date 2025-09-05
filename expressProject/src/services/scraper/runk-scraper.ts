@@ -1,20 +1,20 @@
-import type { RunkModel, RunkTimeFrame } from 'src/models';
-import { DiningHallDataParser } from './base-scraper';
-import type { Axios } from 'axios';
-import { getCurHour } from './util';
-import type { StationFoodItemOutputs } from '@shared/api/food';
-export class RunkDataParser {
+import { type DiningHallTime, getCurHour } from "./util.js";
+import { RunkModel, type RunkTimeFrame } from "../../models/index.js";
+import type { Axios } from "axios";
+import { DiningHallDataParser } from "./base-scraper.js";
+import type { StationFoodItemOutputs } from "hoorank-shared";
+
+export class RunkDataParser implements DiningHallTime {
     private readonly parser: DiningHallDataParser;
 
     constructor(axios: Axios, model: typeof RunkModel, url: string) {
-        this.parser = new DiningHallDataParser(axios, model, url, this.getDiningHallTimeFrame(
-            new Date().getDay(),
-            getCurHour()
-        ));
+        this.parser = new DiningHallDataParser(axios, model, url);
     }
 
     async getData(): Promise<StationFoodItemOutputs | undefined> {
-        return await this.parser.getData();
+        return await this.parser.getData(
+            this.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
+        );
     }
 
     getDiningHallTimeFrame(date: number, time: number): RunkTimeFrame {
@@ -22,7 +22,7 @@ export class RunkDataParser {
             if (time >= 1000 && date < 1600) {
                 return "Brunch";
             }
-            
+
             if (time >= 1600 && time < 2000) {
                 return "Dinner";
             }
@@ -44,6 +44,6 @@ export class RunkDataParser {
             return "Late Night";
         }
 
-        return "Unavailable"
+        return "Unavailable";
     }
-} 
+}

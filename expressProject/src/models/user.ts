@@ -1,40 +1,40 @@
-import { Model, Schema, type InferSchemaType } from 'mongoose';
+import { type InferSchemaType, Model, Schema, model } from "mongoose";
 
 export const UserSchema = new Schema({
     email: {
-        type:String,
-        required:true
+        type: String,
+        required: true,
     },
     username: {
-        type:String,
-        required:true
+        type: String,
+        required: true,
     },
     password: {
-        type:String,
-        required:true
+        type: String,
+        required: true,
     },
     profile: {
         picture: {
-            type:String,
-            required:false,
+            type: String,
+            required: false,
         },
         subMessage: {
-            type:String,
+            type: String,
             required: false,
         },
         bannerColor: {
-            type:String,
+            type: String,
             required: true,
         },
         remainAnonymous: {
-            type:Boolean,
-            required: true
-        }
+            type: Boolean,
+            required: true,
+        },
     },
     notifications: {
         ohillOptIn: {
             type: Boolean,
-            required: true
+            required: true,
         },
         runkOptIn: {
             type: Boolean,
@@ -46,26 +46,29 @@ export const UserSchema = new Schema({
         },
         optInWhenToNotify: {
             type: Array,
-            required: true
+            required: true,
         },
         foodOptInBol: {
             type: Boolean,
-            required: true
+            required: true,
         },
         foodOptInVal: {
             type: Array,
-            required: true
+            required: true,
         },
         replyToPost: {
             type: Boolean,
-            required: true
+            required: true,
         },
     },
     dateJoined: {
         type: Date,
-        required: true
-    }
+        required: true,
+    },
 });
 
-export type UserSchemaType = InferSchemaType<typeof UserSchema>
-export const UserModel: Model<UserSchemaType> = new Model<Schema<UserSchemaType>>(UserSchema);
+export type UserSchemaType = InferSchemaType<typeof UserSchema>;
+export const UserModel: Model<UserSchemaType> = model<Schema<UserSchemaType>>(
+    "User",
+    UserSchema,
+);

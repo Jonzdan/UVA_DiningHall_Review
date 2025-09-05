@@ -1,35 +1,51 @@
-import dotenv from 'dotenv';
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import mongoose from 'mongoose';
+import {
+    CSRF_TOKEN,
+    SESSION_ID,
+    findToken,
+    findUserById,
+    generateCSRF,
+    sanitizeHtml,
+    updateCSRF,
+    updateSession,
+} from "./services/index.js";
+import { connectToMongo, setCSRFCookie, setSessionCookie } from "./utils.js";
+import {
+    newcombRouter,
+    ohillRouter,
+    runkRouter,
+    userRouter,
+} from "./routes/index.js";
+import { HttpStatusCode } from "axios";
+import type { IUserRequest } from "./types/index.js";
 
-import { newcombRouter, ohillRouter, runkRouter, userRouter } from './routes';
-import { updateCSRF, updateSession, findToken, findUserById, CSRF_TOKEN, SESSION_ID, sanitizeHtml } from './services';
-import { HttpStatusCode } from 'axios';
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import express from "express";
 
 dotenv.config();
 const app = express();
 
-if (!process.env['DATABASE_URL'] || !process.env['COOKIE_PARSER_SECRET']) {
+if (!process.env["DATABASE_URL"] || !process.env["COOKIE_PARSER_SECRET"]) {
     throw new Error();
 }
 
-const mongodbDriver = await mongoose.connect(process.env['DATABASE_URL']);
-const db = mongodbDriver.connection;
-db.on('error', (error) => { console.error(error) });
-db.once('open', () => { console.log('Connected') });
+await connectToMongo();
 
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
-app.use(cookieParser(process.env['COOKIE_PARSER_SECRET']));
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser(process.env["COOKIE_PARSER_SECRET"]));
 app.use(sanitizeHtml);
 
-// 1000 ms * 60s * 60m * 24h
-const TOKEN_AGE = 86_400_000;
-
-app.get("/authConfirm", async (req, res): Promise<void> => {
-    if (req.cookies.CSRF_TOKEN && req.signedCookies.SESSION_ID && Object.keys(req.signedCookies.SESSION_ID).length > 0) {
-        const response = await findToken(req.cookies.CSRF_TOKEN, req.signedCookies.SESSION_ID);
+app.get("/authConfirm", async (req: IUserRequest, res): Promise<void> => {
+    if (
+        req.cookies.CSRF_TOKEN &&
+        req.signedCookies.SESSION_ID &&
+        Object.keys(req.signedCookies.SESSION_ID).length > 0
+    ) {
+        const response = await findToken(
+            req.cookies.CSRF_TOKEN,
+            req.signedCookies.SESSION_ID,
+        );
 
         if (response?.length !== 1 || !response[0]?.userID) {
             res.clearCookie(CSRF_TOKEN);
@@ -37,46 +53,44 @@ app.get("/authConfirm", async (req, res): Promise<void> => {
             res.status(HttpStatusCode.BadRequest).end();
             return;
         }
-        
+
         const userId = response[0].userID;
-        const csrfToken = await updateCSRF();
-        const sessionId = await updateSession(userId, csrfToken);
+        const { csrfToken, sessionId } = await updateSession(
+            userId,
+            generateCSRF(),
+        );
         const person = await findUserById(userId);
 
-        if (!person.length) {
+        if (!person[0]) {
             res.status(HttpStatusCode.Unauthorized).end();
             return;
         }
 
-        res.cookie(SESSION_ID, sessionId, {
-            sameSite: 'strict',
-            httpOnly: true,
-            maxAge:   TOKEN_AGE,
-            signed:   true,
-        });
+        setSessionCookie(res, sessionId);
+        setCSRFCookie(res, csrfToken);
 
-        res.cookie(CSRF_TOKEN, csrfToken, {
-            sameSite: 'strict',
-            maxAge:   TOKEN_AGE
-        });
-
-        res.status(HttpStatusCode.Ok).json({
-            username: person[0]!.username,
-        }).end();
+        res.status(HttpStatusCode.Ok)
+            .json({
+                username: person[0].username,
+            })
+            .end();
     } else {
-        res.header('Content-Security-Policy', "default-src 'self'; style-src 'self', 'unsafe-inline'")
-        res.cookie(CSRF_TOKEN, await updateCSRF(), {
-            sameSite: 'strict',
-            maxAge:   TOKEN_AGE
-        })
+        res.header(
+            "Content-Security-Policy",
+            "default-src 'self'; style-src 'self', 'unsafe-inline'",
+        );
+        setCSRFCookie(res, await updateCSRF());
         res.status(HttpStatusCode.NoContent).end();
     }
-})
+});
 
-app.use('/api/runk', runkRouter);
-app.use('/api/ohill', ohillRouter);
-app.use('/api/newcomb', newcombRouter);
-app.use('/user', userRouter);
+app.use("/api/runk", runkRouter);
+app.use("/api/ohill", ohillRouter);
+app.use("/api/newcomb", newcombRouter);
+app.use("/user", userRouter);
 
-app.listen(process.env['PORT'] || 4000);
-
+app.listen(process.env["PORT"] ?? 4000, () => {
+    console.log(
+        `Server running on http://localhost:${process.env["PORT"] ?? "4000"}`,
+    );
+});

@@ -1,19 +1,20 @@
-import { Model, Schema } from 'mongoose';
-import type { InferSchemaType } from 'mongoose';
-import { OhillTimeFrameEnum } from './types';
-import { createItemSchema } from './item';
+import { DiningHallsEnum, OhillTimeFrameEnum } from "./types.js";
+import { type InferSchemaType, Model, Schema, model } from "mongoose";
+import { createItemSchema } from "./item.js";
 
 export const OhillDiningHall = new Schema({
     stationName: {
         type: String,
-        required: true
+        required: true,
     },
     item: { type: createItemSchema(OhillTimeFrameEnum), required: true },
-    activeDate: { 
+    activeDate: {
         type: Array,
-        required: true
-    }
+        required: true,
+    },
 });
 
 export type OhillDiningHallSchemaType = InferSchemaType<typeof OhillDiningHall>;
-export const OhillModel: Model<OhillDiningHallSchemaType> = new Model<Schema<OhillDiningHallSchemaType>>(OhillDiningHall);
+export const OhillModel: Model<OhillDiningHallSchemaType> = model<
+    Schema<OhillDiningHallSchemaType>
+>(DiningHallsEnum.Ohill, OhillDiningHall);
