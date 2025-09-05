@@ -18,7 +18,6 @@ export class ToggleComponent implements OnInit {
   ngOnInit(): void {
     const obj:{[index:string]:any} = this.acc.convertIdentifierToActualPropNames(this.option, this.identifier)
     this.name = obj['name']; this.subtext = obj['subtext']
-    console.log(this.name, this.subtext)
   }
 
   ngAfterViewInit():void {

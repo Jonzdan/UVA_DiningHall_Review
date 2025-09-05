@@ -192,6 +192,27 @@ export class SettingsTabComponent implements OnInit {
     return error
   }
 
+  saveChange(e:any) {
+    let html = e.target.textContent
+    this.acc.updateAccountSettings()
+    this.acc.pendingChanges = false
+  }
+
+  discardChange(e:any) {
+    //revert every slider to what it was before in child components
+    const data = this.acc.accountInfo[this.acc.convertViewToProperty("Notification")]
+    if (data === undefined) throw console.error(data);
+    const targets = this.acc.clickedOnTargets
+    for (const target of targets) {
+      target.target.checked = data?.[target.prop] //this works
+      //target.target.nextElementSibling.className = this.slider
+      //target.target.dispatchEvent(new Event('change'))
+    }
+
+    this.acc.resetNotificationSettingsToDefault()
+    this.acc.pendingChanges = false;
+  }
+
   async onSubmit(e:any) {
     //Pretty shit solution, change to rxjs subject later...
     if (this.firstPassLoading || this.secondPassLoading) {
@@ -208,7 +229,6 @@ export class SettingsTabComponent implements OnInit {
       //submit form
 
       const res = await this.acc.resetPassword(this.inputForm)
-      console.log(res);
       //just in case
 
     }
@@ -294,7 +314,11 @@ export class SettingsTabComponent implements OnInit {
   }
 
   checkIfPropIsChecked(specificSetting:string) { //don't need general since it's specific to component
-    return this.options[specificSetting]
+    if (this.identifier === "Notification" && this.acc.tempSettingStore['notifications']) {
+      return this.options[specificSetting] || this.acc.tempSettingStore['notifications'][specificSetting]
+    } else {
+      return this.options[specificSetting]
+    }
   }
 
   skipFoodProperty(s:string) {
@@ -314,5 +338,7 @@ export class SettingsTabComponent implements OnInit {
   get firstPass() { return this.passGroup?.get('firstPass') as FormControl}
   get secondPass() { return this.passGroup?.get('secondPass') as FormControl}
   get passGroup() { return this.inputForm.get('passGroup') as FormGroup }
+
+  get pendingChanges() { return this.acc.pendingChanges}
 
 }

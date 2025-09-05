@@ -106,7 +106,6 @@ export class DininghallComponent implements OnInit, AfterViewInit {
         this.skeletonLoader = false;
         const items = this.appService.getData(this.short)
         if (!items || items?.length === 0) {
-          console.log(123)
           this.emptyDisplay = true;
         }
         //dataloadedState.unsubscribe();
@@ -116,9 +115,6 @@ export class DininghallComponent implements OnInit, AfterViewInit {
       }
     })
     this.sub.add(dataloadedState)
-    
-    
-
   }
 
   get animationState() {

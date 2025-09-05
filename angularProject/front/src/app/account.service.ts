@@ -34,7 +34,7 @@ export class AccountService {
   set pendingChanges(b:boolean) { this._pendingChanges = b; }
   get accountInfo() { return this._accountInfo}
   get clickedOnTargets() { return this._clickedOnTargets}
-  get tempSettingStore() { return this._tempSettingStore}
+  get tempSettingStore() { return JSON.parse(JSON.stringify(this._tempSettingStore))}
   get currentSelected() { return this._currentSelected}
   set currentSelected(s:string) {
     if (this.convertViewToProperty(s) === "") {
@@ -42,37 +42,37 @@ export class AccountService {
       return
     }
     this._currentSelected = s;
-    console.log(this._currentSelected)
   }
 
-  updateAccountSettings():boolean { //only upon save changes button
+  private updateTemporaryAccountSettings():boolean {
     const keys = Object.keys(this.accountInfo)
     for (const setting in this._tempSettingStore) {
-      /* if (keys.indexOf(setting) === -1) { //uncomment in actual production
-        alert("ERROR HERE"); console.log(this._tempSettingStore, this.accountInfo); return false;
-      } */
+      if (keys.indexOf(setting) === -1) {
+        return false;
+      }
       if (Object.keys(setting).length > 0) {
         const settings: {[index:string]:any} = this._tempSettingStore[setting]
         for (const property in settings) { //what if there are more nested properties? Also maybe assume both have same properties to speed this up?
-          //if (settings[property] !== 1 || settings[property] !== 0) return false
             try {
               this.accountInfo[setting][property] = settings[property]
             }
             catch (err) {
-              throw err
+              return false;
             }
-          
         } 
       }
       else {
         this.accountInfo[setting] = this._tempSettingStore[setting] as {[index:string]:any}
       }
-      
     }
+    return true
+  }
+
+  updateAccountSettings():boolean { //only upon save changes button
+    const updatedSuccess = this.updateTemporaryAccountSettings()
+    if (!updatedSuccess) return false;
    
-    //http request to backend
     const url = "./user/updateSettings"
-    //add username to tempSettingStore
     this._tempSettingStore['username'] = this._accountInfo['username']
     this.http.post(url, this._tempSettingStore, {
       'headers': {
@@ -83,13 +83,12 @@ export class AccountService {
       timeout(5000),
       catchError((err, caught) => {
         console.error(err)
-        throw err
+        return caught
       })
     ).subscribe((res) => {
-      console.log(res)
+      //console.log(res)
     }) 
-    this._tempSettingStore = {} //reset only on accurate info
-    this._pendingChanges = false;
+    this.resetNotificationSettingsToDefault()
     return true
   }
 
@@ -99,18 +98,20 @@ export class AccountService {
     if (this._tempSettingStore[identifier_key] === undefined) { this._tempSettingStore[identifier_key] = {} }
     this._tempSettingStore[identifier_key] [obj_key] = value;
     this._pendingChanges = true;
-    //console.log(this._tempSettingStore)
-
   }
 
   resetSettingsToDefault():void {
-    //probably put this in the component
+    this._currentSelected = "Profile"
+    this.resetNotificationSettingsToDefault()
+  }
+
+  resetNotificationSettingsToDefault(): void {
     this._tempSettingStore = {}
     this._clickedOnTargets = []
+    this._pendingChanges = false;
   }
 
   addToTargetsArray(e:any, actualPropName:string) {
-    console.log(e)
     if (!(e.target instanceof HTMLInputElement) || !(e instanceof PointerEvent)) return
     if (this._clickedOnTargets.indexOf({target:  e.target, prop: actualPropName}) !== -1) return
     this._clickedOnTargets.push({target:  e.target, prop: actualPropName});
@@ -296,7 +297,7 @@ export class AccountService {
     )
 
 
-    const b = req.subscribe((res: HttpResponse<Object>)=> {
+    const _ = req.subscribe((res: HttpResponse<Object>)=> {
       try {
         if (res.body !== null) { 
           this.accountInfo['username'] = (res.body as loginResponse)?.username
@@ -314,21 +315,13 @@ export class AccountService {
           //add sign-out option
         }
         else {
-          console.log(res.headers)
+          // console.log(res.headers)
         } 
       }
       catch (err) {
         console.error(err);
       }
-        
-
     })
-
-
-
-    
-    /*
-    */
   }
 
   async pullAccountDetails() {
@@ -344,8 +337,6 @@ export class AccountService {
         throw err
       })
     ).subscribe((res: HttpResponse<any>) => {
-      console.log(res)
-      //add a check
       this._accountInfo = res?.body[0]
     })
   }
@@ -396,11 +387,9 @@ export class AccountService {
               }
               else {
                 resolve(res);
-                console.log(res.headers)
               } 
             }
             catch (err) {
-              console.error(err);
               reject(res);
             }
           })
@@ -437,15 +426,13 @@ export class AccountService {
     } )
     clearCookies.subscribe((res: HttpResponse<Object>)=> {
       if ((res.body as signOutResponse)?.msg === "Signed Out Successfully") { //signed out successfully
-        this._signedIn = false; this._accountInfo = {}; this.accountText = "Not Signed In"
+        this._signedIn = false; this._accountInfo = {}; this.accountText = "Not Signed In";
+        this.authBeginning();
       }
       else {
         console.error(res)
       }
-      
     })
-    //send request to backend to clear all cookies/tokens
-    
   }
 
   convertPropertyToView(s:string):string {
@@ -563,10 +550,9 @@ export class AccountService {
     return strings
   }
 
-  convertIdentifierToActualPropNames(o:{[index:string]:any}, i:string):{[index:string]:any} {
+  convertIdentifierToActualPropNames(o:{[index:string]:any}, identifier:string):{[index:string]:any} {
     const retObj:{[index:string]:any} = {}
-    console.log(i)
-    switch (i) {
+    switch (identifier) {
       case "Date Joined": {
         break
       }
@@ -596,7 +582,6 @@ export class AccountService {
     }
     return retObj
   }
-
   
 }
 

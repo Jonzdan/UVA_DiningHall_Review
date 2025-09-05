@@ -49,6 +49,11 @@ export class SettingsComponent {
     }
   }
 
+  returnToHome(e:any) { // By Logout
+    this.acc.resetSettingsToDefault()
+    this.router.navigateByUrl("/");
+  }
+
   whichTitleSubstring(s:string) {
     switch (s) {
       case "Notification": {
@@ -71,33 +76,6 @@ export class SettingsComponent {
 
   switchContent(e:any) {
     this.acc.currentSelected = this.convertSideBarViewToProp(e.target.textContent)
-    this.acc.currentSelected === 'Logout' ? this.router.navigateByUrl("/") : null
-    console.log(this._currentSelected === this.convertSideBarViewToProp('Password'))
-    //switch content, meaning add functionality/variables to hold info and use conditionals to display conditionally...
-  }
-
-  updateChanges(e:any) {
-    let html = e.target.textContent
-    if (html === this.saveChanges) {
-      this.acc.updateAccountSettings()
-    }
-    else if (html === this.discardChanges) {
-      
-      //revert every slider to what it was before in child components
-      const data = this.acc.accountInfo[this.acc.convertViewToProperty(this._currentSelected)]
-      if (data === undefined) throw console.error(data);
-      const targets = this.acc.clickedOnTargets
-      for (const target of targets) {
-        target.target.checked = data?.[target.prop] //this works
-        //target.target.nextElementSibling.className = this.slider
-        //target.target.dispatchEvent(new Event('change'))
-        
-
-      }
-
-      this.acc.resetSettingsToDefault()
-    }
-    this.acc.pendingChanges = false;
   }
 
   onCheckedChange(e:any) {
