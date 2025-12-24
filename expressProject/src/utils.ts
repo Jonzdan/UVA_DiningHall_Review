@@ -1,12 +1,16 @@
-import { CSRF_TOKEN, SESSION_ID } from "./services/index.js";
+import { CSRF_TOKEN, SESSION_ID } from "./validations/index.js";
 import ExpressMongoSanitize from "express-mongo-sanitize";
 import { NewcombModel } from "./models/newcomb.js";
 import { OhillModel } from "./models/ohill.js";
 import { type Response } from "express";
 import { RunkModel } from "./models/runk.js";
 import type { SchemaTypes } from "./models/types.js";
-import type { UpdateUserPrefixes } from "hoorank-shared";
+import type { AuthConfirmOutput, UpdateUserPrefixes } from "hoorank-shared";
 import mongoose from "mongoose";
+import type { IUserRequest } from "./types/index.js";
+import { HttpStatusCode } from "axios";
+import { findUserById } from "./repositories/user.js";
+import { findAuthTokens, updateSession } from "./services/controller/token.js";
 
 // 1000 ms * 60s * 30m
 const TOKEN_AGE = 1_800_000;
@@ -85,4 +89,38 @@ export function setCSRFCookie(res: Response, csrfToken: string): void {
         sameSite: "strict",
         maxAge: TOKEN_AGE,
     });
+}
+
+export async function confirmAuthSessionHandler(req: IUserRequest, res: Response) {
+    const response = await findAuthTokens(
+        req.cookies.CSRF_TOKEN,
+        req.signedCookies.SESSION_ID
+    );
+
+    if (!response || !response?.userID) {
+        res.clearCookie(CSRF_TOKEN);
+        res.clearCookie(SESSION_ID);
+        res.status(HttpStatusCode.BadRequest).end();
+        return;
+    }
+
+    const userId = response.userID;
+    const [{ newCsrfToken, sessionId }, person] = await Promise.all([
+        updateSession(userId, response.csrf),
+        findUserById(userId.toString()),
+    ]);
+
+    if (!person) {
+        res.status(HttpStatusCode.Unauthorized).end();
+        return;
+    }
+
+    setSessionCookie(res, sessionId);
+    setCSRFCookie(res, newCsrfToken);
+
+    res.status(HttpStatusCode.Ok)
+        .json({
+            username: person.username,
+        } as AuthConfirmOutput)
+        .end();
 }

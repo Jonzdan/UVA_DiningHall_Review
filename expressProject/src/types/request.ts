@@ -1,5 +1,4 @@
 import type { Request } from "express";
-import type { Types } from "mongoose";
 
 export interface IUserRequest<
     P = Record<string, string>,
@@ -7,7 +6,7 @@ export interface IUserRequest<
     ReqBody = unknown,
     ReqQuery = Record<string, unknown>,
 > extends Request<P, ResBody, ReqBody, ReqQuery> {
-    userId?: Types.ObjectId | null | undefined;
+    userId?: string | null | undefined;
     cookies: {
         CSRF_TOKEN?: string;
         [key: string]: string | undefined;

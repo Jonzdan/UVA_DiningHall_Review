@@ -37,14 +37,6 @@ export const NewcombDiningHallTimeFrameEnum = [
 export type NewcombDiningHallTimeFrame =
     (typeof NewcombDiningHallTimeFrameEnum)[number];
 
-export const DiningHallsEnum = {
-    Runk: "Runk",
-    Ohill: "Ohill",
-    Newcomb: "Newcomb",
-} as const;
-
-export type DiningHalls =
-    (typeof DiningHallsEnum)[keyof typeof DiningHallsEnum];
 export type SchemaTypes =
     | OhillDiningHallSchemaType
     | NewcombDiningHallSchemaType

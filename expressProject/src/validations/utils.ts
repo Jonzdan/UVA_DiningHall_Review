@@ -1,8 +1,17 @@
 import type { NextFunction, Request, Response } from "express";
 import { compare, genSalt, hash } from "bcrypt";
-import { SALT_ROUNDS } from "./constants.js";
-import { createHash } from "crypto";
+import { CSRF_HEX_BYTE_LENGTH, SALT_ROUNDS, SESSION_HEX_BYTE_LENGTH } from "./constants.js";
+import { createHash, randomBytes } from "crypto";
 import sanitize from "sanitize-html";
+import type { IncomingHttpHeaders } from "http";
+
+export function generateCSRF(): string {
+    return randomBytes(CSRF_HEX_BYTE_LENGTH).toString("hex");
+}
+
+export function generateSession(): string {
+    return randomBytes(SESSION_HEX_BYTE_LENGTH).toString("hex");
+}
 
 export function hashToken(token: string): string {
     return createHash("sha256").update(token).digest("hex");
@@ -17,6 +26,18 @@ export async function verifyPassword(
     hashedPassword: string,
 ): Promise<boolean> {
     return await compare(password, hashedPassword);
+}
+
+export function findHeader(
+    headers: IncomingHttpHeaders,
+    header: string,
+): string | undefined {
+    for (const [key, value] of Object.entries(headers)) {
+        if (key.toLowerCase() == header.toLowerCase()) {
+            return Array.isArray(value) ? value[0] : value;
+        }
+    }
+    return undefined;
 }
 
 export type SanitizeOutput<T> = T extends string

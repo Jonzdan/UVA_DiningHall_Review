@@ -1,23 +1,20 @@
-import { DiningHallsEnum, RunkModel } from "../../models/index.js";
+import { DiningHallsEnum, ROUTES, StationFoodItemSchemaInput } from "hoorank-shared";
 import {
     RunkDataParser,
     axios,
-    csrf,
-    findCurrentFoodData,
-    getCurHour,
-    updateFoodSettings,
-    validateBody,
+    getCurHour
 } from "../../services/index.js";
+import { csrf, validateBody } from "../../validations/index.js";
 import { HttpStatusCode } from "axios";
 import { Router } from "express";
-import { StationFoodItemSchemaInput } from "hoorank-shared";
+import { RunkModel } from "../../models/index.js";
 import { mongoSanitizerMiddleware } from "../../utils.js";
 
 const url = "https://virginia.campusdish.com/en/locationsandmenus/runk/";
 export const runkRouter = Router();
 const parser = new RunkDataParser(axios, RunkModel, url);
 
-runkRouter.get("/", async (_req, res) => {
+runkRouter.get(ROUTES.API.RUNK, async (_req, res) => {
     try {
         const initialData = await findCurrentFoodData(
             DiningHallsEnum.Runk,
@@ -45,7 +42,7 @@ runkRouter.get("/", async (_req, res) => {
 });
 
 runkRouter.post(
-    "/",
+    ROUTES.API.RUNK,
     csrf,
     mongoSanitizerMiddleware,
     validateBody(StationFoodItemSchemaInput),

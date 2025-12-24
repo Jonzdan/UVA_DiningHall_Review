@@ -1,22 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 import { CSRF_TOKEN_HEADER } from "./constants.js";
 import { HttpStatusCode } from "axios";
-import type { IUserRequest } from "../../types/index.js";
-import type { IncomingHttpHeaders } from "node:http";
-import { findToken } from "../controllers/index.js";
+import type { IUserRequest } from "../types/index.js";
+import { findToken } from "../repositories/index.js";
 import type { z } from "zod";
-
-export function findHeader(
-    headers: IncomingHttpHeaders,
-    header: string,
-): string | undefined {
-    for (const [key, value] of Object.entries(headers)) {
-        if (key.toLowerCase() == header.toLowerCase()) {
-            return Array.isArray(value) ? value[0] : value;
-        }
-    }
-    return undefined;
-}
+import { findHeader } from "./utils.js";
 
 export async function csrf(
     req: IUserRequest,
@@ -25,13 +13,13 @@ export async function csrf(
 ): Promise<void> {
     const csrfToken = findHeader(req.headers, CSRF_TOKEN_HEADER);
     if (csrfToken && csrfToken === req.cookies.CSRF_TOKEN) {
-        const result = await findToken(csrfToken);
+        const result = await findToken({ csrfToken });
 
         if (!result?.length) {
             res.status(HttpStatusCode.BadRequest).end();
             return;
         } else {
-            req.userId = result[0]?.userID;
+            req.userId = result[0]?.userID?.toString();
             next();
             return;
         }
@@ -65,10 +53,10 @@ export async function blockLoggedInUsers(
         next();
         return;
     }
-    const response = await findToken(
-        req.cookies.CSRF_TOKEN,
-        req.signedCookies.SESSION_ID,
-    );
+    const response = await findToken({
+        csrfToken: req.cookies.CSRF_TOKEN,
+        sessionId: req.signedCookies.SESSION_ID
+    });
     if (response?.length !== 1 || response[0]?.userID) {
         res.status(HttpStatusCode.NoContent).end();
         return;
@@ -88,16 +76,16 @@ export async function blockLoggedOutUsers(
     }
 
     if (!req.userId) {
-        const response = await findToken(
-            req.cookies.CSRF_TOKEN,
-            req.signedCookies.SESSION_ID,
-        );
+        const response = await findToken({
+            csrfToken: req.cookies.CSRF_TOKEN,
+            sessionId: req.signedCookies.SESSION_ID
+        });
         if (!response?.length || !response[0]?.userID) {
             res.status(HttpStatusCode.Unauthorized).end();
             return;
         }
 
-        req.userId = response[0].userID;
+        req.userId = response[0].userID.toString();
     }
     next();
 }

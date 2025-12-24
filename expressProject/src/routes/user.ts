@@ -4,24 +4,19 @@ import {
     SESSION_ID,
     blockLoggedInUsers,
     blockLoggedOutUsers,
-    createUserWithDefaults,
     csrf,
     findHeader,
-    findUserByBasicAuth,
-    findUserByEmailOrUser,
-    findUserWithQuery,
-    resetTokens,
-    updateSession,
-    updateUserSettings,
     validateBody,
-} from "../services/index.js";
-import { type Response, Router } from "express";
+} from "../validations/index.js"
 import {
+    ROUTES,
     type UpdateUserApi,
+    type UserLoginOutput,
     loginSchema,
     signupSchema,
     updateUserApiSchema,
 } from "hoorank-shared";
+import { type Response, Router } from "express";
 import {
     mongoSanitizerMiddleware,
     setCSRFCookie,
@@ -29,12 +24,21 @@ import {
 } from "../utils.js";
 import { HttpStatusCode } from "axios";
 import type { IUserRequest } from "../types/index.js";
+import { 
+    findUserByEmailOrUser,
+    updateSession,
+    createUser,
+    findUserWithBasicAuth,
+    resetAuthTokens,
+    findUserById,
+    updateUser
+} from "../services/controller/index.js";
 
 export const userRouter = Router();
 userRouter.use(csrf);
 
 userRouter.post(
-    "/register",
+    ROUTES.USER.REGISTER,
     validateBody(signupSchema),
     blockLoggedInUsers,
     async (req, res) => {
@@ -42,11 +46,11 @@ userRouter.post(
         try {
             const existingUser = await findUserByEmailOrUser(user, password);
 
-            if (existingUser.length) {
+            if (existingUser) {
                 return res.status(HttpStatusCode.Conflict).end();
             }
 
-            await createUserWithDefaults(email, user, password);
+            await createUser(email, user, password);
             return res.status(HttpStatusCode.Created).end();
         } catch (err) {
             console.error(err);
@@ -56,39 +60,37 @@ userRouter.post(
 );
 
 userRouter.post(
-    "/login",
+    ROUTES.USER.LOGIN,
     validateBody(loginSchema),
     blockLoggedInUsers,
     async (req, res) => {
         const { user, password } = req.body;
 
-        const existingUser = await findUserByBasicAuth(user, password);
+        const existingUser = await findUserWithBasicAuth(user, password);
 
         if (!existingUser) {
             return res.status(HttpStatusCode.BadRequest).end();
         }
 
         const userId = existingUser._id;
-
-        const { csrfToken, sessionId } = await updateSession(
+        const { newCsrfToken, sessionId } = await updateSession(
             userId,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             findHeader(req.headers, CSRF_TOKEN_HEADER)!,
         );
 
         setSessionCookie(res, sessionId);
-        setCSRFCookie(res, csrfToken);
+        setCSRFCookie(res, newCsrfToken);
 
-        // TODO: Set this as a shared API interface
         return res.status(HttpStatusCode.Ok).json({
             username: existingUser.username,
             picture: existingUser.profile?.picture,
-        });
+        } as UserLoginOutput);
     },
 );
 
 userRouter.post(
-    "/signOut",
+    ROUTES.USER.LOGOUT,
     blockLoggedOutUsers,
     async (req: IUserRequest, res) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -96,8 +98,7 @@ userRouter.post(
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const csrf = req.cookies.CSRF_TOKEN!;
-
-        const newCSRFToken = await resetTokens(sessionId, csrf);
+        const newCSRFToken = await resetAuthTokens(sessionId, csrf);
 
         res.clearCookie(CSRF_TOKEN);
         res.clearCookie(SESSION_ID);
@@ -112,25 +113,15 @@ userRouter.post(
 );
 
 userRouter.get(
-    "/settings",
+    ROUTES.USER.SETTINGS,
     blockLoggedOutUsers,
     async (req: IUserRequest, res) => {
         if (!req.userId) {
             return res.status(HttpStatusCode.Unauthorized).end();
         }
 
-        const user = await findUserWithQuery(
-            {
-                _id: req.userId,
-            },
-            {
-                _id: 0, // Internal MongoDB ID field
-                password: 0,
-                __v: 0, // Internal MongoDB Version Number
-            },
-        );
-
-        if (!user.length) {
+        const user = await findUserById(req.userId);
+        if (!user) {
             return res.status(HttpStatusCode.Unauthorized).end();
         } else {
             return res.status(HttpStatusCode.Ok).json(user);
@@ -139,7 +130,7 @@ userRouter.get(
 );
 
 userRouter.put(
-    "/settings",
+    ROUTES.USER.SETTINGS,
     validateBody(updateUserApiSchema),
     blockLoggedOutUsers,
     mongoSanitizerMiddleware,
@@ -156,7 +147,11 @@ userRouter.put(
         }
 
         try {
-            await updateUserSettings(req);
+            const result = await updateUser(req);
+            if (!result) {
+                return res.status(HttpStatusCode.BadRequest).end();
+            }
+
             return res.status(HttpStatusCode.NoContent).end();
         } catch (err) {
             console.error('/PUT; path:"settings" failed', err);

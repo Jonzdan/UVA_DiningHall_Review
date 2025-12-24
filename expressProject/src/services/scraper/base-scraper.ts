@@ -16,7 +16,7 @@ import ExpressMongoSanitize from "express-mongo-sanitize";
 import type { FoodProducts } from "./util.js";
 import type { StationFoodItemOutputs } from "hoorank-shared";
 import { readFileSync } from "fs";
-import { sanitizeInput } from "../validation/index.js";
+import { sanitizeInput } from "../../validations/index.js";
 
 //TODO: Scraping past current timeframe shows next timeframe
 export class DiningHallDataParser {
@@ -77,6 +77,7 @@ export class DiningHallDataParser {
             await this.getActualOrTestData(testMode),
         );
 
+        // TODO: Add abstraction over find from persistence layer
         const existingFoodProducts = await this.model.find({
             item: {
                 timeFrame: sanitizeInput(timeframe),
@@ -103,6 +104,7 @@ export class DiningHallDataParser {
 
         if (bulkOperations.length > 0) {
             try {
+                // TODO: Add abstraction over bulkWrite from controller
                 const result = await this.model.bulkWrite(bulkOperations, {});
                 if (!result.isOk()) {
                     throw new Error();
@@ -163,7 +165,7 @@ export class DiningHallDataParser {
         return [foodProducts, stationIdToNameMap];
     }
 
-    // *TODO*: Add nutrition information
+    // *TODO*: Add nutrition information - Split into smaller functions
     /**
      * Method of scraping data from website.
      * However, it also provides nutrition information
@@ -281,8 +283,8 @@ export class DiningHallDataParser {
 
             if (!stationIdRes) {
                 /**
-                 * Property denotes item exists. Below code is assumes other properties are part of bigger object
-                 * Therefore, throw an error if those properties are missing
+                 * Property denotes item exists. Below code assumes other properties are part of bigger object
+                 * Therefore, throw an error (after) if those properties are missing
                  */
                 break;
             }

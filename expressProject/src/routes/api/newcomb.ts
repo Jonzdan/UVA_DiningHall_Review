@@ -1,16 +1,13 @@
-import { DiningHallsEnum, NewcombModel } from "../../models/index.js";
 import {
     NewcombDataParser,
     axios,
-    csrf,
-    findCurrentFoodData,
     getCurHour,
-    updateFoodSettings,
-    validateBody,
 } from "../../services/index.js";
+import { DiningHallsEnum, ROUTES, StationFoodItemSchemaInput } from "hoorank-shared";
+import { csrf, validateBody } from "../../validations/index.js";
 import { HttpStatusCode } from "axios";
+import { NewcombModel } from "../../models/index.js";
 import { Router } from "express";
-import { StationFoodItemSchemaInput } from "hoorank-shared";
 import { mongoSanitizerMiddleware } from "../../utils.js";
 
 const url =
@@ -18,7 +15,7 @@ const url =
 export const newcombRouter = Router();
 const parser = new NewcombDataParser(axios, NewcombModel, url);
 
-newcombRouter.get("/", async (_req, res) => {
+newcombRouter.get(ROUTES.API.NEWCOMB, async (_req, res) => {
     try {
         const timeFrame = parser.getDiningHallTimeFrame(
             new Date().getDay(),
@@ -50,7 +47,7 @@ newcombRouter.get("/", async (_req, res) => {
 });
 
 newcombRouter.post(
-    "/",
+    ROUTES.API.NEWCOMB,
     csrf,
     mongoSanitizerMiddleware,
     validateBody(StationFoodItemSchemaInput),

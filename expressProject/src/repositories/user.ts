@@ -1,23 +1,16 @@
 import type {
     FilterQuery,
     HydratedDocument,
-    ProjectionType,
-    Types,
+    ProjectionType
 } from "mongoose";
-import { UserModel, type UserSchemaType } from "../../models/index.js";
-import { flattenForUpdate, mongoSanitizer } from "../../utils.js";
-import {
-    hashPassword,
-    sanitizeInput,
-    verifyPassword,
-} from "../validation/index.js";
-import type { IUserRequest } from "../../types/index.js";
-import type { UpdateUserApi } from "hoorank-shared";
+import { UserModel, type UserSchemaType } from "../models/index.js";
+import { flattenForUpdate, mongoSanitizer } from "../utils.js";
+import type { ResetApi, UserSettingsApi } from "hoorank-shared";
 
 export async function findUserById(
-    user: Types.ObjectId,
-): Promise<HydratedDocument<UserSchemaType>[]> {
-    return await UserModel.find(
+    user: string,
+): Promise<HydratedDocument<UserSchemaType> | null> {
+    return await UserModel.findOne(
         {
             _id: user,
         },
@@ -30,19 +23,12 @@ export async function findUserById(
 
 export async function findUserByBasicAuth(
     username: string,
-    password: string,
-): Promise<HydratedDocument<UserSchemaType> | null> {
-    const result = await findUserWithQuery({
+): Promise<HydratedDocument<UserSchemaType>[]> {
+    return await findUserWithQuery({
         username: {
             $eq: username,
         },
     });
-
-    if (result[0] && (await verifyPassword(password, result[0].password))) {
-        return result[0];
-    }
-
-    return null;
 }
 
 export async function findUserByEmailOrUser(
@@ -60,7 +46,7 @@ export async function findUserByEmailOrUser(
  * @param projection
  * @returns
  */
-export async function findUserWithQuery(
+async function findUserWithQuery(
     query: FilterQuery<UserSchemaType>,
     projection?: ProjectionType<UserSchemaType>,
 ): Promise<HydratedDocument<UserSchemaType>[]> {
@@ -70,17 +56,18 @@ export async function findUserWithQuery(
     });
 }
 
+// TODO: defaults should exist in model layer, not here
 export async function createUserWithDefaults(
     email: string,
     username: string,
     password: string,
 ): Promise<void> {
     await UserModel.create({
-        email: mongoSanitizer(sanitizeInput(email)),
-        username: mongoSanitizer(sanitizeInput(username)),
-        password: await hashPassword(password),
+        email: mongoSanitizer(email),
+        username: mongoSanitizer(username),
+        password: password,
         profile: {
-            bannerColor: "default",
+            bannerColor: "default", // TODO: add type hinting
             remainAnonymous: false,
         },
         notifications: {
@@ -97,11 +84,12 @@ export async function createUserWithDefaults(
 }
 
 export async function updateUserSettings(
-    req: IUserRequest<object, object, UpdateUserApi>,
+    userId: string,
+    passwordReset: ResetApi,
+    { profile, notifications }: UserSettingsApi,
 ): Promise<void> {
-    const { passwordReset, profile, notifications } = req.body;
     await UserModel.findByIdAndUpdate(
-        req.userId,
+        userId,
         {
             $set: {
                 ...(!!passwordReset && { password: passwordReset.password }),
