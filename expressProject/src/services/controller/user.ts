@@ -1,35 +1,45 @@
-import type { UpdateUserApi } from "hoorank-shared";
+import {
+    createUserWithDefaults,
+    findUserByBasicAuthRepo,
+    findUserByEmailOrUserRepo,
+    findUserByIdRepo,
+    updateUserSettings,
+} from "src/repositories/index.js";
+import {
+    hashPassword,
+    sanitizeInput,
+    verifyPassword,
+} from "src/validations/index.js";
+import type { IUserRequest } from "src/types/index.js";
 import type { Types } from "mongoose";
-import type { UserSchemaType } from "src/models/user.js";
-import { createUserWithDefaults, updateUserSettings, findUserById as findUserByIdRepo, findUserByBasicAuth as findUserByBasicAuthRepo, findUserByEmailOrUser as findUserByEmailOrUserRepo } from "src/repositories/index.js";
-import type { IUserRequest } from "src/types/request.js";
-import { verifyPassword, sanitizeInput, hashPassword } from "src/validations/utils.js";
+import type { UpdateUserApi } from "hoorank-shared";
+import type { UserSchemaType } from "src/models/index.js";
 
 interface UserSchemaWithId extends UserSchemaType {
     readonly _id: Types.ObjectId;
 }
 
-function convertUserToJSObject(
-    {
-        dateJoined,
-        email,
-        notifications,
-        profile,
-        username,
-        _id
-    }: UserSchemaWithId
-): Omit<UserSchemaWithId, "password"> | null {
+function convertUserToJSObject({
+    dateJoined,
+    email,
+    notifications,
+    profile,
+    username,
+    _id,
+}: UserSchemaWithId): Omit<UserSchemaWithId, "password"> | null {
     return {
         _id,
         username,
         dateJoined,
         email,
         notifications: notifications ?? null,
-        profile: profile ?? null
+        profile: profile ?? null,
     };
 }
 
-export async function findUserById(userId: string): Promise<Omit<UserSchemaWithId, "password"> | null> {
+export async function findUserById(
+    userId: string,
+): Promise<Omit<UserSchemaWithId, "password"> | null> {
     const result = await findUserByIdRepo(userId);
 
     if (!result) {
@@ -41,8 +51,8 @@ export async function findUserById(userId: string): Promise<Omit<UserSchemaWithI
 
 export async function findUserWithBasicAuth(
     username: string,
-    password: string
-): Promise< Omit<UserSchemaWithId, "password"> | null> {
+    password: string,
+): Promise<Omit<UserSchemaWithId, "password"> | null> {
     const result = await findUserByBasicAuthRepo(username);
     if (result[0] && (await verifyPassword(password, result[0].password))) {
         return convertUserToJSObject(result[0]);
@@ -53,7 +63,7 @@ export async function findUserWithBasicAuth(
 
 export async function findUserByEmailOrUser(
     username: string,
-    email: string
+    email: string,
 ): Promise<Omit<UserSchemaWithId, "password"> | null> {
     const result = await findUserByEmailOrUserRepo(username, email);
     if (!result[0]) {
@@ -71,20 +81,15 @@ export async function createUser(
     await createUserWithDefaults(
         sanitizeInput(email),
         sanitizeInput(username),
-        await hashPassword(password)
+        await hashPassword(password),
     );
 }
 
-export async function updateUser(
-    {
-        userId,
-        body: {
-            passwordReset,
-            userSettingsSchema
-        }
-    }: IUserRequest<object, object, UpdateUserApi>
-): Promise<boolean> {
-    if (!userId || !passwordReset || !userSettingsSchema) {
+export async function updateUser({
+    userId,
+    body: { passwordReset, userSettingsSchema },
+}: IUserRequest<object, object, UpdateUserApi>): Promise<boolean> {
+    if (!userId || !passwordReset) {
         return false;
     }
 

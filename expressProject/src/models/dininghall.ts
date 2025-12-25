@@ -1,10 +1,10 @@
-import { model, Model, Schema, type InferSchemaType } from "mongoose";
+import { type InferSchemaType, Model, Schema, model } from "mongoose";
 import { createItemSchema } from "./item.js";
 
 export const DiningHall = new Schema({
     hallId: {
         type: String, // TODO: add enum
-        required: true
+        required: true,
     },
     stationName: {
         type: String,
@@ -14,10 +14,18 @@ export const DiningHall = new Schema({
     activeDate: {
         type: Array,
         required: true,
-    }
+    },
+});
+
+DiningHall.index({
+    hallId: 1,
+    stationName: 1,
+    activeDate: 1,
+    "item.timeFrame": 1,
+    "item.itemName": 1,
 });
 
 export type DiningHallSchemaType = InferSchemaType<typeof DiningHall>;
 export const DiningHallModel: Model<DiningHallSchemaType> = model<
     Schema<DiningHallSchemaType>
->('Dining Halls', DiningHall);
+>("Dining Halls", DiningHall);

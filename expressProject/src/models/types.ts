@@ -1,7 +1,3 @@
-import type { NewcombDiningHallSchemaType } from "./newcomb.js";
-import type { OhillDiningHallSchemaType } from "./ohill.js";
-import type { RunkDiningHallSchemaType } from "./runk.js";
-
 export const OhillTimeFrameEnum = [
     "Brunch (8am-2:15pm)",
     "Breakfast (7am-11am)",
@@ -36,11 +32,6 @@ export const NewcombDiningHallTimeFrameEnum = [
 
 export type NewcombDiningHallTimeFrame =
     (typeof NewcombDiningHallTimeFrameEnum)[number];
-
-export type SchemaTypes =
-    | OhillDiningHallSchemaType
-    | NewcombDiningHallSchemaType
-    | RunkDiningHallSchemaType;
 export type TimeFrameTypes =
     | OhillTimeFrame
     | NewcombDiningHallTimeFrame

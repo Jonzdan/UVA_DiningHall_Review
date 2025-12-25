@@ -1,9 +1,13 @@
+import {
+    CSRF_HEX_BYTE_LENGTH,
+    SALT_ROUNDS,
+    SESSION_HEX_BYTE_LENGTH,
+} from "./constants.js";
 import type { NextFunction, Request, Response } from "express";
 import { compare, genSalt, hash } from "bcrypt";
-import { CSRF_HEX_BYTE_LENGTH, SALT_ROUNDS, SESSION_HEX_BYTE_LENGTH } from "./constants.js";
 import { createHash, randomBytes } from "crypto";
-import sanitize from "sanitize-html";
 import type { IncomingHttpHeaders } from "http";
+import sanitize from "sanitize-html";
 
 export function generateCSRF(): string {
     return randomBytes(CSRF_HEX_BYTE_LENGTH).toString("hex");

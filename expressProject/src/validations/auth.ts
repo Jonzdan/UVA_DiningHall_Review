@@ -2,9 +2,9 @@ import type { NextFunction, Request, Response } from "express";
 import { CSRF_TOKEN_HEADER } from "./constants.js";
 import { HttpStatusCode } from "axios";
 import type { IUserRequest } from "../types/index.js";
+import { findHeader } from "./utils.js";
 import { findToken } from "../repositories/index.js";
 import type { z } from "zod";
-import { findHeader } from "./utils.js";
 
 export async function csrf(
     req: IUserRequest,
@@ -55,7 +55,7 @@ export async function blockLoggedInUsers(
     }
     const response = await findToken({
         csrfToken: req.cookies.CSRF_TOKEN,
-        sessionId: req.signedCookies.SESSION_ID
+        sessionId: req.signedCookies.SESSION_ID,
     });
     if (response?.length !== 1 || response[0]?.userID) {
         res.status(HttpStatusCode.NoContent).end();
@@ -78,7 +78,7 @@ export async function blockLoggedOutUsers(
     if (!req.userId) {
         const response = await findToken({
             csrfToken: req.cookies.CSRF_TOKEN,
-            sessionId: req.signedCookies.SESSION_ID
+            sessionId: req.signedCookies.SESSION_ID,
         });
         if (!response?.length || !response[0]?.userID) {
             res.status(HttpStatusCode.Unauthorized).end();

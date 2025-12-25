@@ -1,20 +1,23 @@
-import {
-    type AnyBulkWriteOperation,
-    type Condition,
-    Document,
-    Model,
-    Types,
-} from "mongoose";
+import { type AnyBulkWriteOperation, Document, Types } from "mongoose";
 import {
     DiningHallDataParserError,
     getCurDateAsString,
     removeSpecialChar,
 } from "./util.js";
-import type { SchemaTypes, TimeFrameTypes } from "../../models/index.js";
+import {
+    type DiningHallSchemaType,
+    type TimeFrameTypes,
+} from "../../models/index.js";
+import type { DiningHalls, StationFoodItemOutputs } from "hoorank-shared";
+import {
+    addBulkWriteInsertOneItem,
+    addBulkWriteUpdateItem,
+    bulkWriteItems,
+    findItems,
+} from "src/repositories/index.js";
 import { Axios } from "axios";
 import ExpressMongoSanitize from "express-mongo-sanitize";
 import type { FoodProducts } from "./util.js";
-import type { StationFoodItemOutputs } from "hoorank-shared";
 import { readFileSync } from "fs";
 import { sanitizeInput } from "../../validations/index.js";
 
@@ -22,19 +25,18 @@ import { sanitizeInput } from "../../validations/index.js";
 export class DiningHallDataParser {
     private readonly axios: Axios;
     private readonly url: string;
-    private readonly model: Model<SchemaTypes>;
     private readonly STATION_ID_IDENTIFIER = '"StationId":';
     private readonly STATION_NAME_IDENTIFIER = '"Name":';
     private readonly STATION_PRODUCT_IDENTIFIER = '"Product":';
     private readonly STATION_MARKETNAME_IDENTIFER = '"MarketingName":';
     private readonly STATION_DESC_IDENTIFIER = '"ShortDescription":';
 
-    constructor(axios: Axios, model: Model<SchemaTypes>, url: string) {
+    constructor(axios: Axios, url: string) {
         this.axios = axios;
         this.url = url;
-        this.model = model;
     }
 
+    // TODO: move this portion to testing folder
     private async getActualOrTestData(testMode = false): Promise<string> {
         if (testMode) {
             return readFileSync("temp.txt", { encoding: "utf-8" });
@@ -66,24 +68,26 @@ export class DiningHallDataParser {
     }
 
     public async getData(
+        hallId: DiningHalls,
         timeframe: TimeFrameTypes,
         testMode = false,
     ): Promise<StationFoodItemOutputs | undefined> {
         const existingFoodProductsMapping = new Map<
             string,
-            Document<Condition<Types.ObjectId | undefined>, object, SchemaTypes>
+            Document<Types.ObjectId | undefined, object, DiningHallSchemaType>
         >();
         const [foodProducts, stationIdsToNameMap] = this.getStationsDetails(
             await this.getActualOrTestData(testMode),
         );
 
-        // TODO: Add abstraction over find from persistence layer
-        const existingFoodProducts = await this.model.find({
-            item: {
-                timeFrame: sanitizeInput(timeframe),
-            },
-            stationName: {
-                $in: sanitizeInput(Object.values(stationIdsToNameMap)),
+        const existingFoodProducts = await findItems({
+            hallId,
+            activeDate: getCurDateAsString(),
+            timeframe,
+            station: {
+                stationNames: sanitizeInput<string[]>(
+                    Object.values(stationIdsToNameMap) as string[],
+                ),
             },
         });
 
@@ -103,20 +107,16 @@ export class DiningHallDataParser {
         );
 
         if (bulkOperations.length > 0) {
-            try {
-                // TODO: Add abstraction over bulkWrite from controller
-                const result = await this.model.bulkWrite(bulkOperations, {});
-                if (!result.isOk()) {
-                    throw new Error();
-                }
-                return this.mapStationIdToFoodSchema(
-                    foodProducts,
-                    stationIdsToNameMap,
+            const result = await bulkWriteItems({ items: bulkOperations });
+            if (!result.isOk()) {
+                throw new DiningHallDataParserError(
+                    "bulkWrite operation failed",
                 );
-            } catch (error) {
-                console.error(error);
-                throw new DiningHallDataParserError("Bulk write failed");
             }
+            return this.mapStationIdToFoodSchema(
+                foodProducts,
+                stationIdsToNameMap,
+            );
         }
         return undefined;
     }
@@ -339,13 +339,14 @@ export class DiningHallDataParser {
         foodProducts: FoodProducts[],
         existingFoodProductsMapping: Map<
             string,
-            Document<Condition<Types.ObjectId | undefined>, object, SchemaTypes>
+            Document<Types.ObjectId | undefined, object, DiningHallSchemaType>
         >,
         curDate: string,
         timeFrame: Partial<TimeFrameTypes>,
         stationMapping: Map<string, string>,
-    ): AnyBulkWriteOperation<SchemaTypes>[] {
-        const bulkOperations: AnyBulkWriteOperation<SchemaTypes>[] = [];
+    ): AnyBulkWriteOperation<DiningHallSchemaType>[] {
+        const bulkOperations: AnyBulkWriteOperation<DiningHallSchemaType>[] =
+            [];
         for (const products of foodProducts) {
             const sanitizedProducts = ExpressMongoSanitize.sanitize(products);
             const { stationId, marketingName, shortDescription } =
@@ -362,33 +363,23 @@ export class DiningHallDataParser {
             );
 
             if (existingProduct) {
-                bulkOperations.push({
-                    updateOne: {
-                        filter: {
-                            _id: existingProduct._id,
-                        },
-                        update: {
-                            $push: {
-                                activeDate: curDate,
-                            },
-                        },
-                    },
-                });
+                bulkOperations.push(
+                    addBulkWriteUpdateItem({
+                        _id: existingProduct._id,
+                        curDate,
+                    }),
+                );
             } else {
                 if (timeFrame !== "Unavailable") {
-                    bulkOperations.push({
-                        insertOne: {
-                            document: {
-                                stationName,
-                                item: {
-                                    itemName: sanitizeInput(marketingName),
-                                    itemDesc: sanitizeInput(shortDescription),
-                                    timeFrame: timeFrame,
-                                },
-                                activeDate: [curDate],
-                            } as SchemaTypes,
-                        },
-                    });
+                    bulkOperations.push(
+                        addBulkWriteInsertOneItem({
+                            curDate,
+                            marketingName: sanitizeInput(marketingName),
+                            shortDescription: sanitizeInput(shortDescription),
+                            stationName,
+                            timeframe: timeFrame,
+                        }),
+                    );
                 }
             }
         }

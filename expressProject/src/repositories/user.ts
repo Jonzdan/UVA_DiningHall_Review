@@ -1,13 +1,9 @@
-import type {
-    FilterQuery,
-    HydratedDocument,
-    ProjectionType
-} from "mongoose";
+import type { FilterQuery, HydratedDocument, ProjectionType } from "mongoose";
+import type { ResetApi, UserSettingsApi } from "hoorank-shared";
 import { UserModel, type UserSchemaType } from "../models/index.js";
 import { flattenForUpdate, mongoSanitizer } from "../utils.js";
-import type { ResetApi, UserSettingsApi } from "hoorank-shared";
 
-export async function findUserById(
+export async function findUserByIdRepo(
     user: string,
 ): Promise<HydratedDocument<UserSchemaType> | null> {
     return await UserModel.findOne(
@@ -21,7 +17,7 @@ export async function findUserById(
     );
 }
 
-export async function findUserByBasicAuth(
+export async function findUserByBasicAuthRepo(
     username: string,
 ): Promise<HydratedDocument<UserSchemaType>[]> {
     return await findUserWithQuery({
@@ -31,7 +27,7 @@ export async function findUserByBasicAuth(
     });
 }
 
-export async function findUserByEmailOrUser(
+export async function findUserByEmailOrUserRepo(
     username: string,
     email: string,
 ): Promise<HydratedDocument<UserSchemaType>[]> {
@@ -85,17 +81,21 @@ export async function createUserWithDefaults(
 
 export async function updateUserSettings(
     userId: string,
-    passwordReset: ResetApi,
-    { profile, notifications }: UserSettingsApi,
+    passwordReset?: ResetApi,
+    userSettings?: UserSettingsApi,
 ): Promise<void> {
     await UserModel.findByIdAndUpdate(
         userId,
         {
             $set: {
                 ...(!!passwordReset && { password: passwordReset.password }),
-                ...(!!profile && flattenForUpdate("profile", profile)),
-                ...(!!notifications &&
-                    flattenForUpdate("notifications", notifications)),
+                ...(!!userSettings?.profile &&
+                    flattenForUpdate("profile", userSettings.profile)),
+                ...(!!userSettings?.notifications &&
+                    flattenForUpdate(
+                        "notifications",
+                        userSettings.notifications,
+                    )),
             },
         },
         {

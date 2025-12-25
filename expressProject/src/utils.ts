@@ -1,16 +1,13 @@
-import { CSRF_TOKEN, SESSION_ID } from "./validations/index.js";
-import ExpressMongoSanitize from "express-mongo-sanitize";
-import { NewcombModel } from "./models/newcomb.js";
-import { OhillModel } from "./models/ohill.js";
-import { type Response } from "express";
-import { RunkModel } from "./models/runk.js";
-import type { SchemaTypes } from "./models/types.js";
 import type { AuthConfirmOutput, UpdateUserPrefixes } from "hoorank-shared";
-import mongoose from "mongoose";
-import type { IUserRequest } from "./types/index.js";
+import { CSRF_TOKEN, SESSION_ID } from "./validations/index.js";
+import { DiningHallModel, type DiningHallSchemaType } from "./models/index.js";
+import { findAuthTokens, updateSession } from "./services/index.js";
+import ExpressMongoSanitize from "express-mongo-sanitize";
 import { HttpStatusCode } from "axios";
-import { findUserById } from "./repositories/user.js";
-import { findAuthTokens, updateSession } from "./services/controller/token.js";
+import type { IUserRequest } from "./types/index.js";
+import { type Response } from "express";
+import { findUserById } from "./services/index.js";
+import mongoose from "mongoose";
 
 // 1000 ms * 60s * 30m
 const TOKEN_AGE = 1_800_000;
@@ -29,11 +26,7 @@ export function flattenForUpdate<T extends object, K extends keyof T & string>(
 }
 
 export async function connectToMongo(
-    models: mongoose.Model<SchemaTypes>[] = [
-        OhillModel,
-        RunkModel,
-        NewcombModel,
-    ],
+    models: mongoose.Model<DiningHallSchemaType>[] = [DiningHallModel],
 ): Promise<void> {
     try {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -91,13 +84,16 @@ export function setCSRFCookie(res: Response, csrfToken: string): void {
     });
 }
 
-export async function confirmAuthSessionHandler(req: IUserRequest, res: Response) {
+export async function confirmAuthSessionHandler(
+    req: IUserRequest,
+    res: Response,
+) {
     const response = await findAuthTokens(
         req.cookies.CSRF_TOKEN,
-        req.signedCookies.SESSION_ID
+        req.signedCookies.SESSION_ID,
     );
 
-    if (!response || !response?.userID) {
+    if (!response?.userID) {
         res.clearCookie(CSRF_TOKEN);
         res.clearCookie(SESSION_ID);
         res.status(HttpStatusCode.BadRequest).end();

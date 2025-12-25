@@ -1,29 +1,30 @@
 import {
+    DiningHallsEnum,
+    ROUTES,
+    StationFoodItemSchemaInput,
+} from "hoorank-shared";
+import {
     NewcombDataParser,
     axios,
+    findCurrentFoodData,
     getCurHour,
+    updateFoodSettings,
 } from "../../services/index.js";
-import { DiningHallsEnum, ROUTES, StationFoodItemSchemaInput } from "hoorank-shared";
 import { csrf, validateBody } from "../../validations/index.js";
 import { HttpStatusCode } from "axios";
-import { NewcombModel } from "../../models/index.js";
 import { Router } from "express";
 import { mongoSanitizerMiddleware } from "../../utils.js";
 
 const url =
     "https://virginia.campusdish.com/LocationsAndMenus/FreshFoodCompany";
 export const newcombRouter = Router();
-const parser = new NewcombDataParser(axios, NewcombModel, url);
+const parser = new NewcombDataParser(axios, url);
 
 newcombRouter.get(ROUTES.API.NEWCOMB, async (_req, res) => {
     try {
-        const timeFrame = parser.getDiningHallTimeFrame(
-            new Date().getDay(),
-            getCurHour(),
-        );
         const initialData = await findCurrentFoodData(
             DiningHallsEnum.Newcomb,
-            timeFrame,
+            parser.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
         );
 
         if (!initialData?.length) {
@@ -61,6 +62,7 @@ newcombRouter.post(
                     getCurHour(),
                 ),
             );
+
             res.status(HttpStatusCode.NoContent).end();
         } catch (err) {
             console.error(err);

@@ -1,26 +1,33 @@
-import type { DiningHallSchemaType } from "src/models/dininghall.js";
-import { type AddItemReviewParams, type FindItemsParams } from "./interface.js";
-import { DiningHallModel } from "src/models/dininghall.js";
+import {
+    type AddBulkWriteInsertOneItemParams,
+    type AddBulkWriteUpdateItemParams,
+    type AddItemReviewParams,
+    type BulkWriteItemParams,
+    type FindItemsParams,
+} from "./interface.js";
+import {
+    type AnyBulkWriteOperation,
+    type HydratedDocument,
+    type MongooseBulkWriteResult,
+} from "mongoose";
+import {
+    DiningHallModel,
+    type DiningHallSchemaType,
+} from "src/models/index.js";
 import type { ReviewSchemaType } from "src/models/index.js";
-import type { HydratedDocument } from "mongoose";
 
-export async function updateItem(
-    {
-        hallId,
-        activeDate,
-        timeframe,
-        stationItem: {
-            stationName,
-            item: {
-                name,
-                reviewOptions: {
-                    stars,
-                    review
-                }
-            }
-        }
-    }: AddItemReviewParams
-): Promise<DiningHallSchemaType[] | null> {
+export async function updateItem({
+    hallId,
+    activeDate,
+    timeframe,
+    stationItem: {
+        stationName,
+        item: {
+            name,
+            reviewOptions: { stars, review },
+        },
+    },
+}: AddItemReviewParams): Promise<DiningHallSchemaType[] | null> {
     return await DiningHallModel.findOneAndUpdate(
         {
             hallId,
@@ -45,41 +52,87 @@ export async function updateItem(
             returnOriginal: false,
             sanitizeFilter: true,
         },
-    )
+    );
 }
 
-export async function findItems(
-    {
-        hallId,
-        activeDate,
-        timeframe,
-        stationName
-    }: FindItemsParams
-): Promise<HydratedDocument<DiningHallSchemaType>[] | null> {
-    return await DiningHallModel
-        .find(
-            {
-                hallId,
-                ...(
-                    stationName && {
-                        stationName
-                    }
-                ),
-                activeDate: {
-                    $in: [activeDate],
+// TODO: bound results
+export async function findItems({
+    hallId,
+    activeDate,
+    timeframe,
+    station,
+}: FindItemsParams): Promise<HydratedDocument<DiningHallSchemaType>[]> {
+    return await DiningHallModel.find(
+        {
+            hallId,
+            ...(station?.stationName && {
+                stationName: station.stationName,
+            }),
+            ...(station?.stationName && {
+                stationName: {
+                    $in: station.stationNames,
                 },
-                "item.timeFrame": timeframe,
+            }),
+            activeDate: {
+                $in: [activeDate],
             },
-            {
-                _id: 0,
-                activeDate: 0,
+            "item.timeFrame": timeframe,
+        },
+        {
+            _id: 0,
+            activeDate: 0,
+        },
+        {
+            sanitizeFilter: true,
+            sanitizeProjection: true,
+        },
+    ).sort({
+        "item.itemReviewCount": -1,
+    });
+}
+
+export async function bulkWriteItems({
+    items,
+}: BulkWriteItemParams): Promise<MongooseBulkWriteResult> {
+    return await DiningHallModel.bulkWrite(items);
+}
+
+export function addBulkWriteUpdateItem({
+    _id,
+    curDate,
+}: AddBulkWriteUpdateItemParams): AnyBulkWriteOperation<DiningHallSchemaType> {
+    return {
+        updateOne: {
+            filter: {
+                _id,
             },
-            {
-                sanitizeFilter: true,
-                sanitizeProjection: true,
+            update: {
+                $push: {
+                    activeDate: curDate,
+                },
             },
-        )
-        .sort({
-            "item.itemReview.itemReviewCount": -1,
-        });
+        },
+    };
+}
+
+export function addBulkWriteInsertOneItem({
+    curDate,
+    marketingName,
+    shortDescription,
+    stationName,
+    timeframe,
+}: AddBulkWriteInsertOneItemParams): AnyBulkWriteOperation<DiningHallSchemaType> {
+    return {
+        insertOne: {
+            document: {
+                stationName,
+                item: {
+                    itemName: marketingName,
+                    itemDesc: shortDescription,
+                    timeFrame: timeframe,
+                },
+                activeDate: [curDate],
+            } as DiningHallSchemaType,
+        },
+    };
 }

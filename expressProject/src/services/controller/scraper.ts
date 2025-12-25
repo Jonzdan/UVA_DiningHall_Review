@@ -5,12 +5,10 @@ import {
     type StationFoodItemOutput,
     type StationFoodItemOutputs,
 } from "hoorank-shared";
-import {
-    type TimeFrameTypes,
-} from "../../models/index.js";
-import { getCurDateAsString } from "../scraper/index.js";
 import { findItems, updateItem } from "../../repositories/index.js";
 import type { DiningHallSchemaType } from "src/models/index.js";
+import { type TimeFrameTypes } from "../../models/index.js";
+import { getCurDateAsString } from "../scraper/index.js";
 
 export async function updateFoodSettings(
     diningHall: DiningHalls,
@@ -21,7 +19,7 @@ export async function updateFoodSettings(
         hallId: diningHall,
         activeDate: getCurDateAsString(),
         stationItem: foodItem,
-        timeframe
+        timeframe,
     });
 }
 
@@ -32,10 +30,10 @@ export async function findCurrentFoodData(
     const data = await findItems({
         hallId: diningHall,
         timeframe,
-        activeDate: getCurDateAsString()
+        activeDate: getCurDateAsString(),
     });
 
-    if (!data?.length) {
+    if (!data.length) {
         return null;
     }
 

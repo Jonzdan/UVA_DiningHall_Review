@@ -1,8 +1,15 @@
 import {
-    sanitizeHtml,
-} from "./validations/index.js";
-import { NEWCOMB_API, OHILL_API, ROUTES, RUNK_API, USER_API } from "hoorank-shared";
-import { confirmAuthSessionHandler, connectToMongo, setCSRFCookie } from "./utils.js";
+    NEWCOMB_API,
+    OHILL_API,
+    ROUTES,
+    RUNK_API,
+    USER_API,
+} from "hoorank-shared";
+import {
+    confirmAuthSessionHandler,
+    connectToMongo,
+    setCSRFCookie,
+} from "./utils.js";
 import {
     newcombRouter,
     ohillRouter,
@@ -15,6 +22,7 @@ import type { IUserRequest } from "./types/index.js";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
+import { sanitizeHtml } from "./validations/index.js";
 import { updateCSRF } from "./services/controller/index.js";
 
 dotenv.config();
@@ -32,10 +40,7 @@ app.use(cookieParser(process.env["COOKIE_PARSER_SECRET"]));
 app.use(sanitizeHtml);
 
 app.get(ROUTES.CONFIRM_AUTH, async (req: IUserRequest, res): Promise<void> => {
-    if (
-        req.cookies.CSRF_TOKEN &&
-        req.signedCookies.SESSION_ID
-    ) {
+    if (req.cookies.CSRF_TOKEN && req.signedCookies.SESSION_ID) {
         await confirmAuthSessionHandler(req, res);
     } else {
         res.header(

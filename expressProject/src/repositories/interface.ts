@@ -1,6 +1,6 @@
-import type { StationFoodItemInput } from "hoorank-shared";
-import type { Types } from "mongoose";
-import type { TimeFrameTypes } from "src/models/index.js";
+import type { AnyBulkWriteOperation, Types } from "mongoose";
+import type { DiningHallSchemaType, TimeFrameTypes } from "src/models/index.js";
+import type { DiningHalls, StationFoodItemInput } from "hoorank-shared";
 
 export interface AddItemReviewParams {
     readonly hallId: string;
@@ -9,16 +9,24 @@ export interface AddItemReviewParams {
     readonly stationItem: StationFoodItemInput;
 }
 
+export type ExactlyOne<T, Keys extends keyof T = keyof T> = {
+    [K in Keys]: Required<Pick<T, K>> &
+        Partial<Record<Exclude<Keys, K>, never>>;
+}[Keys];
+
 export interface FindItemsParams {
-    readonly hallId: string;
+    readonly hallId: DiningHalls;
     readonly activeDate: string;
     readonly timeframe: TimeFrameTypes;
-    readonly stationName?: string;
+    readonly station?: ExactlyOne<{
+        readonly stationName: string;
+        readonly stationNames: string[];
+    }>;
 }
 
 export interface UpdateTokenMetadata {
-    upsert: boolean;
-    expiresAt?: Date;
+    readonly upsert: boolean;
+    readonly expiresAt?: Date;
 }
 
 export interface UpdateTokensParams {
@@ -30,6 +38,23 @@ export interface UpdateTokensParams {
 }
 
 export interface FindTokenParams {
-    csrfToken?: string | undefined;
-    sessionId?: string | undefined;
+    readonly csrfToken?: string | undefined;
+    readonly sessionId?: string | undefined;
+}
+
+export interface BulkWriteItemParams {
+    readonly items: AnyBulkWriteOperation<DiningHallSchemaType>[];
+}
+
+export interface AddBulkWriteUpdateItemParams {
+    readonly _id: Types.ObjectId | undefined;
+    readonly curDate: string;
+}
+
+export interface AddBulkWriteInsertOneItemParams {
+    readonly stationName: string;
+    readonly marketingName: string;
+    readonly shortDescription: string;
+    readonly timeframe: TimeFrameTypes;
+    readonly curDate: string;
 }

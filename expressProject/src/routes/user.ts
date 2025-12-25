@@ -7,7 +7,7 @@ import {
     csrf,
     findHeader,
     validateBody,
-} from "../validations/index.js"
+} from "../validations/index.js";
 import {
     ROUTES,
     type UpdateUserApi,
@@ -18,21 +18,21 @@ import {
 } from "hoorank-shared";
 import { type Response, Router } from "express";
 import {
+    createUser,
+    findUserByEmailOrUser,
+    findUserById,
+    findUserWithBasicAuth,
+    resetAuthTokens,
+    updateSession,
+    updateUser,
+} from "../services/controller/index.js";
+import {
     mongoSanitizerMiddleware,
     setCSRFCookie,
     setSessionCookie,
 } from "../utils.js";
 import { HttpStatusCode } from "axios";
 import type { IUserRequest } from "../types/index.js";
-import { 
-    findUserByEmailOrUser,
-    updateSession,
-    createUser,
-    findUserWithBasicAuth,
-    resetAuthTokens,
-    findUserById,
-    updateUser
-} from "../services/controller/index.js";
 
 export const userRouter = Router();
 userRouter.use(csrf);

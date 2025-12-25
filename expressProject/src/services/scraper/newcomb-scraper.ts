@@ -1,21 +1,19 @@
 import { type DiningHallTime, getCurHour } from "./util.js";
-import {
-    type NewcombDiningHallTimeFrame,
-    NewcombModel,
-} from "../../models/index.js";
+import { DiningHallsEnum, type StationFoodItemOutputs } from "hoorank-shared";
 import type { Axios } from "axios";
 import { DiningHallDataParser } from "./base-scraper.js";
-import type { StationFoodItemOutputs } from "hoorank-shared";
+import { type NewcombDiningHallTimeFrame } from "../../models/index.js";
 
 export class NewcombDataParser implements DiningHallTime {
     private readonly parser: DiningHallDataParser;
 
-    constructor(axios: Axios, model: typeof NewcombModel, url: string) {
-        this.parser = new DiningHallDataParser(axios, model, url);
+    constructor(axios: Axios, url: string) {
+        this.parser = new DiningHallDataParser(axios, url);
     }
 
     async getData(): Promise<StationFoodItemOutputs | undefined> {
         return await this.parser.getData(
+            DiningHallsEnum.Newcomb,
             this.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
         );
     }

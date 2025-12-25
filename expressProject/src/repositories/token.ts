@@ -1,36 +1,31 @@
 import type { FindTokenParams, UpdateTokensParams } from "./interface.js";
-import {
-    IdentifierModel,
-    type IdentifierSchemaType,
-} from "../models/index.js";
+import { IdentifierModel, type IdentifierSchemaType } from "../models/index.js";
 import type { HydratedDocument } from "mongoose";
 import { hashToken } from "../validations/index.js";
 
-export async function updateTokens(
-    {
-        userId,
-        oldCsrfToken,
-        newCsrfToken,
-        sessionId,
-        metadata: { expiresAt, upsert},
-    }: UpdateTokensParams
-): Promise<void> {
+export async function updateTokens({
+    userId,
+    oldCsrfToken,
+    newCsrfToken,
+    sessionId,
+    metadata: { expiresAt, upsert },
+}: UpdateTokensParams): Promise<void> {
     await IdentifierModel.findOneAndUpdate(
         {
             ...(userId && { userID: userId }),
-            ...(oldCsrfToken && { csrf: oldCsrfToken })
+            ...(oldCsrfToken && { csrf: oldCsrfToken }),
         },
         {
             ...(sessionId && { session: sessionId }),
             ...(newCsrfToken && { csrf: newCsrfToken }),
             ...(userId && { userID: userId }),
-            ...(expiresAt && { expiresAt: expiresAt })
+            ...(expiresAt && { expiresAt: expiresAt }),
         },
         {
             sanitizeFilter: true,
             upsert: upsert,
-            new: upsert
-        }
+            new: upsert,
+        },
     );
 }
 
@@ -59,9 +54,12 @@ export async function resetTokens(
     );
 }
 
-export async function findToken(
-    { csrfToken, sessionId }: FindTokenParams
-): Promise<HydratedDocument<IdentifierSchemaType>[] | undefined> {
+export async function findToken({
+    csrfToken,
+    sessionId,
+}: FindTokenParams): Promise<
+    HydratedDocument<IdentifierSchemaType>[] | undefined
+> {
     return await IdentifierModel.find(
         {
             ...(sessionId && { session: hashToken(sessionId) }),
