@@ -1,3 +1,6 @@
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import express from "express";
 import {
     AUTH_API,
     NEWCOMB_API,
@@ -5,6 +8,7 @@ import {
     RUNK_API,
     USER_API,
 } from "hoorank-shared";
+
 import {
     authRouter,
     newcombRouter,
@@ -13,9 +17,6 @@ import {
     userRouter,
 } from "./routes/index.js";
 import { connectToMongo, sanitizeHtml } from "./utils.js";
-import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-import express from "express";
 
 dotenv.config();
 const app = express();

@@ -1,70 +1,41 @@
+import type { DiningHalls, StationFoodItemOutputs } from "hoorank-shared";
+
+import { Axios } from "axios";
+import ExpressMongoSanitize from "express-mongo-sanitize";
+import { readFileSync } from "fs";
 import { type AnyBulkWriteOperation, Document, Types } from "mongoose";
-import {
-    DiningHallDataParserError,
-    type FoodProducts,
-    getCurDateAsString,
-    removeSpecialChar,
-} from "./util.js";
+
 import {
     type DiningHallSchemaType,
     type TimeFrameTypes,
 } from "../../models/index.js";
-import type { DiningHalls, StationFoodItemOutputs } from "hoorank-shared";
 import {
     addBulkWriteInsertOneItem,
     addBulkWriteUpdateItem,
     bulkWriteItems,
     findItems,
 } from "../../repositories/index.js";
-import { Axios } from "axios";
-import ExpressMongoSanitize from "express-mongo-sanitize";
-import { readFileSync } from "fs";
 import { sanitizeInput } from "../../utils.js";
+import {
+    DiningHallDataParserError,
+    type FoodProducts,
+    getCurDateAsString,
+    removeSpecialChar,
+} from "./util.js";
 
 //TODO: Scraping past current timeframe shows next timeframe
 export class DiningHallDataParser {
     private readonly axios: Axios;
-    private readonly url: string;
+    private readonly STATION_DESC_IDENTIFIER = '"ShortDescription":';
     private readonly STATION_ID_IDENTIFIER = '"StationId":';
+    private readonly STATION_MARKETNAME_IDENTIFER = '"MarketingName":';
     private readonly STATION_NAME_IDENTIFIER = '"Name":';
     private readonly STATION_PRODUCT_IDENTIFIER = '"Product":';
-    private readonly STATION_MARKETNAME_IDENTIFER = '"MarketingName":';
-    private readonly STATION_DESC_IDENTIFIER = '"ShortDescription":';
+    private readonly url: string;
 
     constructor(axios: Axios, url: string) {
         this.axios = axios;
         this.url = url;
-    }
-
-    // TODO: move this portion to testing folder
-    private async getActualOrTestData(testMode = false): Promise<string> {
-        if (testMode) {
-            return readFileSync("temp.txt", { encoding: "utf-8" });
-        } else {
-            const res: { status: number; statusText: string; data: string } =
-                await this.axios.get(this.url);
-            if (res.status >= 400) {
-                throw new DiningHallDataParserError(res.statusText);
-            }
-            return res.data;
-        }
-    }
-
-    private mapStationIdToFoodSchema(
-        foodProducts: FoodProducts[],
-        stationIdsToNameMap: Map<string, string>,
-    ): StationFoodItemOutputs {
-        return foodProducts.map((value: FoodProducts) => {
-            const { stationId, ...product } = value;
-            return {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                stationName: stationIdsToNameMap.get(stationId)!,
-                item: {
-                    name: product.marketingName,
-                    description: product.shortDescription,
-                },
-            };
-        });
     }
 
     public async getData(
@@ -81,14 +52,14 @@ export class DiningHallDataParser {
         );
 
         const existingFoodProducts = await findItems({
-            hallId,
             activeDate: getCurDateAsString(),
-            timeframe,
+            hallId,
             station: {
                 stationNames: sanitizeInput<string[]>(
                     Object.values(stationIdsToNameMap) as string[],
                 ),
             },
+            timeframe,
         });
 
         for (const product of existingFoodProducts) {
@@ -121,48 +92,86 @@ export class DiningHallDataParser {
         return undefined;
     }
 
-    private getStringSlice(
-        data: string,
-        identifier: string,
-        iterator = 0,
-        startIndexOffset = 1,
-        endIndexOffset = 1,
-        terminationChar = '"',
-    ) {
-        const identifierIndex = data.indexOf(identifier, iterator);
-
-        if (identifierIndex === -1) {
-            return null;
+    /**
+     * @param {*} foodProducts
+     * Array of {
+     *      stationId:        newStationId,
+            marketingName:    newMarketingName,
+            shortDescription: newShortDescription,
         }
+    * @param {*} existingFoodProductsMapping
+    * A Map Object of Key: `${item.itemName}-${stationName}`, Value: { MongoDB Document Item }
+    * @param {*} curDate
+    * A String of Format: YYYYMMDD
+    * @param {*} timeFrame
+    * A String representing Dining hall specific timeframe (i.e. 'Dinner(5pm-8pm)')
+    * @param {*} stationMapping 
+    * A Map Object of Station ID : Station Name
+    * @returns An array of MongoDB write operations
+    */
+    private bulkProcessFoodProducts(
+        foodProducts: FoodProducts[],
+        existingFoodProductsMapping: Map<
+            string,
+            Document<Types.ObjectId | undefined, object, DiningHallSchemaType>
+        >,
+        curDate: string,
+        timeFrame: Partial<TimeFrameTypes>,
+        stationMapping: Map<string, string>,
+    ): AnyBulkWriteOperation<DiningHallSchemaType>[] {
+        const bulkOperations: AnyBulkWriteOperation<DiningHallSchemaType>[] =
+            [];
+        for (const products of foodProducts) {
+            const sanitizedProducts = ExpressMongoSanitize.sanitize(products);
+            const { marketingName, shortDescription, stationId } =
+                sanitizedProducts;
 
-        const startIndex =
-            identifierIndex + identifier.length + startIndexOffset;
-        const endIndex = data.indexOf(
-            terminationChar,
-            startIndex + endIndexOffset,
-        );
-        return {
-            result: data.slice(startIndex, endIndex),
-            iterator: endIndex,
-        };
+            const stationName = sanitizeInput(stationMapping.get(stationId));
+            if (!stationName) {
+                console.error(`${stationId} is unknown`, stationMapping);
+                continue;
+            }
+
+            const existingProduct = existingFoodProductsMapping.get(
+                `${marketingName}-${stationName}`,
+            );
+
+            if (existingProduct) {
+                bulkOperations.push(
+                    addBulkWriteUpdateItem({
+                        _id: existingProduct._id,
+                        curDate,
+                    }),
+                );
+            } else {
+                if (timeFrame !== "Unavailable") {
+                    bulkOperations.push(
+                        addBulkWriteInsertOneItem({
+                            curDate,
+                            marketingName: sanitizeInput(marketingName),
+                            shortDescription: sanitizeInput(shortDescription),
+                            stationName,
+                            timeframe: timeFrame,
+                        }),
+                    );
+                }
+            }
+        }
+        return bulkOperations;
     }
 
-    private getStationsDetails(
-        data: string,
-        itemNames = new Set<string>(),
-    ): [FoodProducts[], Map<string, string>] {
-        const detailedFoodProducts = this.getDetailedFoodProducts(
-            data,
-            itemNames,
-        );
-        if (!detailedFoodProducts) {
-            throw new DiningHallDataParserError(
-                "Failed to retrieve Station Details",
-            );
+    // TODO: move this portion to testing folder
+    private async getActualOrTestData(testMode = false): Promise<string> {
+        if (testMode) {
+            return readFileSync("temp.txt", { encoding: "utf-8" });
+        } else {
+            const res: { data: string; status: number; statusText: string } =
+                await this.axios.get(this.url);
+            if (res.status >= 400) {
+                throw new DiningHallDataParserError(res.statusText);
+            }
+            return res.data;
         }
-        const [foodProducts, iterator] = detailedFoodProducts;
-        const stationIdToNameMap = this.getStationIdToNameMap(data, iterator);
-        return [foodProducts, stationIdToNameMap];
     }
 
     // *TODO*: Add nutrition information - Split into smaller functions
@@ -208,7 +217,7 @@ export class DiningHallDataParser {
                 throw new DiningHallDataParserError();
             }
 
-            const { result: newStationId, iterator: endOfNewStationIdIndex } =
+            const { iterator: endOfNewStationIdIndex, result: newStationId } =
                 stationIdRes;
 
             const stationNameRes = this.getStringSlice(
@@ -221,7 +230,7 @@ export class DiningHallDataParser {
                 throw new DiningHallDataParserError();
             }
 
-            const { result: marketingName, iterator: endOfMarketingNameIndex } =
+            const { iterator: endOfMarketingNameIndex, result: marketingName } =
                 stationNameRes;
             const newMarketingName = removeSpecialChar(marketingName);
 
@@ -236,15 +245,15 @@ export class DiningHallDataParser {
             }
 
             const {
-                result: shortDescription,
                 iterator: endOfShortDescriptionIndex,
+                result: shortDescription,
             } = stationDescRes;
             const newShortDescription = removeSpecialChar(shortDescription);
 
             foodProducts.push({
-                stationId: newStationId,
                 marketingName: newMarketingName,
                 shortDescription: newShortDescription,
+                stationId: newStationId,
             });
 
             itemNames.add(newMarketingName);
@@ -289,7 +298,7 @@ export class DiningHallDataParser {
                 break;
             }
 
-            const { result: newStationId, iterator: endOfNewStationIdIndex } =
+            const { iterator: endOfNewStationIdIndex, result: newStationId } =
                 stationIdRes;
 
             if (stationIdToName.has(newStationId)) {
@@ -307,7 +316,7 @@ export class DiningHallDataParser {
                 throw new DiningHallDataParserError();
             }
 
-            const { result: stationName, iterator: endOfStationName } =
+            const { iterator: endOfStationName, result: stationName } =
                 stationNameRes;
 
             const newStationName = removeSpecialChar(stationName);
@@ -318,71 +327,64 @@ export class DiningHallDataParser {
         return stationIdToName;
     }
 
-    /**
-     * @param {*} foodProducts
-     * Array of {
-     *      stationId:        newStationId,
-            marketingName:    newMarketingName,
-            shortDescription: newShortDescription,
-        }
-    * @param {*} existingFoodProductsMapping
-    * A Map Object of Key: `${item.itemName}-${stationName}`, Value: { MongoDB Document Item }
-    * @param {*} curDate
-    * A String of Format: YYYYMMDD
-    * @param {*} timeFrame
-    * A String representing Dining hall specific timeframe (i.e. 'Dinner(5pm-8pm)')
-    * @param {*} stationMapping 
-    * A Map Object of Station ID : Station Name
-    * @returns An array of MongoDB write operations
-    */
-    private bulkProcessFoodProducts(
-        foodProducts: FoodProducts[],
-        existingFoodProductsMapping: Map<
-            string,
-            Document<Types.ObjectId | undefined, object, DiningHallSchemaType>
-        >,
-        curDate: string,
-        timeFrame: Partial<TimeFrameTypes>,
-        stationMapping: Map<string, string>,
-    ): AnyBulkWriteOperation<DiningHallSchemaType>[] {
-        const bulkOperations: AnyBulkWriteOperation<DiningHallSchemaType>[] =
-            [];
-        for (const products of foodProducts) {
-            const sanitizedProducts = ExpressMongoSanitize.sanitize(products);
-            const { stationId, marketingName, shortDescription } =
-                sanitizedProducts;
-
-            const stationName = sanitizeInput(stationMapping.get(stationId));
-            if (!stationName) {
-                console.error(`${stationId} is unknown`, stationMapping);
-                continue;
-            }
-
-            const existingProduct = existingFoodProductsMapping.get(
-                `${marketingName}-${stationName}`,
+    private getStationsDetails(
+        data: string,
+        itemNames = new Set<string>(),
+    ): [FoodProducts[], Map<string, string>] {
+        const detailedFoodProducts = this.getDetailedFoodProducts(
+            data,
+            itemNames,
+        );
+        if (!detailedFoodProducts) {
+            throw new DiningHallDataParserError(
+                "Failed to retrieve Station Details",
             );
-
-            if (existingProduct) {
-                bulkOperations.push(
-                    addBulkWriteUpdateItem({
-                        _id: existingProduct._id,
-                        curDate,
-                    }),
-                );
-            } else {
-                if (timeFrame !== "Unavailable") {
-                    bulkOperations.push(
-                        addBulkWriteInsertOneItem({
-                            curDate,
-                            marketingName: sanitizeInput(marketingName),
-                            shortDescription: sanitizeInput(shortDescription),
-                            stationName,
-                            timeframe: timeFrame,
-                        }),
-                    );
-                }
-            }
         }
-        return bulkOperations;
+        const [foodProducts, iterator] = detailedFoodProducts;
+        const stationIdToNameMap = this.getStationIdToNameMap(data, iterator);
+        return [foodProducts, stationIdToNameMap];
+    }
+
+    private getStringSlice(
+        data: string,
+        identifier: string,
+        iterator = 0,
+        startIndexOffset = 1,
+        endIndexOffset = 1,
+        terminationChar = '"',
+    ) {
+        const identifierIndex = data.indexOf(identifier, iterator);
+
+        if (identifierIndex === -1) {
+            return null;
+        }
+
+        const startIndex =
+            identifierIndex + identifier.length + startIndexOffset;
+        const endIndex = data.indexOf(
+            terminationChar,
+            startIndex + endIndexOffset,
+        );
+        return {
+            iterator: endIndex,
+            result: data.slice(startIndex, endIndex),
+        };
+    }
+
+    private mapStationIdToFoodSchema(
+        foodProducts: FoodProducts[],
+        stationIdsToNameMap: Map<string, string>,
+    ): StationFoodItemOutputs {
+        return foodProducts.map((value: FoodProducts) => {
+            const { stationId, ...product } = value;
+            return {
+                item: {
+                    description: product.shortDescription,
+                    name: product.marketingName,
+                },
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                stationName: stationIdsToNameMap.get(stationId)!,
+            };
+        });
     }
 }

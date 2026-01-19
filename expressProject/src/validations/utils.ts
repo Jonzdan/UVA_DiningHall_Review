@@ -1,34 +1,13 @@
+import type { IncomingHttpHeaders } from "http";
+
+import { compare, genSalt, hash } from "bcrypt";
+import { createHash, randomBytes } from "crypto";
+
 import {
     CSRF_HEX_BYTE_LENGTH,
     SALT_ROUNDS,
     SESSION_HEX_BYTE_LENGTH,
 } from "../constants.js";
-import { compare, genSalt, hash } from "bcrypt";
-import { createHash, randomBytes } from "crypto";
-import type { IncomingHttpHeaders } from "http";
-
-export function generateCSRF(): string {
-    return randomBytes(CSRF_HEX_BYTE_LENGTH).toString("hex");
-}
-
-export function generateSession(): string {
-    return randomBytes(SESSION_HEX_BYTE_LENGTH).toString("hex");
-}
-
-export function hashToken(token: string): string {
-    return createHash("sha256").update(token).digest("hex");
-}
-
-export async function hashPassword(password: string): Promise<string> {
-    return await hash(password, await genSalt(SALT_ROUNDS));
-}
-
-export async function verifyPassword(
-    password: string,
-    hashedPassword: string,
-): Promise<boolean> {
-    return await compare(password, hashedPassword);
-}
 
 export function findHeader(
     headers: IncomingHttpHeaders,
@@ -40,4 +19,27 @@ export function findHeader(
         }
     }
     return undefined;
+}
+
+export function generateCSRF(): string {
+    return randomBytes(CSRF_HEX_BYTE_LENGTH).toString("hex");
+}
+
+export function generateSession(): string {
+    return randomBytes(SESSION_HEX_BYTE_LENGTH).toString("hex");
+}
+
+export async function hashPassword(password: string): Promise<string> {
+    return await hash(password, await genSalt(SALT_ROUNDS));
+}
+
+export function hashToken(token: string): string {
+    return createHash("sha256").update(token).digest("hex");
+}
+
+export async function verifyPassword(
+    password: string,
+    hashedPassword: string,
+): Promise<boolean> {
+    return await compare(password, hashedPassword);
 }

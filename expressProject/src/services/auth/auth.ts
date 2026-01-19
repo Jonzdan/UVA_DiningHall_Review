@@ -1,12 +1,16 @@
 import type { AuthConfirmServiceOutput, AuthCookies } from "./types.js";
-import { findAuthTokens, findUserById, updateSession } from "../controller/index.js";
 
-export async function confirmAuthService(cookies: AuthCookies): Promise<AuthConfirmServiceOutput | null> {
-    const response = await findAuthTokens(
-            cookies.csrfToken,
-            cookies.sessionId
-        );
-    
+import {
+    findAuthTokens,
+    findUserById,
+    updateSession,
+} from "../controller/index.js";
+
+export async function confirmAuthService(
+    cookies: AuthCookies,
+): Promise<AuthConfirmServiceOutput | null> {
+    const response = await findAuthTokens(cookies.csrfToken, cookies.sessionId);
+
     if (!response?.userID) {
         return null;
     }
@@ -20,10 +24,10 @@ export async function confirmAuthService(cookies: AuthCookies): Promise<AuthConf
     if (!person) {
         return null;
     }
-    
+
     return {
         newCsrfToken,
         sessionId,
-        user: person.username
-    };  
+        user: person.username,
+    };
 }

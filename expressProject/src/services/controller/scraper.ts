@@ -1,3 +1,5 @@
+import type { DiningHallSchemaType } from "src/models/index.js";
+
 import {
     type DiningHalls,
     MAX_REVIEWS,
@@ -5,32 +7,19 @@ import {
     type StationFoodItemOutput,
     type StationFoodItemOutputs,
 } from "hoorank-shared";
-import { findItems, updateItem } from "../../repositories/index.js";
-import type { DiningHallSchemaType } from "src/models/index.js";
-import { type TimeFrameTypes } from "../../models/index.js";
-import { getCurDateAsString } from "../scraper/index.js";
 
-export async function updateFoodSettings(
-    diningHall: DiningHalls,
-    foodItem: StationFoodItemInput,
-    timeframe: TimeFrameTypes,
-): Promise<void> {
-    await updateItem({
-        hallId: diningHall,
-        activeDate: getCurDateAsString(),
-        stationItem: foodItem,
-        timeframe,
-    });
-}
+import { type TimeFrameTypes } from "../../models/index.js";
+import { findItems, updateItem } from "../../repositories/index.js";
+import { getCurDateAsString } from "../scraper/index.js";
 
 export async function findCurrentFoodData(
     diningHall: DiningHalls,
     timeframe: TimeFrameTypes,
-): Promise<StationFoodItemOutputs | null> {
+): Promise<null | StationFoodItemOutputs> {
     const data = await findItems({
+        activeDate: getCurDateAsString(),
         hallId: diningHall,
         timeframe,
-        activeDate: getCurDateAsString(),
     });
 
     if (!data.length) {
@@ -49,19 +38,32 @@ export function transformMongoDataToApi(
             stationName,
         } = value;
         return {
-            stationName,
             item: {
-                name: itemName,
                 description: itemDesc,
+                name: itemName,
                 reviewOptions: {
+                    details: itemReview.slice(0, MAX_REVIEWS),
                     starRating:
                         itemReview
                             .map((review) => review.stars)
                             .reduce((prev, stars) => prev + stars, 0) /
                         itemReview.length,
-                    details: itemReview.slice(0, MAX_REVIEWS),
                 },
             },
+            stationName,
         } as StationFoodItemOutput;
+    });
+}
+
+export async function updateFoodSettings(
+    diningHall: DiningHalls,
+    foodItem: StationFoodItemInput,
+    timeframe: TimeFrameTypes,
+): Promise<void> {
+    await updateItem({
+        activeDate: getCurDateAsString(),
+        hallId: diningHall,
+        stationItem: foodItem,
+        timeframe,
     });
 }

@@ -1,20 +1,17 @@
-import { CSRF_TOKEN, CSRF_TOKEN_HEADER, SESSION_ID } from "../constants.js";
-import {
-    ROUTES,
-    type UpdateUserApi,
-    type UserLoginOutput,
-    loginSchema,
-    signupSchema,
-    updateUserApiSchema,
-} from "hoorank-shared";
+import { HttpStatusCode } from "axios";
 import { type Response, Router } from "express";
-import { 
-    blockLoggedInUsers,
-    blockLoggedOutUsers,
-    csrf,setSessionCookie,
-    setCSRFCookie,
-    validateBody
-} from "./utils.js";
+import {
+    loginSchema,
+    ROUTES,
+    signupSchema,
+    type UpdateUserApi,
+    updateUserApiSchema,
+    type UserLoginOutput,
+} from "hoorank-shared";
+
+import type { IUserRequest } from "../types/index.js";
+
+import { CSRF_TOKEN, CSRF_TOKEN_HEADER, SESSION_ID } from "../constants.js";
 import {
     createUser,
     findUserByEmailOrUser,
@@ -24,12 +21,16 @@ import {
     updateSession,
     updateUser,
 } from "../services/controller/index.js";
-import { HttpStatusCode } from "axios";
-import type { IUserRequest } from "../types/index.js";
+import { mongoSanitizerMiddleware } from "../utils.js";
 import { findHeader } from "../validations/index.js";
 import {
-    mongoSanitizerMiddleware
-} from "../utils.js";
+    blockLoggedInUsers,
+    blockLoggedOutUsers,
+    csrf,
+    setCSRFCookie,
+    setSessionCookie,
+    validateBody,
+} from "./utils.js";
 
 export const userRouter = Router();
 userRouter.use(csrf);
@@ -39,7 +40,7 @@ userRouter.post(
     validateBody(signupSchema),
     blockLoggedInUsers,
     async (req, res) => {
-        const { email, user, password } = req.body;
+        const { email, password, user } = req.body;
         try {
             const existingUser = await findUserByEmailOrUser(user, password);
 
@@ -61,7 +62,7 @@ userRouter.post(
     validateBody(loginSchema),
     blockLoggedInUsers,
     async (req, res) => {
-        const { user, password } = req.body;
+        const { password, user } = req.body;
 
         const existingUser = await findUserWithBasicAuth(user, password);
 
@@ -80,8 +81,8 @@ userRouter.post(
         setCSRFCookie(res, newCsrfToken);
 
         return res.status(HttpStatusCode.Ok).json({
-            username: existingUser.username,
             picture: existingUser.profile?.picture,
+            username: existingUser.username,
         } as UserLoginOutput);
     },
 );

@@ -1,20 +1,34 @@
-import type { FilterQuery, HydratedDocument, ProjectionType } from "mongoose";
 import type { ResetApi, UserSettingsApi } from "hoorank-shared";
+import type { FilterQuery, HydratedDocument, ProjectionType } from "mongoose";
+
 import { UserModel, type UserSchemaType } from "../models/index.js";
 import { flattenForUpdate, mongoSanitizer } from "../utils.js";
 
-export async function findUserByIdRepo(
-    user: string,
-): Promise<HydratedDocument<UserSchemaType> | null> {
-    return await UserModel.findOne(
-        {
-            _id: user,
+// TODO: defaults should exist in model layer, not here
+export async function createUserWithDefaults(
+    email: string,
+    username: string,
+    password: string,
+): Promise<void> {
+    await UserModel.create({
+        dateJoined: new Date(),
+        email: mongoSanitizer(email),
+        notifications: {
+            foodOptInBol: true,
+            foodOptInVal: [],
+            newcombOptIn: true,
+            ohillOptIn: true,
+            optInWhenToNotify: [],
+            replyToPost: true,
+            runkOptIn: true,
         },
-        {},
-        {
-            sanitizeFilter: true,
+        password: password,
+        profile: {
+            bannerColor: "default", // TODO: add type hinting
+            remainAnonymous: false,
         },
-    );
+        username: mongoSanitizer(username),
+    } as UserSchemaType);
 }
 
 export async function findUserByBasicAuthRepo(
@@ -36,47 +50,18 @@ export async function findUserByEmailOrUserRepo(
     });
 }
 
-/**
- * Sanitizes input
- * @param query
- * @param projection
- * @returns
- */
-async function findUserWithQuery(
-    query: FilterQuery<UserSchemaType>,
-    projection?: ProjectionType<UserSchemaType>,
-): Promise<HydratedDocument<UserSchemaType>[]> {
-    return await UserModel.find(query, projection, {
-        sanitizeFilter: true,
-        sanitizeProjection: true,
-    });
-}
-
-// TODO: defaults should exist in model layer, not here
-export async function createUserWithDefaults(
-    email: string,
-    username: string,
-    password: string,
-): Promise<void> {
-    await UserModel.create({
-        email: mongoSanitizer(email),
-        username: mongoSanitizer(username),
-        password: password,
-        profile: {
-            bannerColor: "default", // TODO: add type hinting
-            remainAnonymous: false,
+export async function findUserByIdRepo(
+    user: string,
+): Promise<HydratedDocument<UserSchemaType> | null> {
+    return await UserModel.findOne(
+        {
+            _id: user,
         },
-        notifications: {
-            ohillOptIn: true,
-            runkOptIn: true,
-            newcombOptIn: true,
-            optInWhenToNotify: [],
-            foodOptInBol: true,
-            foodOptInVal: [],
-            replyToPost: true,
+        {},
+        {
+            sanitizeFilter: true,
         },
-        dateJoined: new Date(),
-    } as UserSchemaType);
+    );
 }
 
 export async function updateUserSettings(
@@ -103,4 +88,20 @@ export async function updateUserSettings(
             sanitizeProjection: true,
         },
     );
+}
+
+/**
+ * Sanitizes input
+ * @param query
+ * @param projection
+ * @returns
+ */
+async function findUserWithQuery(
+    query: FilterQuery<UserSchemaType>,
+    projection?: ProjectionType<UserSchemaType>,
+): Promise<HydratedDocument<UserSchemaType>[]> {
+    return await UserModel.find(query, projection, {
+        sanitizeFilter: true,
+        sanitizeProjection: true,
+    });
 }

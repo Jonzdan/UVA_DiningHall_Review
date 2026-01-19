@@ -3,6 +3,7 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import tsParser from "@typescript-eslint/parser";
 import prettier from "eslint-plugin-prettier";
+import perfectionist from "eslint-plugin-perfectionist";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import prettierConfig from "eslint-config-prettier";
@@ -31,13 +32,12 @@ export default defineConfig([
       prettier,
     },
     rules: {
-      "prettier/prettier": ["error", { tabWidth: 4}],
-      "@typescript-eslint/indent": ["error", 4],
-      "sort-imports": ["error"]
+      "prettier/prettier": ["error", { tabWidth: 4}]
     }
   },
   prettierConfig,
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
-  tseslint.configs.recommendedTypeChecked
+  tseslint.configs.recommendedTypeChecked,
+  perfectionist.configs["recommended-alphabetical"],
 ]);

@@ -1,29 +1,31 @@
-import { Model, Schema, model } from "mongoose";
 import type { InferSchemaType } from "mongoose";
+
+import { Model, model, Schema } from "mongoose";
+
 import { setTokenExpiry } from "../utils.js";
 
 export const IdentifierSchema = new Schema({
-    session: {
-        type: String,
-        required: false,
-    },
-    csrf: {
-        type: String,
-        required: true,
-    },
-    userID: {
-        type: Schema.Types.ObjectId,
-        required: false,
-    },
     createdAt: {
-        type: Date,
         default: Date.now,
         required: true,
+        type: Date,
+    },
+    csrf: {
+        required: true,
+        type: String,
     },
     expiresAt: {
-        type: Date,
         default: setTokenExpiry,
         required: true,
+        type: Date,
+    },
+    session: {
+        required: false,
+        type: String,
+    },
+    userID: {
+        required: false,
+        type: Schema.Types.ObjectId,
     },
 });
 

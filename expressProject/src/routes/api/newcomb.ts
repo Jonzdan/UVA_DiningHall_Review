@@ -1,14 +1,9 @@
-import {
-    ROUTES,
-    StationFoodItemSchemaInput,
-} from "hoorank-shared";
-import {
-    NewcombDataParser,
-    axios
-} from "../../services/index.js";
-import { csrf, validateBody } from "../utils.js";
 import { Router } from "express";
+import { ROUTES, StationFoodItemSchemaInput } from "hoorank-shared";
+
+import { axios, NewcombDataParser } from "../../services/index.js";
 import { mongoSanitizerMiddleware } from "../../utils.js";
+import { csrf, validateBody } from "../utils.js";
 import { addFoodItem, getFoodData } from "./utils.js";
 
 const url =

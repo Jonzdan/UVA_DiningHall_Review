@@ -1,15 +1,14 @@
-import { Axios } from "axios";
 import type { TimeFrameTypes } from "src/models/types.js";
 
+import { Axios } from "axios";
+
 export interface FoodProducts extends Record<string, string> {
-    stationId: string;
     marketingName: string;
     shortDescription: string;
+    stationId: string;
 }
 
 export const axios: Axios = new Axios();
-
-export class DiningHallDataParserError extends Error {}
 
 export interface DiningHallTime {
     /**
@@ -19,6 +18,12 @@ export interface DiningHallTime {
      * @returns timeframe
      */
     getDiningHallTimeFrame(date: number, time: number): TimeFrameTypes;
+}
+
+export class DiningHallDataParserError extends Error {}
+
+export function getCurDateAsString(): string {
+    return new Date().toISOString().slice(0, 10).replace(/-/g, "");
 }
 
 /**
@@ -33,8 +38,4 @@ export function removeSpecialChar(input: string): string {
         return input;
     }
     return input.replace(/\\u0026/g, "&").replace(/\\u0027/g, "'");
-}
-
-export function getCurDateAsString(): string {
-    return new Date().toISOString().slice(0, 10).replace(/-/g, "");
 }

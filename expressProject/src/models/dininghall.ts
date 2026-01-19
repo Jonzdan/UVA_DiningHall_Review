@@ -1,30 +1,31 @@
-import { type InferSchemaType, Model, Schema, model } from "mongoose";
 import { DiningHallsEnum } from "hoorank-shared";
+import { type InferSchemaType, Model, model, Schema } from "mongoose";
+
 import { createItemSchema } from "./item.js";
 
 export const DiningHall = new Schema({
+    activeDate: {
+        required: true,
+        type: Array,
+    },
     hallId: {
-        type: String,
         enum: DiningHallsEnum,
         required: true,
-    },
-    stationName: {
         type: String,
-        required: true,
     },
-    item: { type: createItemSchema(), required: true },
-    activeDate: {
-        type: Array,
+    item: { required: true, type: createItemSchema() },
+    stationName: {
         required: true,
+        type: String,
     },
 });
 
 DiningHall.index({
-    hallId: 1,
-    stationName: 1,
     activeDate: 1,
-    "item.timeFrame": 1,
+    hallId: 1,
     "item.itemName": 1,
+    "item.timeFrame": 1,
+    stationName: 1,
 });
 
 export type DiningHallSchemaType = InferSchemaType<typeof DiningHall>;

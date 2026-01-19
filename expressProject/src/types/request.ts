@@ -6,13 +6,13 @@ export interface IUserRequest<
     ReqBody = unknown,
     ReqQuery = Record<string, unknown>,
 > extends Request<P, ResBody, ReqBody, ReqQuery> {
-    userId?: string | null | undefined;
     cookies: {
-        CSRF_TOKEN?: string;
         [key: string]: string | undefined;
+        CSRF_TOKEN?: string;
     };
     signedCookies: {
-        SESSION_ID?: string;
         [key: string]: string | undefined;
+        SESSION_ID?: string;
     };
+    userId?: null | string | undefined;
 }

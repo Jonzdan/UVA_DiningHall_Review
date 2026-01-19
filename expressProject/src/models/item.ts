@@ -1,12 +1,14 @@
-import { ReviewSchema } from "./review.js";
 import mongoose from "mongoose";
+
+import { ReviewSchema } from "./review.js";
+import { GlobalTimeFrames } from "./types.js";
 
 export function createItemSchema() {
     return new mongoose.Schema({
-        itemName: { type: String, required: true },
-        itemDesc: { type: String, required: true },
-        itemReview: { type: [ReviewSchema], required: true, default: [] },
-        itemReviewCount: { type: Number, required: true, default: 0 },
-        timeFrame: { type: String, required: true }, // TODO: add global enum type
+        itemDesc: { required: true, type: String },
+        itemName: { required: true, type: String },
+        itemReview: { default: [], required: true, type: [ReviewSchema] },
+        itemReviewCount: { default: 0, required: true, type: Number },
+        timeFrame: { enum: GlobalTimeFrames, required: true, type: String },
     });
 }

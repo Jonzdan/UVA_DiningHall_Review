@@ -1,14 +1,13 @@
-import { type DiningHallTime, getCurHour } from "./util.js";
 import { DiningHallsEnum, type StationFoodItemOutputs } from "hoorank-shared";
-import type { Axios } from "axios";
-import { DiningHallDataParser } from "./base-scraper.js";
+
 import { type OhillTimeFrame } from "../../models/index.js";
+import { DiningHallDataParser } from "./base-scraper.js";
+import { type DiningHallTime, getCurHour } from "./util.js";
 
-export class OhillDataParser extends DiningHallDataParser implements DiningHallTime {
-    constructor(axios: Axios, url: string) {
-        super(axios, url);
-    }
-
+export class OhillDataParser
+    extends DiningHallDataParser
+    implements DiningHallTime
+{
     override async getData(): Promise<StationFoodItemOutputs | undefined> {
         return await super.getData(
             DiningHallsEnum.Ohill,

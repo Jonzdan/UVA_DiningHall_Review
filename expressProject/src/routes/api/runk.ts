@@ -1,14 +1,9 @@
-import {
-    ROUTES,
-    StationFoodItemSchemaInput,
-} from "hoorank-shared";
-import {
-    RunkDataParser,
-    axios,
-} from "../../services/index.js";
-import { csrf, validateBody } from "../utils.js";
 import { Router } from "express";
+import { ROUTES, StationFoodItemSchemaInput } from "hoorank-shared";
+
+import { axios, RunkDataParser } from "../../services/index.js";
 import { mongoSanitizerMiddleware } from "../../utils.js";
+import { csrf, validateBody } from "../utils.js";
 import { addFoodItem, getFoodData } from "./utils.js";
 
 const url = "https://virginia.campusdish.com/en/locationsandmenus/runk/";

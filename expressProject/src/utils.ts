@@ -1,23 +1,12 @@
+import type { RequestHandler } from "express";
 import type { UpdateUserPrefixes } from "hoorank-shared";
+
+import ExpressMongoSanitize from "express-mongo-sanitize";
+import mongoose from "mongoose";
+import sanitize from "sanitize-html";
+
 import { TOKEN_AGE } from "./constants.js";
 import { DiningHallModel, type DiningHallSchemaType } from "./models/index.js";
-import ExpressMongoSanitize from "express-mongo-sanitize";
-import sanitize from "sanitize-html";
-import mongoose from "mongoose";
-import type { RequestHandler } from "express";
-
-export function flattenForUpdate<T extends object, K extends keyof T & string>(
-    prefix: UpdateUserPrefixes,
-    obj: T,
-): Record<`${typeof prefix}.${K}`, T[K]> {
-    return (Object.keys(obj) as K[]).reduce(
-        (acc, key) => {
-            acc[`${prefix}.${key}`] = obj[key];
-            return acc;
-        },
-        {} as Record<`${typeof prefix}.${K}`, T[K]>,
-    );
-}
 
 export async function connectToMongo(
     models: mongoose.Model<DiningHallSchemaType>[] = [DiningHallModel],
@@ -49,6 +38,19 @@ export async function connectToMongo(
     }
 }
 
+export function flattenForUpdate<T extends object, K extends keyof T & string>(
+    prefix: UpdateUserPrefixes,
+    obj: T,
+): Record<`${typeof prefix}.${K}`, T[K]> {
+    return (Object.keys(obj) as K[]).reduce(
+        (acc, key) => {
+            acc[`${prefix}.${key}`] = obj[key];
+            return acc;
+        },
+        {} as Record<`${typeof prefix}.${K}`, T[K]>,
+    );
+}
+
 export const mongoSanitizerMiddleware = ExpressMongoSanitize({
     replaceWith: "_",
 });
@@ -62,10 +64,10 @@ export function setTokenExpiry(): Date {
 }
 
 export const sanitizeHtml: RequestHandler = (req, _res, next) => {
-    req.body = sanitizeInput(req.body);
+    req.body = sanitizeInput<unknown>(req.body);
     req.params = sanitizeInput(req.params);
     req.query = sanitizeInput(req.query);
-    req.cookies = sanitizeInput(req.cookies);
+    req.cookies = sanitizeInput<unknown>(req.cookies);
 
     next();
 };
@@ -77,7 +79,6 @@ type SanitizeOutput<T> = T extends string
       : T extends object
         ? { [K in keyof T]: SanitizeOutput<T[K]> }
         : T;
-
 
 export function sanitizeInput<T>(input: T): SanitizeOutput<T> {
     if (typeof input === "string") {
