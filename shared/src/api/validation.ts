@@ -56,16 +56,20 @@ export const notificationsSchema = z.object({
   replyToPost: z.boolean(),
 });
 
-export const updateUserApiSchema = z.object({
-  email: emailSchema.optional(),
+export const userSettingsSchema = z.object({
   profile: profileSchema.partial().optional(),
   notifications: notificationsSchema.partial().optional(),
+});
+
+export const updateUserApiSchema = z.object({
+  email: emailSchema.optional(),
+  userSettingsSchema: userSettingsSchema,
   passwordReset: resetSchema.optional()
 });
 
-
-export type UpdateUserPrefixes = Extract<keyof UpdateUserApi, "profile" | "notifications">;
+export type UpdateUserPrefixes = Extract<keyof UserSettingsApi, "profile" | "notifications">;
 export type UpdateUserApi = z.infer<typeof updateUserApiSchema>;
+export type UserSettingsApi = z.infer<typeof userSettingsSchema>;
 export type LoginApi = z.infer<typeof loginSchema>;
 export type SignupApi = z.infer<typeof signupSchema>;
 export type ResetApi = z.infer<typeof resetSchema>;
