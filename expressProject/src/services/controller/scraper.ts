@@ -34,7 +34,13 @@ export function transformMongoDataToApi(
 ): StationFoodItemOutputs {
     return data.map((value: DiningHallSchemaType) => {
         const {
-            item: { itemDesc, itemName, itemReview },
+            item: {
+                itemDesc,
+                itemName,
+                itemReview,
+                itemReviewCount,
+                itemTotalStars,
+            },
             stationName,
         } = value;
         return {
@@ -43,11 +49,9 @@ export function transformMongoDataToApi(
                 name: itemName,
                 reviewOptions: {
                     details: itemReview.slice(0, MAX_REVIEWS),
-                    starRating:
-                        itemReview
-                            .map((review) => review.stars)
-                            .reduce((prev, stars) => prev + stars, 0) /
-                        itemReview.length,
+                    starRating: itemReviewCount
+                        ? itemTotalStars / itemReviewCount
+                        : null,
                 },
             },
             stationName,

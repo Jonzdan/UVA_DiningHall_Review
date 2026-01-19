@@ -1,6 +1,6 @@
-import type { TimeFrameTypes } from "src/models/types.js";
-
 import { Axios } from "axios";
+
+import type { TimeFrameTypes } from "../../models/types.js";
 
 export interface FoodProducts extends Record<string, string> {
     marketingName: string;

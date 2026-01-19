@@ -2,8 +2,8 @@ import { HttpStatusCode } from "axios";
 import { type Response, Router } from "express";
 import {
     loginSchema,
-    ROUTES,
     signupSchema,
+    SUBROUTES,
     type UpdateUserApi,
     updateUserApiSchema,
     type UserLoginOutput,
@@ -36,7 +36,7 @@ export const userRouter = Router();
 userRouter.use(csrf);
 
 userRouter.post(
-    ROUTES.USER.REGISTER,
+    SUBROUTES.USER.REGISTER,
     validateBody(signupSchema),
     blockLoggedInUsers,
     async (req, res) => {
@@ -58,7 +58,7 @@ userRouter.post(
 );
 
 userRouter.post(
-    ROUTES.USER.LOGIN,
+    SUBROUTES.USER.LOGIN,
     validateBody(loginSchema),
     blockLoggedInUsers,
     async (req, res) => {
@@ -88,7 +88,7 @@ userRouter.post(
 );
 
 userRouter.post(
-    ROUTES.USER.LOGOUT,
+    SUBROUTES.USER.LOGOUT,
     blockLoggedOutUsers,
     async (req: IUserRequest, res) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -111,7 +111,7 @@ userRouter.post(
 );
 
 userRouter.get(
-    ROUTES.USER.SETTINGS,
+    SUBROUTES.USER.SETTINGS,
     blockLoggedOutUsers,
     async (req: IUserRequest, res) => {
         if (!req.userId) {
@@ -128,7 +128,7 @@ userRouter.get(
 );
 
 userRouter.put(
-    ROUTES.USER.SETTINGS,
+    SUBROUTES.USER.SETTINGS,
     validateBody(updateUserApiSchema),
     blockLoggedOutUsers,
     mongoSanitizerMiddleware,

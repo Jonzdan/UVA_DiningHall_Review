@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { ROUTES, StationFoodItemSchemaInput } from "hoorank-shared";
+import {
+    DiningHallsEnum,
+    StationFoodItemSchemaInput,
+    SUBROUTES,
+} from "hoorank-shared";
 
 import { axios, NewcombDataParser } from "../../services/index.js";
 import { mongoSanitizerMiddleware } from "../../utils.js";
@@ -11,12 +15,12 @@ const url =
 export const newcombRouter = Router();
 const parser = new NewcombDataParser(axios, url);
 
-newcombRouter.get(ROUTES.API.NEWCOMB, async (_req, res) => {
-    await getFoodData(parser, res);
+newcombRouter.get(SUBROUTES.API.NEWCOMB, async (_req, res) => {
+    await getFoodData(parser, res, DiningHallsEnum.Newcomb);
 });
 
 newcombRouter.post(
-    ROUTES.API.NEWCOMB,
+    SUBROUTES.API.NEWCOMB,
     csrf,
     mongoSanitizerMiddleware,
     validateBody(StationFoodItemSchemaInput),

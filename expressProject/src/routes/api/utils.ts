@@ -1,7 +1,11 @@
 import type { Response } from "express";
 
 import { HttpStatusCode } from "axios";
-import { DiningHallsEnum, type StationFoodItemInput } from "hoorank-shared";
+import {
+    type DiningHalls,
+    DiningHallsEnum,
+    type StationFoodItemInput,
+} from "hoorank-shared";
 
 import {
     type DiningHallDataParserTime,
@@ -33,6 +37,7 @@ export async function addFoodItem(
 export async function getFoodData(
     parser: DiningHallDataParserTime,
     res: Response,
+    hallId: DiningHalls,
 ) {
     try {
         const timeframe = parser.getDiningHallTimeFrame(
@@ -44,10 +49,7 @@ export async function getFoodData(
             return;
         }
 
-        const initialData = await findCurrentFoodData(
-            DiningHallsEnum.Runk,
-            timeframe,
-        );
+        const initialData = await findCurrentFoodData(hallId, timeframe);
 
         if (!initialData?.length) {
             const data = await parser.getData();
@@ -57,9 +59,9 @@ export async function getFoodData(
                 return;
             }
 
-            res.status(HttpStatusCode.Ok).json(data).end();
+            res.status(HttpStatusCode.Ok).json(data);
         } else {
-            res.status(HttpStatusCode.NotModified).json(initialData);
+            res.status(HttpStatusCode.Ok).json(initialData);
         }
     } catch (err) {
         console.error(err);

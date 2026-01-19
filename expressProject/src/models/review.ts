@@ -3,6 +3,11 @@ import type { InferSchemaType } from "mongoose";
 import { Schema } from "mongoose";
 
 export const ReviewSchema = new Schema({
+    createdAt: {
+        default: new Date(),
+        required: true,
+        type: Date,
+    },
     review: {
         maxLength: 500,
         required: false,

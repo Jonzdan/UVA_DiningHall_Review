@@ -1,5 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { Request } from "express";
+import type { AuthConfirmOutput } from "hoorank-shared";
 import type { IUserRequest } from "src/types/request.js";
 import type z from "zod";
 
@@ -11,6 +12,7 @@ import {
     TOKEN_AGE,
 } from "src/constants.js";
 import { findToken } from "src/repositories/token.js";
+import { type AuthCookies, confirmAuthService } from "src/services/index.js";
 import { findHeader } from "src/validations/utils.js";
 
 export async function blockLoggedInUsers(
@@ -78,6 +80,36 @@ export async function csrf(
         }
     } else {
         res.status(HttpStatusCode.BadRequest).end();
+    }
+}
+
+export async function refreshAuth(
+    cookies: AuthCookies,
+    res: Response,
+): Promise<void> {
+    try {
+        const result = await confirmAuthService(cookies);
+        if (!result?.user) {
+            res.clearCookie(CSRF_TOKEN);
+            res.clearCookie(SESSION_ID);
+            res.status(HttpStatusCode.BadRequest).end();
+            return;
+        }
+
+        const { newCsrfToken, sessionId, user } = result;
+        setSessionCookie(res, sessionId);
+        setCSRFCookie(res, newCsrfToken);
+
+        res.status(HttpStatusCode.Ok)
+            .json({
+                username: user,
+            } as AuthConfirmOutput)
+            .end();
+    } catch (error) {
+        console.error(error);
+        res.status(HttpStatusCode.InternalServerError).json({
+            msg: error instanceof Error ? error.message : "",
+        });
     }
 }
 

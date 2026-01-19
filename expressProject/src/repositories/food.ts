@@ -11,7 +11,6 @@ import {
 } from "../models/index.js";
 import {
     type AddBulkWriteInsertOneItemParams,
-    type AddBulkWriteUpdateItemParams,
     type AddItemReviewParams,
     type BulkWriteItemParams,
     type FindItemsParams,
@@ -19,6 +18,7 @@ import {
 
 export function addBulkWriteInsertOneItem({
     curDate,
+    hallId,
     marketingName,
     shortDescription,
     stationName,
@@ -27,7 +27,8 @@ export function addBulkWriteInsertOneItem({
     return {
         insertOne: {
             document: {
-                activeDate: [curDate],
+                activeDate: curDate,
+                hallId,
                 item: {
                     itemDesc: shortDescription,
                     itemName: marketingName,
@@ -35,24 +36,6 @@ export function addBulkWriteInsertOneItem({
                 },
                 stationName,
             } as DiningHallSchemaType,
-        },
-    };
-}
-
-export function addBulkWriteUpdateItem({
-    _id,
-    curDate,
-}: AddBulkWriteUpdateItemParams): AnyBulkWriteOperation<DiningHallSchemaType> {
-    return {
-        updateOne: {
-            filter: {
-                _id,
-            },
-            update: {
-                $push: {
-                    activeDate: curDate,
-                },
-            },
         },
     };
 }
@@ -76,14 +59,12 @@ export async function findItems({
             ...(station?.stationName && {
                 stationName: station.stationName,
             }),
-            ...(station?.stationName && {
+            ...(station?.stationNames && {
                 stationName: {
                     $in: station.stationNames,
                 },
             }),
-            activeDate: {
-                $in: [activeDate],
-            },
+            activeDate: activeDate,
             "item.timeFrame": timeframe,
         },
         {
@@ -116,18 +97,19 @@ export async function updateItem({
             activeDate,
             hallId,
             "item.itemName": name,
-            "item.timeFrame": {
-                $in: [timeframe],
-            },
+            "item.timeFrame": timeframe,
             stationName,
         },
         {
+            $inc: {
+                "item.itemReviewCount": 1,
+                "item.itemTotalStars": stars,
+            },
             $push: {
                 "item.itemReview": {
                     stars: stars,
-                    ...(review && {
-                        review: review,
-                    }),
+                    ...(review && { review }),
+                    createdAt: new Date(),
                 } satisfies ReviewSchemaType,
             },
         },

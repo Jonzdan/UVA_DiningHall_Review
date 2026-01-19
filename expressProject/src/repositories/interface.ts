@@ -4,15 +4,11 @@ import type { DiningHallSchemaType, TimeFrameTypes } from "src/models/index.js";
 
 export interface AddBulkWriteInsertOneItemParams {
     readonly curDate: string;
+    readonly hallId: DiningHalls;
     readonly marketingName: string;
     readonly shortDescription: string;
     readonly stationName: string;
     readonly timeframe: TimeFrameTypes;
-}
-
-export interface AddBulkWriteUpdateItemParams {
-    readonly _id: Types.ObjectId | undefined;
-    readonly curDate: string;
 }
 
 export interface AddItemReviewParams {

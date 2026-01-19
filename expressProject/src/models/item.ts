@@ -9,6 +9,7 @@ export function createItemSchema() {
         itemName: { required: true, type: String },
         itemReview: { default: [], required: true, type: [ReviewSchema] },
         itemReviewCount: { default: 0, required: true, type: Number },
+        itemTotalStars: { default: 0, required: true, type: Number },
         timeFrame: { enum: GlobalTimeFrames, required: true, type: String },
     });
 }

@@ -3,7 +3,9 @@ import type { DiningHalls, StationFoodItemOutputs } from "hoorank-shared";
 import { Axios } from "axios";
 import ExpressMongoSanitize from "express-mongo-sanitize";
 import { readFileSync } from "fs";
-import { type AnyBulkWriteOperation, Document, Types } from "mongoose";
+import { type AnyBulkWriteOperation } from "mongoose";
+
+import type { BulkProcessFoodItemsParams } from "./_types.js";
 
 import {
     type DiningHallSchemaType,
@@ -11,9 +13,7 @@ import {
 } from "../../models/index.js";
 import {
     addBulkWriteInsertOneItem,
-    addBulkWriteUpdateItem,
     bulkWriteItems,
-    findItems,
 } from "../../repositories/index.js";
 import { sanitizeInput } from "../../utils.js";
 import {
@@ -43,39 +43,17 @@ export class DiningHallDataParser {
         timeframe: TimeFrameTypes,
         testMode = false,
     ): Promise<StationFoodItemOutputs | undefined> {
-        const existingFoodProductsMapping = new Map<
-            string,
-            Document<Types.ObjectId | undefined, object, DiningHallSchemaType>
-        >();
         const [foodProducts, stationIdsToNameMap] = this.getStationsDetails(
             await this.getActualOrTestData(testMode),
         );
 
-        const existingFoodProducts = await findItems({
-            activeDate: getCurDateAsString(),
-            hallId,
-            station: {
-                stationNames: sanitizeInput<string[]>(
-                    Object.values(stationIdsToNameMap) as string[],
-                ),
-            },
-            timeframe,
-        });
-
-        for (const product of existingFoodProducts) {
-            existingFoodProductsMapping.set(
-                `${product.item.itemName}-${product.stationName}`,
-                product,
-            );
-        }
-
-        const bulkOperations = this.bulkProcessFoodProducts(
+        const bulkOperations = this.bulkProcessFoodProducts({
+            curDate: getCurDateAsString(),
             foodProducts,
-            existingFoodProductsMapping,
-            getCurDateAsString(),
-            timeframe,
-            stationIdsToNameMap,
-        );
+            hallId,
+            stationMapping: stationIdsToNameMap,
+            timeFrame: timeframe,
+        });
 
         if (bulkOperations.length > 0) {
             const result = await bulkWriteItems({ items: bulkOperations });
@@ -99,8 +77,6 @@ export class DiningHallDataParser {
             marketingName:    newMarketingName,
             shortDescription: newShortDescription,
         }
-    * @param {*} existingFoodProductsMapping
-    * A Map Object of Key: `${item.itemName}-${stationName}`, Value: { MongoDB Document Item }
     * @param {*} curDate
     * A String of Format: YYYYMMDD
     * @param {*} timeFrame
@@ -109,16 +85,13 @@ export class DiningHallDataParser {
     * A Map Object of Station ID : Station Name
     * @returns An array of MongoDB write operations
     */
-    private bulkProcessFoodProducts(
-        foodProducts: FoodProducts[],
-        existingFoodProductsMapping: Map<
-            string,
-            Document<Types.ObjectId | undefined, object, DiningHallSchemaType>
-        >,
-        curDate: string,
-        timeFrame: Partial<TimeFrameTypes>,
-        stationMapping: Map<string, string>,
-    ): AnyBulkWriteOperation<DiningHallSchemaType>[] {
+    private bulkProcessFoodProducts({
+        curDate,
+        foodProducts,
+        hallId,
+        stationMapping,
+        timeFrame,
+    }: BulkProcessFoodItemsParams): AnyBulkWriteOperation<DiningHallSchemaType>[] {
         const bulkOperations: AnyBulkWriteOperation<DiningHallSchemaType>[] =
             [];
         for (const products of foodProducts) {
@@ -132,30 +105,20 @@ export class DiningHallDataParser {
                 continue;
             }
 
-            const existingProduct = existingFoodProductsMapping.get(
-                `${marketingName}-${stationName}`,
-            );
-
-            if (existingProduct) {
-                bulkOperations.push(
-                    addBulkWriteUpdateItem({
-                        _id: existingProduct._id,
-                        curDate,
-                    }),
-                );
-            } else {
-                if (timeFrame !== "Unavailable") {
-                    bulkOperations.push(
-                        addBulkWriteInsertOneItem({
-                            curDate,
-                            marketingName: sanitizeInput(marketingName),
-                            shortDescription: sanitizeInput(shortDescription),
-                            stationName,
-                            timeframe: timeFrame,
-                        }),
-                    );
-                }
+            if (timeFrame === "Unavailable") {
+                break;
             }
+
+            bulkOperations.push(
+                addBulkWriteInsertOneItem({
+                    curDate,
+                    hallId,
+                    marketingName: sanitizeInput(marketingName),
+                    shortDescription: sanitizeInput(shortDescription),
+                    stationName,
+                    timeframe: timeFrame,
+                }),
+            );
         }
         return bulkOperations;
     }

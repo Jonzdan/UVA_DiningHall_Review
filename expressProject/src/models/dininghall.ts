@@ -5,8 +5,9 @@ import { createItemSchema } from "./item.js";
 
 export const DiningHall = new Schema({
     activeDate: {
+        match: /^\d{8}$/,
         required: true,
-        type: Array,
+        type: String,
     },
     hallId: {
         enum: DiningHallsEnum,
@@ -23,7 +24,7 @@ export const DiningHall = new Schema({
 DiningHall.index({
     activeDate: 1,
     hallId: 1,
-    "item.itemName": 1,
+    "item.itemReviewCount": -1,
     "item.timeFrame": 1,
     stationName: 1,
 });
@@ -31,4 +32,4 @@ DiningHall.index({
 export type DiningHallSchemaType = InferSchemaType<typeof DiningHall>;
 export const DiningHallModel: Model<DiningHallSchemaType> = model<
     Schema<DiningHallSchemaType>
->("Dining Halls", DiningHall);
+>("dining_halls", DiningHall);
