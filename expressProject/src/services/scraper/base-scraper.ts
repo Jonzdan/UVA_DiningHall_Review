@@ -1,6 +1,7 @@
 import { type AnyBulkWriteOperation, Document, Types } from "mongoose";
 import {
     DiningHallDataParserError,
+    type FoodProducts,
     getCurDateAsString,
     removeSpecialChar,
 } from "./util.js";
@@ -14,12 +15,11 @@ import {
     addBulkWriteUpdateItem,
     bulkWriteItems,
     findItems,
-} from "src/repositories/index.js";
+} from "../../repositories/index.js";
 import { Axios } from "axios";
 import ExpressMongoSanitize from "express-mongo-sanitize";
-import type { FoodProducts } from "./util.js";
 import { readFileSync } from "fs";
-import { sanitizeInput } from "../../validations/index.js";
+import { sanitizeInput } from "../../utils.js";
 
 //TODO: Scraping past current timeframe shows next timeframe
 export class DiningHallDataParser {

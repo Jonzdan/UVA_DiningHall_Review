@@ -4,16 +4,16 @@ import {
     findUserByEmailOrUserRepo,
     findUserByIdRepo,
     updateUserSettings,
-} from "src/repositories/index.js";
+} from "../../repositories/index.js";
 import {
     hashPassword,
-    sanitizeInput,
     verifyPassword,
-} from "src/validations/index.js";
-import type { IUserRequest } from "src/types/index.js";
+} from "../../validations/index.js";
+import type { IUserRequest } from "../../types/index.js";
 import type { Types } from "mongoose";
 import type { UpdateUserApi } from "hoorank-shared";
-import type { UserSchemaType } from "src/models/index.js";
+import type { UserSchemaType } from "../../models/index.js";
+import { sanitizeInput } from "../../utils.js";
 
 interface UserSchemaWithId extends UserSchemaType {
     readonly _id: Types.ObjectId;

@@ -1,10 +1,28 @@
-import type { NextFunction, Request, Response } from "express";
-import { CSRF_TOKEN_HEADER } from "./constants.js";
+import { CSRF_TOKEN, CSRF_TOKEN_HEADER, SESSION_ID, TOKEN_AGE } from "src/constants.js";
+import type { NextFunction, Response } from "express";
 import { HttpStatusCode } from "axios";
-import type { IUserRequest } from "../types/index.js";
-import { findHeader } from "./utils.js";
-import { findToken } from "../repositories/index.js";
-import type { z } from "zod";
+import { findToken } from "src/repositories/token.js";
+import type { IUserRequest } from "src/types/request.js";
+import { findHeader } from "src/validations/utils.js";
+import type z from "zod";
+import type { Request } from "express";
+
+export function setSessionCookie(res: Response, sessionId: string): void {
+    res.cookie(SESSION_ID, sessionId, {
+        sameSite: "strict",
+        httpOnly: true,
+        maxAge: TOKEN_AGE,
+        signed: true,
+        secure: process.env["STAGE"] === "dev" ? false : true,
+    });
+}
+
+export function setCSRFCookie(res: Response, csrfToken: string): void {
+    res.cookie(CSRF_TOKEN, csrfToken, {
+        sameSite: "strict",
+        maxAge: TOKEN_AGE,
+    });
+}
 
 export async function csrf(
     req: IUserRequest,

@@ -4,15 +4,13 @@ import type { Axios } from "axios";
 import { DiningHallDataParser } from "./base-scraper.js";
 import { type NewcombDiningHallTimeFrame } from "../../models/index.js";
 
-export class NewcombDataParser implements DiningHallTime {
-    private readonly parser: DiningHallDataParser;
-
+export class NewcombDataParser extends DiningHallDataParser implements DiningHallTime {
     constructor(axios: Axios, url: string) {
-        this.parser = new DiningHallDataParser(axios, url);
+        super(axios, url);
     }
 
-    async getData(): Promise<StationFoodItemOutputs | undefined> {
-        return await this.parser.getData(
+    override async getData(): Promise<StationFoodItemOutputs | undefined> {
+        return await super.getData(
             DiningHallsEnum.Newcomb,
             this.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
         );

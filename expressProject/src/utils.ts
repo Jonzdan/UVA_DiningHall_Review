@@ -1,16 +1,10 @@
-import type { AuthConfirmOutput, UpdateUserPrefixes } from "hoorank-shared";
-import { CSRF_TOKEN, SESSION_ID } from "./validations/index.js";
+import type { UpdateUserPrefixes } from "hoorank-shared";
+import { TOKEN_AGE } from "./constants.js";
 import { DiningHallModel, type DiningHallSchemaType } from "./models/index.js";
-import { findAuthTokens, updateSession } from "./services/index.js";
 import ExpressMongoSanitize from "express-mongo-sanitize";
-import { HttpStatusCode } from "axios";
-import type { IUserRequest } from "./types/index.js";
-import { type Response } from "express";
-import { findUserById } from "./services/index.js";
+import sanitize from "sanitize-html";
 import mongoose from "mongoose";
-
-// 1000 ms * 60s * 30m
-const TOKEN_AGE = 1_800_000;
+import type { RequestHandler } from "express";
 
 export function flattenForUpdate<T extends object, K extends keyof T & string>(
     prefix: UpdateUserPrefixes,
@@ -67,56 +61,43 @@ export function setTokenExpiry(): Date {
     return new Date(Date.now() + TOKEN_AGE);
 }
 
-export function setSessionCookie(res: Response, sessionId: string): void {
-    res.cookie(SESSION_ID, sessionId, {
-        sameSite: "strict",
-        httpOnly: true,
-        maxAge: TOKEN_AGE,
-        signed: true,
-        secure: process.env["STAGE"] === "dev" ? false : true,
-    });
-}
+export const sanitizeHtml: RequestHandler = (req, _res, next) => {
+    req.body = sanitizeInput(req.body);
+    req.params = sanitizeInput(req.params);
+    req.query = sanitizeInput(req.query);
+    req.cookies = sanitizeInput(req.cookies);
 
-export function setCSRFCookie(res: Response, csrfToken: string): void {
-    res.cookie(CSRF_TOKEN, csrfToken, {
-        sameSite: "strict",
-        maxAge: TOKEN_AGE,
-    });
-}
+    next();
+};
 
-export async function confirmAuthSessionHandler(
-    req: IUserRequest,
-    res: Response,
-) {
-    const response = await findAuthTokens(
-        req.cookies.CSRF_TOKEN,
-        req.signedCookies.SESSION_ID,
-    );
+type SanitizeOutput<T> = T extends string
+    ? string
+    : T extends (infer U)[]
+      ? SanitizeOutput<U>[]
+      : T extends object
+        ? { [K in keyof T]: SanitizeOutput<T[K]> }
+        : T;
 
-    if (!response?.userID) {
-        res.clearCookie(CSRF_TOKEN);
-        res.clearCookie(SESSION_ID);
-        res.status(HttpStatusCode.BadRequest).end();
-        return;
+
+export function sanitizeInput<T>(input: T): SanitizeOutput<T> {
+    if (typeof input === "string") {
+        return sanitize(input) as SanitizeOutput<T>;
     }
-
-    const userId = response.userID;
-    const [{ newCsrfToken, sessionId }, person] = await Promise.all([
-        updateSession(userId, response.csrf),
-        findUserById(userId.toString()),
-    ]);
-
-    if (!person) {
-        res.status(HttpStatusCode.Unauthorized).end();
-        return;
+    if (Array.isArray(input)) {
+        return input.map(sanitizeInput) as SanitizeOutput<T>;
     }
-
-    setSessionCookie(res, sessionId);
-    setCSRFCookie(res, newCsrfToken);
-
-    res.status(HttpStatusCode.Ok)
-        .json({
-            username: person.username,
-        } as AuthConfirmOutput)
-        .end();
+    if (input !== null && typeof input === "object") {
+        const sanitizedObj = {} as { [K in keyof T]: SanitizeOutput<T[K]> };
+        for (const key in input) {
+            if (Object.hasOwn(input, key)) {
+                // TODO: Make a Type
+                if (key === "password" || key === "confirmPassword") {
+                    continue;
+                }
+                sanitizedObj[key as keyof T] = sanitizeInput(input[key]);
+            }
+        }
+        return sanitizedObj as SanitizeOutput<T>;
+    }
+    return input as SanitizeOutput<T>;
 }

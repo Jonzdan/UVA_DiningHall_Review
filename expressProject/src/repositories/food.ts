@@ -13,8 +13,8 @@ import {
 import {
     DiningHallModel,
     type DiningHallSchemaType,
-} from "src/models/index.js";
-import type { ReviewSchemaType } from "src/models/index.js";
+    type ReviewSchemaType,
+} from "../models/index.js";
 
 export async function updateItem({
     hallId,
@@ -62,6 +62,21 @@ export async function findItems({
     timeframe,
     station,
 }: FindItemsParams): Promise<HydratedDocument<DiningHallSchemaType>[]> {
+    console.log({
+        hallId,
+        ...(station?.stationName && {
+            stationName: station.stationName,
+        }),
+        ...(station?.stationName && {
+            stationName: {
+                $in: station.stationNames,
+            },
+        }),
+        activeDate: {
+            $in: [activeDate],
+        },
+        "item.timeFrame": timeframe,
+    })
     return await DiningHallModel.find(
         {
             hallId,

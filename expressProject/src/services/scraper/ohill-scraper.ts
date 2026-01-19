@@ -4,15 +4,13 @@ import type { Axios } from "axios";
 import { DiningHallDataParser } from "./base-scraper.js";
 import { type OhillTimeFrame } from "../../models/index.js";
 
-export class OhillDataParser implements DiningHallTime {
-    private readonly parser: DiningHallDataParser;
-
+export class OhillDataParser extends DiningHallDataParser implements DiningHallTime {
     constructor(axios: Axios, url: string) {
-        this.parser = new DiningHallDataParser(axios, url);
+        super(axios, url);
     }
 
-    async getData(): Promise<StationFoodItemOutputs | undefined> {
-        return await this.parser.getData(
+    override async getData(): Promise<StationFoodItemOutputs | undefined> {
+        return await super.getData(
             DiningHallsEnum.Ohill,
             this.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
         );

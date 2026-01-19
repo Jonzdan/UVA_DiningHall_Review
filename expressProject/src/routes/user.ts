@@ -1,13 +1,4 @@
-import {
-    CSRF_TOKEN,
-    CSRF_TOKEN_HEADER,
-    SESSION_ID,
-    blockLoggedInUsers,
-    blockLoggedOutUsers,
-    csrf,
-    findHeader,
-    validateBody,
-} from "../validations/index.js";
+import { CSRF_TOKEN, CSRF_TOKEN_HEADER, SESSION_ID } from "../constants.js";
 import {
     ROUTES,
     type UpdateUserApi,
@@ -17,6 +8,13 @@ import {
     updateUserApiSchema,
 } from "hoorank-shared";
 import { type Response, Router } from "express";
+import { 
+    blockLoggedInUsers,
+    blockLoggedOutUsers,
+    csrf,setSessionCookie,
+    setCSRFCookie,
+    validateBody
+} from "./utils.js";
 import {
     createUser,
     findUserByEmailOrUser,
@@ -26,13 +24,12 @@ import {
     updateSession,
     updateUser,
 } from "../services/controller/index.js";
-import {
-    mongoSanitizerMiddleware,
-    setCSRFCookie,
-    setSessionCookie,
-} from "../utils.js";
 import { HttpStatusCode } from "axios";
 import type { IUserRequest } from "../types/index.js";
+import { findHeader } from "../validations/index.js";
+import {
+    mongoSanitizerMiddleware
+} from "../utils.js";
 
 export const userRouter = Router();
 userRouter.use(csrf);

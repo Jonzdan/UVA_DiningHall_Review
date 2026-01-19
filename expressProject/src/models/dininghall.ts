@@ -1,9 +1,11 @@
 import { type InferSchemaType, Model, Schema, model } from "mongoose";
+import { DiningHallsEnum } from "hoorank-shared";
 import { createItemSchema } from "./item.js";
 
 export const DiningHall = new Schema({
     hallId: {
-        type: String, // TODO: add enum
+        type: String,
+        enum: DiningHallsEnum,
         required: true,
     },
     stationName: {
