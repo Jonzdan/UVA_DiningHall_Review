@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     DiningHallsEnum,
+    StationFoodItemFields,
     StationFoodItemSchemaInput,
     SUBROUTES,
 } from "hoorank-shared";
@@ -23,7 +24,7 @@ ohillRouter.post(
     SUBROUTES.API.OHILL,
     csrf,
     mongoSanitizerMiddleware,
-    validateBody(StationFoodItemSchemaInput),
+    validateBody(StationFoodItemSchemaInput, StationFoodItemFields),
     async (req, res) => {
         await addFoodItem(parser, res, req.body);
     },

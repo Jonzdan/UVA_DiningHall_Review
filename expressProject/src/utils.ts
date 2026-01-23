@@ -64,6 +64,7 @@ export function setTokenExpiry(): Date {
 }
 
 export const sanitizeHtml: RequestHandler = (req, _res, next) => {
+    console.log(req.body);
     req.body = sanitizeInput<unknown>(req.body);
     req.params = sanitizeInput(req.params);
     req.query = sanitizeInput(req.query);
@@ -90,13 +91,7 @@ export function sanitizeInput<T>(input: T): SanitizeOutput<T> {
     if (input !== null && typeof input === "object") {
         const sanitizedObj = {} as { [K in keyof T]: SanitizeOutput<T[K]> };
         for (const key in input) {
-            if (Object.hasOwn(input, key)) {
-                // TODO: Make a Type
-                if (key === "password" || key === "confirmPassword") {
-                    continue;
-                }
-                sanitizedObj[key as keyof T] = sanitizeInput(input[key]);
-            }
+            sanitizedObj[key as keyof T] = sanitizeInput(input[key]);
         }
         return sanitizedObj as SanitizeOutput<T>;
     }

@@ -6,6 +6,7 @@ import {
     SUBROUTES,
     type UpdateUserApi,
     updateUserApiSchema,
+    UpdateUserFields,
     type UserLoginOutput,
 } from "hoorank-shared";
 
@@ -29,6 +30,7 @@ import {
     csrf,
     setCSRFCookie,
     setSessionCookie,
+    validateAuthBody,
     validateBody,
 } from "./utils.js";
 
@@ -37,7 +39,7 @@ userRouter.use(csrf);
 
 userRouter.post(
     SUBROUTES.USER.REGISTER,
-    validateBody(signupSchema),
+    validateAuthBody(signupSchema),
     blockLoggedInUsers,
     async (req, res) => {
         const { email, password, user } = req.body;
@@ -59,7 +61,7 @@ userRouter.post(
 
 userRouter.post(
     SUBROUTES.USER.LOGIN,
-    validateBody(loginSchema),
+    validateAuthBody(loginSchema),
     blockLoggedInUsers,
     async (req, res) => {
         const { password, user } = req.body;
@@ -129,7 +131,7 @@ userRouter.get(
 
 userRouter.put(
     SUBROUTES.USER.SETTINGS,
-    validateBody(updateUserApiSchema),
+    validateBody(updateUserApiSchema, UpdateUserFields),
     blockLoggedOutUsers,
     mongoSanitizerMiddleware,
     async (req: IUserRequest<object, object, UpdateUserApi>, res: Response) => {

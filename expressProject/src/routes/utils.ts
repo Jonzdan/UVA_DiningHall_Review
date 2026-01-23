@@ -1,10 +1,16 @@
 import type { NextFunction, Response } from "express";
 import type { Request } from "express";
-import type { AuthConfirmOutput } from "hoorank-shared";
 import type { IUserRequest } from "src/types/request.js";
 import type z from "zod";
 
 import { HttpStatusCode } from "axios";
+import {
+    type AuthConfirmOutput,
+    AuthFieldEnum,
+    type AuthFields,
+    type ErrorFormat,
+    type FormValidationErrorType,
+} from "hoorank-shared";
 import {
     CSRF_TOKEN,
     CSRF_TOKEN_HEADER,
@@ -130,7 +136,18 @@ export function setSessionCookie(res: Response, sessionId: string): void {
     });
 }
 
-export function validateBody<T>(schema: z.ZodType<T>) {
+export function validateAuthBody<T>(schema: z.ZodType<T>) {
+    return validateBody<T, AuthFields, FormValidationErrorType>(
+        schema,
+        AuthFieldEnum,
+    );
+}
+
+export function validateBody<T, TField extends string, TError extends string>(
+    schema: z.ZodType<T>,
+    validFields: Record<TField, TField>,
+    errorCodes?: Record<TError, TError>,
+) {
     return (
         req: Request<object, object, T>,
         res: Response,
@@ -138,10 +155,49 @@ export function validateBody<T>(schema: z.ZodType<T>) {
     ): void => {
         const { data, error, success } = schema.safeParse(req.body);
         if (!success) {
-            res.status(HttpStatusCode.BadRequest).json(error.issues).end();
+            res.status(HttpStatusCode.BadRequest)
+                .json(
+                    buildErrorFormat<TField, TError>(
+                        error,
+                        validFields,
+                        errorCodes,
+                    ),
+                )
+                .end();
             return;
         }
         req.body = data;
         next();
     };
+}
+
+function buildErrorFormat<TField extends string, TError extends string>(
+    error: z.ZodError<unknown>,
+    validFields: Record<TField, TField>,
+    errorCodes?: Record<TError, TError>,
+): ErrorFormat<TField, TError>[] {
+    const errors: Partial<Record<TField, TError[]>> = {};
+    const issues = error.issues;
+    for (const issue of issues) {
+        /**
+         * Path is designed to be only top-level (single) fields ATM
+         * zodIssue.message currently contains error codes --> fallback to generic error message for basic routes
+         */
+        const field = issue.path[0] as TField;
+        if (!(field in validFields)) {
+            continue;
+        }
+
+        const currentErrorCode = issue.message as TError;
+        (errors[field] ??= []).push(
+            errorCodes?.[currentErrorCode] ?? currentErrorCode,
+        );
+    }
+
+    return (Object.keys(errors) as TField[]).map((field) => {
+        return {
+            errors: errors[field],
+            field,
+        } as ErrorFormat<TField, TError>;
+    });
 }

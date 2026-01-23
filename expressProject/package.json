@@ -5,7 +5,7 @@
   "main": "dist/src/index.js",
   "scripts": {
     "clean": "rimraf dist build .cache",
-    "format": "eslint . ",
+    "format": "eslint .",
     "format:fix": "eslint . --fix",
     "start:bundled": "node dist/src/server.js",
     "start:dev": "npx tsx src/server.ts",
@@ -28,7 +28,7 @@
     "hoorank-shared": "file:../shared",
     "mongoose": "^8.18.0",
     "sanitize-html": "^2.17.0",
-    "zod": "^4.1.5"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
@@ -49,7 +49,7 @@
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.40.0"
   }
 }

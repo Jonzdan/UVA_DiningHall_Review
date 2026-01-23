@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     DiningHallsEnum,
+    StationFoodItemFields,
     StationFoodItemSchemaInput,
     SUBROUTES,
 } from "hoorank-shared";
@@ -22,7 +23,7 @@ runkRouter.post(
     SUBROUTES.API.RUNK,
     csrf,
     mongoSanitizerMiddleware,
-    validateBody(StationFoodItemSchemaInput),
+    validateBody(StationFoodItemSchemaInput, StationFoodItemFields),
     async (req, res) => {
         await addFoodItem(parser, res, req.body);
     },

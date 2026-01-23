@@ -84,6 +84,7 @@ function convertTokenToJSObject({
         csrf,
         expiresAt,
         session: session ?? null,
+        updatedAt: createdAt,
         userID: userID ?? null,
     };
 }

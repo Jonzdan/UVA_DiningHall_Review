@@ -110,6 +110,7 @@ export async function updateItem({
                     stars: stars,
                     ...(review && { review }),
                     createdAt: new Date(),
+                    updatedAt: new Date(),
                 } satisfies ReviewSchemaType,
             },
         },
