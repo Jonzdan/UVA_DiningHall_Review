@@ -1,5 +1,7 @@
 import { Component, Input, type OnInit } from '@angular/core';
-import { AppService } from '../../services';
+import { FoodService, type ShopItems } from '../../services';
+import type { DiningHalls } from 'hoorank-shared';
+import { ExpandSectionEnum, type ExpandSection } from './types';
 
 @Component({
     selector: 'app-station-name',
@@ -7,28 +9,38 @@ import { AppService } from '../../services';
     styleUrls: ['./station-name.component.css'],
 })
 export class StationNameComponent implements OnInit {
-    @Input() head!: string;
-    @Input() short!: string;
-    hideStation = false;
-    shopToItems: any = {};
-    flipArrow = false;
-    showRestOfItems = false;
+    @Input() stationName!: string;
+    @Input() diningHall!: DiningHalls;
 
-    constructor(private appService: AppService) {}
+    /**
+     * Deep copy of service-level ShopItems
+     */
+    public shopItems: ShopItems;
+
+    public isStationExpanded: boolean;
+    public isItemsExpanded: boolean;
+    public defaultItemLimit: number;
+
+    constructor(private appService: FoodService) {
+        this.shopItems = new Map();
+        this.isItemsExpanded = false;
+        this.isStationExpanded = true;
+        this.defaultItemLimit = 3;
+    }
 
     ngOnInit(): void {
-        this.shopToItems = this.appService.getShopToItem(this.short);
+        this.shopItems = this.appService.getShopItems(this.diningHall);
     }
 
-    hideStationFunc(e: any) {
-        this.hideStation = !this.hideStation;
+    toggleStationDisplay(): void {
+        this.isStationExpanded = !this.isStationExpanded;
     }
 
-    ngAfterViewInit(): void {}
+    toggleAdditionalItemsDisplay(): void {
+        this.isItemsExpanded = !this.isItemsExpanded;
+    }
 
-    revealItems(e: any) {
-        this.showRestOfItems = !this.showRestOfItems;
-        if (!this.showRestOfItems) e.target.textContent = '+';
-        else e.target.textContent = '-';
+    convertBooleanToSectionToken(bool: boolean): ExpandSection {
+        return bool ? ExpandSectionEnum.ARROW_DOWN : ExpandSectionEnum.ARROW_UP;
     }
 }

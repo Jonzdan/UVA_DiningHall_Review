@@ -1,0 +1,36 @@
+<div
+    *ngIf="show"
+    class="fixed max-w-[100vw] transition-[width] ease-linear h-[100vh]
+            top-0 bg-[#232D48] overflow-x-hidden right-0 rounded-l-sm
+            drop-shadow-sm shadow-md shadow-[#232D48] flex flex-col
+            items-center text-lg z-30"
+    [ngStyle]="{ width: show ? width : '0px' }"
+>
+  <div class="flex items-center justify-between w-full p-3 border-b border-neutral-700">
+        <div class="flex items-center gap-2">
+            <ng-container *ngIf="icon">
+                <img *ngIf="icon.endsWith('.svg')" [src]="icon" alt="icon" class="w-5 h-5"/>
+                <i *ngIf="!icon.endsWith('.svg')" [class]="icon"></i>
+            </ng-container>
+            <span class="text-base font-medium">{{ title }}</span>
+        </div>
+        
+        <button
+            (click)="emitCloseEvent()" 
+            type="button"
+            class="
+                ml-auto text-neutral-300 hover:text-white
+                w-6 h-6 grid place-items-center leading-none
+            "
+        >
+            &times;
+        </button>
+
+
+  </div>
+
+  <!-- Main content projected in -->
+    <ul class="flex flex-col items-center w-full flex-1 overflow-auto">
+        <ng-content></ng-content>
+    </ul>
+</div>

@@ -1,28 +1,35 @@
+import {
+    AboutUsComponent,
+    AppButtonComponent,
+    AppComponent,
+    DininghallComponent,
+    HomeComponent,
+    ItemComponent,
+    NavComponent,
+    PageNotFoundComponent,
+    RegisterComponent,
+    ReviewsComponent,
+    SettingsComponent,
+    SettingsTabComponent,
+    SignInComponent,
+    StarsComponent,
+    StationNameComponent,
+    SwitchComponent,
+    ToggleComponent,
+} from './components';
 import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './components/app/app.component';
-import { DininghallComponent } from './components/dininghall/dininghall.component';
-import { ItemComponent } from './components/item/item.component';
-import { NavComponent } from './components/nav/nav.component';
-import { SwitchComponent } from './components/switch/switch.component';
-import { StationNameComponent } from './components/station-name/station-name.component';
-import { AppButtonComponent } from './components/app-button/app-button.component';
-import { StarsComponent } from './components/stars/stars.component';
 import { CommonModule } from '@angular/common';
-import { HomeComponent } from './components/home/home.component';
-import { ReviewsComponent } from './components/reviews/reviews.component';
-import { RegisterComponent } from './components/register/register.component';
-import { SignInComponent } from './components/sign-in/sign-in.component';
-import { AboutUsComponent } from './components/about-us/about-us.component';
-import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { TextShadowDirective } from './directives/text-shadow/text-shadow.directive';
+import { NoAutocompleteBgDirective, TextShadowDirective } from './directives';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NoAutocompleteBgDirective } from './directives/no-autocomplete/no-autocomplete-bg.directive';
-import { SettingsComponent } from './components/settings/settings.component';
-import { SettingsTabComponent } from './components/settings-tab/settings-tab.component';
-import { ToggleComponent } from './components/toggle/toggle.component';
+import { FooterComponent } from './components/footer/footer.component';
+import { NavLinkComponent } from './components/nav-link/nav-link.component';
+import { DropDownComponent } from './components/drop-down/drop-down.component';
+import { SideCarComponent } from './components/side-car/side-car.component';
+import { SettingsTabProfileComponent } from './components/settings-tab-profile/settings-tab-profile.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 
 @NgModule({
     declarations: [
@@ -45,10 +52,16 @@ import { ToggleComponent } from './components/toggle/toggle.component';
         SettingsComponent,
         SettingsTabComponent,
         ToggleComponent,
+        FooterComponent,
+        NavLinkComponent,
+        SideCarComponent,
+        SettingsTabProfileComponent,
+        ResetPasswordComponent,
     ],
     imports: [
         BrowserModule,
         AppRoutingModule,
+        DropDownComponent,
         HttpClientModule,
         CommonModule,
         ReactiveFormsModule,

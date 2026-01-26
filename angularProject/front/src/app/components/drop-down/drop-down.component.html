@@ -1,0 +1,15 @@
+<div #trigger="cdkOverlayOrigin" cdkOverlayOrigin (click)="toggle()" class="flex flex-row">
+  <ng-content select="[dropdown-trigger]"></ng-content>
+</div>
+
+<ng-template cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="trigger"
+  [cdkConnectedOverlayOpen]="open"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  (backdropClick)="close()"
+  [cdkConnectedOverlayPositions]="overlayPositions">
+  
+  <ul class="z-50 max-h-[300px] min-w-[200px] w-[30vw] bg-neutral-50 text-black rounded-md shadow-lg flex flex-col overflow-auto">
+    <ng-content select="[dropdown-content]"></ng-content>
+  </ul>
+</ng-template>

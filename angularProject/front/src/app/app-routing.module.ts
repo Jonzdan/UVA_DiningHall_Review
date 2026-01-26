@@ -9,15 +9,17 @@ import {
 } from './components';
 import { RouterModule, type Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
+import { ROUTE_PATHS } from './constants';
 
+// Define typed routes
 const routes: Routes = [
-    { path: '', component: HomeComponent },
-    { path: 'login', component: SignInComponent },
-    { path: 'register', component: RegisterComponent },
-    { path: 'aboutus', component: AboutUsComponent },
-    { path: 'reviews', component: ReviewsComponent },
-    { path: 'settings', component: SettingsComponent },
-    { path: '**', component: PageNotFoundComponent },
+    { path: ROUTE_PATHS.HOME, component: HomeComponent },
+    { path: ROUTE_PATHS.LOGIN, component: SignInComponent },
+    { path: ROUTE_PATHS.REGISTER, component: RegisterComponent },
+    { path: ROUTE_PATHS.ABOUT_US, component: AboutUsComponent },
+    { path: ROUTE_PATHS.REVIEWS, component: ReviewsComponent },
+    { path: ROUTE_PATHS.SETTINGS, component: SettingsComponent },
+    { path: ROUTE_PATHS.NOT_FOUND, component: PageNotFoundComponent },
 ];
 
 @NgModule({

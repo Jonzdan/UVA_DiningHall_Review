@@ -1,56 +1,50 @@
-import { Component, ElementRef, type OnInit } from '@angular/core';
+import { Component, type OnDestroy, type OnInit } from '@angular/core';
 import { SwitchDininghallService } from '../../services';
+import { DiningHallsEnum, type DiningHalls } from 'hoorank-shared';
+import type { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-switch',
     templateUrl: './switch.component.html',
     styleUrls: ['./switch.component.css'],
+    providers: [SwitchDininghallService]
 })
-export class SwitchComponent implements OnInit {
-    //change this to default angular supported
-
-    /* @ViewChildren('swi')
-  public navSwi!: QueryList<ElementRef<HTMLLIElement>>
-  @ViewChildren('change')
-  public navBtnItems!: QueryList <ElementRef<HTMLLIElement>> */
-
-    public b1 = true;
-    public b2 = false;
+export class SwitchComponent implements OnInit, OnDestroy {
     private bgColor = 'bg-[#EB5F0C]';
+    private currentDiningHall: DiningHalls;
+    private diningHallSubscription?: Subscription;
 
     constructor(
-        private elementRef: ElementRef,
-        private sds: SwitchDininghallService,
-    ) {}
-
-    ngOnInit(): void {}
-
-    ngAfterViewInit(): void {}
-
-    changeData(event: any): void {
-        //add changing colors
-        const name = event.target.innerText;
-        this.sds.changeData(name);
-
-        //also switch data...
+        private selectorService: SwitchDininghallService,
+    ) {
+        this.currentDiningHall = DiningHallsEnum.Ohill;
     }
 
-    get name1() {
-        return this.sds.name1;
+    ngOnInit(): void {
+        this.diningHallSubscription = this.selectorService.currentDiningHall.subscribe((value) => {
+            this.currentDiningHall = value;
+        })
     }
-    get name2() {
-        return this.sds.name2;
+
+    ngOnDestroy(): void {
+        if (this.diningHallSubscription) {
+            this.diningHallSubscription.unsubscribe();
+        }
     }
-    get name3() {
-        return this.sds.name3;
+
+    changeData(value: DiningHalls): void {
+        this.selectorService.changeState(value);
     }
-    get name1Boolean() {
-        return this.sds.name1Boolean;
+
+    getButtonName(value: DiningHalls): string {
+        return `${DiningHallsEnum[value]} Dining Hall`;
     }
-    get name2Boolean() {
-        return this.sds.name2Boolean;
+
+    get diningHalls(): DiningHalls[] {
+        return this.selectorService.getDiningHalls();
     }
-    get name3Boolean() {
-        return this.sds.name3Boolean;
+
+    get activeDiningHall(): DiningHalls {
+        return this.currentDiningHall;
     }
 }

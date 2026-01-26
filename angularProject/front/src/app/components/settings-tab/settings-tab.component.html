@@ -1,141 +1,27 @@
 <div class="flex flex-grow flex-row flex-wrap overflow-x-hidden border-b-2 py-3 w-full min-w-[300px]">
-    <div class="flex flex-grow flex-col w-full " *ngIf="identifier !== 'Password'; else singleValue" [ngClass]="{'lg:flex-row' : identifier=='Notification', '' : identifier!='Notification'}">
+    <div class="flex flex-grow flex-col w-full " *ngIf="!isPasswordResetTabActive; else singleValue" [ngClass]="{'lg:flex-row': isNotificationTabActive, '' : !isNotificationTabActive}">
         <div id="subtext" class="font-sans text-sm text-start w-[40%]">
-            <h2 class="font-semibold"> {{title}} </h2>
-            <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden min-w-[220px] h-fit"> {{subtext}}</h3>
+            <h2 class="font-semibold"> {{titleTextMapping[currentTab].title}} </h2>
+            <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden min-w-[220px] h-fit"> {{titleTextMapping[currentTab].description}}</h3>
         </div>
-        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full px-1" *ngIf="identifier === 'Notification'">
-            <div *ngFor="let option of options | keyvalue" class="my-auto flex flex-grow h-full justify-center align-middle items-center px-1"> <!-- this is good if we have a nested object, but what about just plain values -->
-                <div class="my-4 flex flex-grow overflow-scroll h-full justify-center align-middle items-center" *ngIf="skipFoodProperty(option.key)"> 
-                    <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="flex flex-col flex-grow h-full justify-center p-1"></app-toggle>
+        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full px-1" *ngIf="isNotificationTabActive">
+            <div *ngFor="let setting of settings | keyvalue" class="my-auto flex flex-grow h-full justify-center align-middle items-center px-1"> <!-- this is good if we have a nested object, but what about just plain values -->
+                <div class="my-4 flex flex-grow overflow-scroll h-full justify-center align-middle items-center"> 
+                    <app-toggle [isToggled]="checkIfPropIsChecked(setting.key)" [name]="getToggleTitle(setting.key)" [subtext]="getToggleDescription(setting.key)" (isToggledChange)="onToggleChange(setting.key, $event)" class="flex flex-col flex-grow h-full justify-center p-1"></app-toggle>
                 </div>
             </div>
             <div class="flex flex-row w-full text-neutral-100">
-                <button *ngIf="pendingChanges" type="submit" class="flex ml-auto mr-2 px-3 py-1 bg-green-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="saveChange($event)">Save Changes</button>
-                <button *ngIf="pendingChanges" type="submit" class="flex mr-auto ml-2 px-3 py-1 bg-red-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="discardChange($event)">Discard Changes</button>
+                <button *ngIf="pendingChanges" type="submit" class="flex ml-auto mr-2 px-3 py-1 bg-green-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="saveChange()">Save Changes</button>
+                <button *ngIf="pendingChanges" type="submit" class="flex mr-auto ml-2 px-3 py-1 bg-red-700 opacity-90 my-2 rounded-sm hover:opacity-100 transition-opacity duration-200" (click)="discardChange()">Discard Changes</button>
             </div>
         </div>
-        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full" *ngIf="identifier === 'Profile'"> <!-- if I need to reuse, I can always turn this into a component later -->
-            <div class="bg-neutral-300 m-0 rounded-lg relative flex items-center justify-center flex-col">
-                <div class="bg-[#232D48] rounded-t-lg h-[10vh] flex flex-grow w-full"> 
-                    <div class="flex items-center m-5 text-neutral-200">
-                        <img src="path_to_profile_image.jpg" alt="Profile Picture" class="w-16 h-16 rounded-full">
-                        <div class="ml-4">
-                          <h2 class="text-lg font-semibold"> {{username}} </h2>
-                          <p class="text-neutral-300">Food Reviewer</p>
-                        </div>
-                      </div>
-                </div>
-                <div class="bg-neutral-200 flex m-5 flex-grow h-fit">
-                    <div class="container mx-auto">
-                        <div class="max-w-full w-fit mx-auto bg-white shadow-md rounded-md overflow-hidden">
-                          <div class="p-4">
-                            <div class="grid grid-cols-2 gap-4">
-                              <div>
-                                <h3 class="text-lg font-medium">About me</h3>
-                                <p class="text-gray-500">I am a passionate food critic who loves exploring different cuisines and sharing my experiences with others. Follow me for the latest restaurant reviews and culinary adventures!</p>
-                                <div class="mt-4">
-                                  <h3 class="text-lg font-medium">Favorite Campus Dining Halls</h3>
-                                  <ol class="list-disc list-inside text-gray-500">
-                                    <li>Observatory Hill Dining Hall</li>
-                                    <li>Runk Dining Hall</li>
-                                    <li>Newcomb Dining Hall</li>
-                                  </ol>
-                                </div>
-                              </div>
-                              <div>
-                                <h3 class="text-lg font-medium">Contact</h3>
-                                <p class="text-gray-500">Email: {{email}} </p>
-                                <div class="mt-4">
-                                  <h3 class="text-lg font-medium">Favorite Foods</h3>
-                                  <ul class="list-disc list-inside text-gray-500">
-                                    <li><a href="https://twitter.com/johndoe" target="_blank" class="text-blue-500">Twitter</a></li>
-                                    <li><a href="https://linkedin.com/in/johndoe" target="_blank" class="text-blue-500">LinkedIn</a></li>
-                                    <li><a href="https://github.com/johndoe" target="_blank" class="text-blue-500">GitHub</a></li>
-                                  </ul>
-                                </div>
-                                <div class="mt-4">
-                                  <h3 class="text-lg font-medium">Badges</h3>
-                                  <div class="flex items-center mt-2">
-                                    <img src="path_to_badge1.png" alt="Badge 1" class="w-6 h-6 rounded-full" title="A fresh review critic">
-                                    <img src="path_to_badge2.png" alt="Badge 2" class="w-6 h-6 rounded-full ml-2">
-                                    <img src="path_to_badge3.png" alt="Badge 3" class="w-6 h-6 rounded-full ml-2">
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                </div>
-            </div>
-            <div *ngFor="let option of options | keyvalue" class="my-2 overflow-scroll flex flex-grow">
-                <div *ngIf="option.key === 'remainAnonymous'; else others">
-                    <app-toggle [option]="option" [identifier]="identifier" [check]="checkIfPropIsChecked(option.key)" class="m-auto"> </app-toggle>
-                </div>
-                <ng-template #others>
-                    <div class="flex flex-row gap-1">
-                        <h3> {{option.key}} is currently {{option.value}} - Click to change</h3>
-                        <button class="w-5 h-5 rounded-sm" [ngClass]="{'bg-[#232D48]': option.value === 'default', 'bg-[#{{option.value}}]': option.value !== 'default' }"></button>
-                    </div>
-                </ng-template>
-            </div>
-            <h2 class="font-semibold text-sm text-start font-sans tracking-tight w-full border-t-2 pt-3"> ACCOUNT REMOVAL </h2>
-            <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden my-0 text-sm text-start font-sans"> Disabling your account means you can recover it at any time after taking this action </h3>
-            <div class="flex flex-row pt-3 pb-1">
-                <button class="font-medium text-center border border-red-400 ml-0 mr-2 bg-red-500 p-1 rounded-md transition-[background-color]"> Disable Account </button> 
-                <button class="font-medium inline-block text-center border border-red-600 p-1 ml-2 mr-0 rounded-md hover:bg-red-700/30 shadow-black transition-[background-color]"> Delete Account </button> <!-- No clue why this shifts text when opacity is 100 -->
-            </div>
+        <div class="flex flex-col flex-grow font-sans text-sm text-start mt-4 w-full" *ngIf="isProfileTabActive">
+            <app-settings-tab-profile [title]="profileTabMetadata.title" [description]="profileTabMetadata.description"></app-settings-tab-profile>
         </div>
     </div>
    <!-- Potentially add push notifications later -->
-   <ng-template #singleValue class="flex flex-row w-full h-fit ">
-        <div class="flex flex-row w-fit overflow-auto bg-inherit h-fit flex-grow">
-            <div class="font-sans text-sm text-start min-w-[220px] w-fit">
-                <h2 class="font-semibold"> {{title}} </h2>
-                <h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden mb-3"> {{subtext}} </h3>
-                <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="h-fit flex flex-col relative align-middle overflow-auto py-0 flex-grow w-full">
-                    <div class="flex flex-col w-full flex-grow justify-center">
-                        <label for="pass1" class="text-left font-medium  text-xs text-gray-800 block pt-1 "> Current Password </label>
-                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': passError , 'border-gray-300': !passError}">
-                            <input type="password" name="pass1" placeholder="Type your password" formControlName="password" appNoAutocompleteBg class="text-xs border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-2" >
-                        </div>
-                    </div>
-                    <ng-container [formGroup]="passGroup" class="flex flex-grow">
-                        <div class="inline-flex flex-col w-full flex-grow justify-center">
-                            <label for="pass1" class="text-left font-medium text-xs text-gray-800 block pt-1 "> New Password </label>
-                            <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': firstPassError || bothPassError, 'border-gray-300': !firstPassError && !bothPassError}">
-                                <input type="password" name="pass1" placeholder="Must be at least 8 characters" formControlName="firstPass" appNoAutocompleteBg class="text-xs border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-2" >
-                            </div>
-                        </div>
-                        <div class="inline-flex flex-col w-full flex-grow justify-center">
-                            <label for="pass2" class="text-left font-medium text-xs mb-0 text-gray-800 block lg:pt-3 pt-2"> Re-enter Password </label>
-                            <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': secondPassError || bothPassError, 'border-gray-300': !secondPassError && !bothPassError}">
-                                <input type="password" name="pass2" placeholder="Must be at least 8 characters" formControlName="secondPass" appNoAutocompleteBg class="text-xs  align-middle text-gray-800 font-medium outline-none py-1 focus:placeholder:text-transparent indent-2 w-full" >
-                            </div>
-                        </div>
-                    </ng-container>
-                    <ng-container class="w-full flex flex-col"> <!-- Password Requirements -->
-                        <h2 class="font-medium" [ngClass]="{'text-red-600': (firstPass.errors?.['minlength'] || firstPass.errors?.['maxlength'] || secondPass.errors?.['maxlength'] || secondPass.errors?.['minlength'])}" > Passwords Must Be Between 8-32 Characters long </h2>
-                        <h2 class="font-medium" [ngClass]="{'text-red-600': (secondPass.errors?.['whitespace'] || firstPass.errors?.['whitespace'])}" > No spaces are allowed </h2>
-                        <h2 class="font-medium" [ngClass]="{'text-red-600': (passGroup.errors?.['matchingPasswords'])}" > Passwords Must Match </h2>
-                        <h2> Must have one Uppercase character (optional right now -- implement later) </h2>
-                        <h2> Must contain one special character  (optional right now -- implement later)</h2>
-                    </ng-container>
-                    <div class="w-full flex flex-grow flex-col justify-center px-1">
-                        <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-[#EB5F0C] via-[#ee874b] to-[#f5a679]  py-3 text-center my-3 shadow-black shadow-inner rounded-full"> {{resetPassbtn}} </button>
-                    </div>
-                    
-                </form>
-            </div>
-            <!-- <div class="flex flex-col">
-                <app-toggle  class="flex flex-col"></app-toggle>
-            </div> -->
-        </div>
-        <!-- <div class="flex flex-col flex-grow">
-            fasd
-        </div> -->
+   <ng-template #singleValue class="flex flex-row w-full h-fit">
+        <app-reset-password [title]="passwordTabMetadata.title" [description]="passwordTabMetadata.description"></app-reset-password>
    </ng-template>
 </div>
 <dialog #modal class="bg-neutral-50 text-center min-w-[200px] w-[30%] min-h-[250px] p-0 rounded-md">
@@ -147,8 +33,8 @@
             <h2 class="w-full text-xl py-1 border-b-2 font-bold"> {{dialogText}} </h2> 
             <h4 class="font-light"> {{subDialogText}} </h4>
         </div>
-        <button (click)="closeModal($event)" class="align-bottom mt-auto text-center h-full mb-1 border-t-2 hover:text-lg" > Close </button>
+        <button (click)="closeModal()" class="align-bottom mt-auto text-center h-full mb-1 border-t-2 hover:text-lg" > Close </button>
     </div>
     
 </dialog>
-<button (click)="showModals($event)"> TEMP MODAL TESTING BUTTON </button>
+<button (click)="showModals()"> TEMP MODAL TESTING BUTTON </button>

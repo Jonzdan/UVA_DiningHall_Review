@@ -5,7 +5,7 @@
                 <?xml version="1.0" encoding="utf-8"?>
                 <!-- Generator: Adobe Illustrator 25.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
                 <!-- <a href="https://pixlok.com/icons/back-svg-icon-free-download/" class="hidden">House photo created by Search png - www.pixlok.com</a> -->
-                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"  class="md:scale-[0.075] hover:cursor-pointer scale-[0.045] md:hover:scale-[0.08] hover:scale-[0.05]" (click)="switchToHomePage($event)"
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"  class="md:scale-[0.075] hover:cursor-pointer scale-[0.045] md:hover:scale-[0.08] hover:scale-[0.05]" (click)="switchToHomePage()"
                     viewBox="0 0 440.5 291.1" xml:space="preserve" >
                     <title class="bg-transparent "> Return to home page </title>
                     
@@ -17,32 +17,22 @@
             <div class="lg:mt-8 md:mt-6 my-4 min-h-max flex-col justify-end flex flex-grow w-full text-center">
                <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Register </h2> <!-- worry about scrollbar showing when screen is stretched -->
             </div>
-            <form  [formGroup]="inputForm" (ngSubmit)="onSubmit($event)" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow-[3] w-full">
+            <form  [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow-[3] w-full">
                 <div class="flex flex-col w-full align-middle flex-grow justify-center">
                     <label for="email" class="text-left font-[450] lg:text-base text-sm mb-0 align-middle text-gray-800 block lg:pt-2 pt-1 indent-2"> Email Address </label>
-                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': emailError , 'border-gray-300': !emailError}">
-                       <input type="email" name="email" placeholder="example@email.com" id="email" appNoAutocompleteBg formControlName="email"  class="lg:text-base w-full focus:placeholder:text-transparent text-sm font-medium outline-none indent-3"  > 
+                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': emailErrorFlag , 'border-gray-300': !emailErrorFlag}">
+                       <input type="email" name="email" placeholder="example@email.com" id="email" appNoAutocompleteBg formControlName="email" class="lg:text-base w-full focus:placeholder:text-transparent text-sm font-medium outline-none indent-3"  > 
                     </div>
                     
                     <div class="relative mb-2 mt-1" >
                         <div *ngIf="(email?.dirty || email?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': emailLoading, 'hidden': !emailLoading}">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': isEmailLoading, 'hidden': !isEmailLoading}">
                                 <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                     <!-- implement check later -->
                                 </div>
                             </div>
-                            <div *ngIf="email?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="indent-3">
-                                <h3 *ngIf="email?.errors?.['required']; else e1" class=""> Required Field </h3>
-                                <ng-template #e1>
-                                    <h3 *ngIf="email?.errors?.['email']; else whitespace_e" class=""> Invalid Email </h3>
-                                </ng-template>
-                                <ng-template #whitespace_e> 
-                                    <h3 *ngIf="email?.errors?.['whitespace']; else e2"> Email cannot contain spaces </h3> <!-- start here next time-->
-                                </ng-template>
-                                <ng-template #e2>
-                                    <h3 *ngIf="invalidEmailSubmit"> Email Already Registered </h3>
-                                </ng-template>
-                                
+                            <div *ngIf="email?.invalid" [ngClass]="{'hidden': hideOtherErrorFlag, 'block':!hideOtherErrorFlag}" class="indent-3">
+                                <h3> {{ errorMessage(fieldStateEnum.email) }}</h3>
                             </div>
                         </div>
                         
@@ -50,64 +40,38 @@
                 </div>
                 <div class="inline-flex flex-col w-full align-middle flex-grow justify-center">
                     <label for="user" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 align-middle indent-2"> New Username </label>
-                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': userError , 'border-gray-300': !userError}">
+                    <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': userErrorFlag , 'border-gray-300': !userErrorFlag}">
                         <input type="text" name="user" placeholder="Must be at least 6 characters" id="user" appNoAutocompleteBg formControlName="user"  class="lg:text-base text-sm border-b-2 rounded-sm align-middle mb-0 text-gray-800 font-medium w-full border-none outline-none py-1 focus:placeholder:text-transparent indent-3">
                     </div>
                     <div class="relative mb-2 mt-1">
                         <div *ngIf="(user?.dirty || user?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': userLoading, 'hidden': !userLoading}">
+                            <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': isUserLoading, 'hidden': !isUserLoading}">
                                 <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                     <!-- implement check later -->
                                 </div>
                             </div>
-                            <div *ngIf="user?.invalid" [ngClass]="{'hidden': hideUserErrorText, 'block':!hideUserErrorText}" class="indent-3">
-                                <div *ngIf="user?.errors?.['required']; else u1" > Required Field </div>
-                                <ng-template #u1>
-                                    <div *ngIf="user?.errors?.['minlength']; else u2"> Username Length Must Be At Least 6 Characters</div>
-                                </ng-template>
-                                <ng-template #u2>
-                                    <h3 *ngIf="user?.errors?.['maxlength']; else whitespace_u" > Username Length Must Be Less Than 17 Characters </h3>
-                                </ng-template>
-                                <ng-template #whitespace_u> 
-                                    <h3 *ngIf="user?.errors?.['whitespace']; else u3"> Username cannot contain spaces </h3> <!-- start here next time-->
-                                </ng-template>
-                                <ng-template #u3>
-                                    <h3 *ngIf="invalidUserSubmit"> Username Already Taken </h3>
-                                </ng-template>
-                                
+                            <div *ngIf="user?.invalid" [ngClass]="{'hidden': hideUserErrorFlag, 'block': !hideUserErrorFlag}" class="indent-3">
+                                <h3> {{ errorMessage(fieldStateEnum.user) }}</h3>
                             </div>
                         </div>
                     </div>
                 </div>
-                <ng-container [formGroup]="passGroup" class="flex flex-grow">
+                <ng-container [formGroup]="passwordGroup" class="flex flex-grow">
                     <div class="inline-flex flex-col w-full flex-grow justify-center">
                         <label for="pass1" class="text-left font-[450] lg:text-base text-sm text-gray-800 block pt-1 indent-2"> New Password </label>
-                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': firstPassError || bothPassError, 'border-gray-300': !firstPassError && !bothPassError}">
-                            <input type="password" name="pass1" placeholder="Must be at least 8 characters" formControlName="firstPass" appNoAutocompleteBg class="lg:text-base text-sm border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-3" >
+                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': passwordErrorFlag || bothPasswordsErrorFlag, 'border-gray-300': !passwordErrorFlag && !bothPasswordsErrorFlag}">
+                            <input type="password" name="pass1" placeholder="Must be at least 8 characters" formControlName="password" appNoAutocompleteBg class="lg:text-base text-sm border-b-2 w-full align-middle mb-0 text-gray-800 font-medium border-none outline-none py-1 focus:placeholder:text-transparent indent-3" >
                         </div>
                         <div class="relative mb-2 mt-1" >
                             
-                            <div *ngIf="(firstPass?.dirty || firstPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': firstPassLoading, 'hidden': !firstPassLoading}">
+                            <div *ngIf="(password?.dirty || password?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': isPasswordLoading, 'hidden': !isPasswordLoading}">
                                     <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                         <!-- implement check later -->
                                     </div>
                                 </div>
-                                <div *ngIf="firstPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}" class="indent-3">
-                                    <h3 *ngIf="firstPass?.errors?.['required']; else minLengthValid"> Required Field </h3>
-                                    <ng-template #minLengthValid>
-                                        <h3 *ngIf="firstPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #maxLengthValid>
-                                        <h3 *ngIf="firstPass?.errors?.['maxlength']; else whitespace_fp" > Password Length Must Be Less Than 32 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #whitespace_fp> 
-                                        <h3 *ngIf="firstPass?.errors?.['whitespace']; else matchingPasswords"> Password cannot contain spaces </h3> <!-- start here next time-->
-                                    </ng-template>
-                                    <ng-template #matchingPasswords>
-                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']; "> Passwords Must Match </h3>
-                                    </ng-template>
-                                    
+                                <div *ngIf="password?.invalid" [ngClass]="{'hidden': hideOtherErrorFlag, 'block':!hideOtherErrorFlag}" class="indent-3">
+                                    <h3> {{ errorMessage(fieldStateEnum.password) }}</h3>
                                 </div>
                             </div>
                             
@@ -115,33 +79,18 @@
                     </div>
                     <div class="inline-flex flex-col w-full flex-grow justify-center">
                         <label for="pass2" class="text-left font-[450] lg:text-base text-sm mb-0 text-gray-800 block lg:pt-3 pt-2 indent-2"> Re-enter Password </label>
-                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': secondPassError || bothPassError, 'border-gray-300': !secondPassError && !bothPassError}">
-                            <input type="password" name="pass2" placeholder="Must be at least 8 characters" formControlName="secondPass" appNoAutocompleteBg class="lg:text-base text-sm  align-middle text-gray-800 font-medium outline-none py-1 focus:placeholder:text-transparent indent-3 w-full" >
+                        <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': confirmPasswordErrorFlag || bothPasswordsErrorFlag, 'border-gray-300': !confirmPasswordErrorFlag && !bothPasswordsErrorFlag}">
+                            <input type="password" name="pass2" placeholder="Must be at least 8 characters" formControlName="confirmPassword" appNoAutocompleteBg class="lg:text-base text-sm  align-middle text-gray-800 font-medium outline-none py-1 focus:placeholder:text-transparent indent-3 w-full" >
                         </div>
                         <div class="relative mb-2 mt-1" >
-                            <div *ngIf="(secondPass?.dirty || secondPass?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
-                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': secondPassLoading, 'hidden': !secondPassLoading}">
+                            <div *ngIf="(confirmPassword?.dirty || confirmPassword?.touched)" class="text-red-800 text-left font-bold font-[Futura] flex flex-row lg:text-sm text-xs align-bottom absolute z-10 italic">
+                                <div class="rounded-full border-none mr-2 border-0 spin items-center justify-center w-[17px] h-[17px] flex visible " [ngClass]="{'animate-spin flex': isConfirmPasswordLoading, 'hidden': !isConfirmPasswordLoading}">
                                     <div class="bg-white rounded-full h-3 w-3 self-center align-middle">
                                         <!-- implement check later -->
                                     </div>
                                 </div>
-                                <div *ngIf="secondPass?.invalid" [ngClass]="{'hidden': hideErrorText, 'block':!hideErrorText}" class="indent-3">
-                                    <h3 *ngIf="secondPass?.errors?.['required']; else minLengthValid" > Required Field </h3>
-                                    <ng-template #minLengthValid>
-                                        <h3 *ngIf="secondPass?.errors?.['minlength']; else maxLengthValid"> Password Length Must Be At Least 8 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #maxLengthValid>
-                                        <h3 *ngIf="secondPass?.errors?.['maxlength']; else whitespace_sp" > Password Length Must Be Less Than 32 Characters </h3>
-                                    </ng-template>
-                                    <ng-template #whitespace_sp> 
-                                        <h3 *ngIf="secondPass?.errors?.['whitespace']; else matchingPasswords"> Password cannot contain spaces </h3> <!-- start here next time-->
-                                    </ng-template>
-                                    <ng-template #matchingPasswords>
-                                        <h3 *ngIf="passGroup?.errors?.['matchingPasswords']; else timeout"> Passwords Must Match </h3>
-                                    </ng-template>
-                                    <ng-template #timeout> 
-                                        <h3 *ngIf="secondPass?.errors?.['timeout']"> Something went wrong </h3> <!-- start here next time-->
-                                    </ng-template>
+                                <div *ngIf="confirmPassword?.invalid" [ngClass]="{'hidden': hideOtherErrorFlag, 'block':!hideOtherErrorFlag}" class="indent-3">
+                                    <h3> {{ errorMessage(fieldStateEnum.confirmPassword) }}</h3>
                                 </div>
                             </div>
                             
@@ -149,7 +98,7 @@
                     </div>
                 </ng-container>
                 <div class="w-full flex flex-grow flex-col">
-                    <button type="submit" [ngClass]="{'hover:animate-bgShift': first, 'animate-oppBgShift': !first && !firstTime}" (mouseenter)="updateBool($event)" (mouseleave)="updateBool($event)"  class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-[#EB5F0C] via-[#ee874b] to-[#f5a679]  py-3 text-center my-3 shadow-black shadow-inner rounded-full"> {{regButtonText}} </button>
+                    <button type="submit" [ngClass]="{'hover:animate-bgShift': firstAnimationPhase, 'animate-oppBgShift': !firstAnimationPhase && !preAnimation}" (mouseenter)="updateAnimationState()" (mouseleave)="updateAnimationState()" class="text-white float-left font-semibold bg-[length:300%] bg-gradient-to-l md:my-50 hover:scale-[101%] from-[#EB5F0C] via-[#ee874b] to-[#f5a679]  py-3 text-center my-3 shadow-black shadow-inner rounded-full"> {{regButtonText}} </button>
                 </div>
                 
             </form>
@@ -158,8 +107,6 @@
                 <h4 class="text-center font-normal lg:text-base text-sm text-gray-800 lg:px-2 px-1 align-bottom "> Already have an account?</h4>
                 <a routerLink="../login" class="hover:text-red-400 hover:transition-colors text-center flex flex-col font-normal lg:text-base text-sm text-gray-800 lg:px-2 px-1 align-bottom "> Login </a>
             </div>
-
-            <span class="invisible"> TEMP </span>
         </div>
 
     </div>

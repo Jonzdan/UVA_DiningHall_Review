@@ -1,437 +1,120 @@
 import {
     Component,
-    ElementRef,
-    Input,
-    type OnInit,
+    OnInit,
     ViewChild,
 } from '@angular/core';
-import { AccountService } from '../../services';
-import { Subscription, debounceTime, tap } from 'rxjs';
-import {
-    AbstractControl,
-    FormControl,
-    FormGroup,
-    type ValidationErrors,
-    type ValidatorFn,
-} from '@angular/forms';
+import { AccountOrchestrationService, AccountService, SettingsService } from '../../services';
 import { Router } from '@angular/router';
+import { NotificationMetadata, SettingsTabToMetadata } from './types';
+import { notificationsEmailText, passwordText, profileText, SettingTabTypes, ToggleSettingsKeys } from 'src/app/services/settings';
+import { ROUTE_PATHS } from 'src/app/constants';
+import { TabToTitleAndSubtext, NotificationTitleAndSubtext } from './constants';
 
 @Component({
     selector: 'app-settings-tab',
     templateUrl: './settings-tab.component.html',
     styleUrls: ['./settings-tab.component.css'],
 })
-export class SettingsTabComponent implements OnInit {
-    @Input() identifier!: any;
+export class SettingsTabComponent {
     @ViewChild('modal') modal: any;
-    options: Record<string, any> = {};
-    text: Record<string, any> = {};
-    firstTime = true;
-    first = false;
-    inputForm!: FormGroup;
-    passLoading = false;
-    firstPassLoading = false;
-    secondPassLoading = false;
-    goodMsg!: string;
-    hideErrorText = false;
-    invalidPassSubmit = false;
-    invalidUserSubmit = false;
-    private currentSubmission = false;
-    resetPassbtn = 'Reset Password';
-    passError = false;
-    secondPassError = false;
-    firstPassError = false;
-    bothPassError = false;
-    dialogText = 'Invalid Password';
-    subDialogText =
+
+    public dialogText = 'Invalid Password';
+    public subDialogText =
         'Our system detected an error with one of the entered passwords. Please check your passwords and try again.';
-    private _subscription: Subscription = new Subscription();
+
     constructor(
-        private acc: AccountService,
-        private elementRef: ElementRef,
+        private accountService: AccountService,
+        private accountOrchestrationService: AccountOrchestrationService,
+        private settingsService: SettingsService,
         private router: Router,
     ) {}
 
-    ngOnInit(): void {
-        this.options =
-            this.acc.accountInfo[
-                this.acc.convertViewToProperty(this.identifier)
-            ];
-        this.text = this.acc.getStringsForIdentifiers(this.identifier);
-        this.inputForm = new FormGroup({
-            password: new FormControl('', []),
-            passGroup: new FormGroup(
-                {
-                    firstPass: new FormControl('', []),
-                    secondPass: new FormControl('', []),
-                },
-                this.matchingPasswords(),
-            ),
-        });
-
-        const passObs = this.password?.valueChanges
-            .pipe(
-                tap(() => {
-                    this.passError = false;
-                }),
-                debounceTime(400),
-            )
-            .subscribe((res) => {
-                this.passLoading = false;
-                this.invalidPassSubmit = false;
-                const obj = this.helper('password', this.password);
-                this.password?.setErrors(obj);
-            });
-
-        const passgroup = this.passGroup?.valueChanges
-            .pipe(
-                tap(() => {
-                    /* this.firstPassLoading = true; */ this.secondPassLoading = true;
-                }),
-                debounceTime(400),
-            )
-            .subscribe((res) => {
-                //this.passGroup?.setErrors(this.matchingPasswords())
-                this.secondPassLoading = false;
-            });
-
-        const fp = this.firstPass?.valueChanges
-            .pipe(
-                //tap(()=> {this.firstPassLoading = true; this.secondPassLoading = true}),
-                debounceTime(400),
-            )
-            .subscribe((res) => {
-                const obj: Record<string, any> = this.helper(
-                    'firstPass',
-                    this.firstPass,
-                );
-                this.firstPass?.setErrors(obj);
-                /* if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.firstPassError = true} 
-      else { this.firstPassError = false } */
-                //this.firstPassLoading = false; this.secondPassLoading = false
-            });
-
-        const sp = this.secondPass?.valueChanges
-            .pipe(
-                //tap(()=> {this.secondPassLoading = true; this.firstPassLoading = true}),
-                debounceTime(400),
-            )
-            .subscribe((res) => {
-                const obj: Record<string, any> = this.helper(
-                    'secondPass',
-                    this.secondPass,
-                );
-                //this.secondPassLoading = false; this.firstPassLoading = false
-                this.secondPass?.setErrors(obj);
-                /* if (obj?.['minlength'] || obj?.['maxlength'] || obj?.['required'] || obj?.['whitespace']) { this.secondPassError = true} 
-      else { this.secondPassError = false } */
-            });
-
-        const regEventMsg = this.acc.eventMsg.subscribe((res) => {
-            //* Good Enough For Now*
-            switch (res) {
-                case '401': {
-                    //temporary
-                    this.inputDefault();
-                    this.passError = true;
-                    this.showModals('');
-                    break;
-                }
-                case 'Submitting...': {
-                    ((this.resetPassbtn = 'Reset Password'),
-                        (this.currentSubmission = true));
-                    this.hideErrorText = true;
-                    this.firstPassLoading = false;
-                    this.secondPassLoading = false;
-                    this.firstPassLoading = true;
-                    this.secondPassLoading = true;
-                    break;
-                }
-                case 'Done!': {
-                    this.resetPassbtn = res;
-                    setTimeout(() => {
-                        //prefetch maybe -- Def add transition later **IMPORTANT** --perhaps disable input fields
-                        this.resetPassbtn = 'RESET PASSWORD';
-                        this.currentSubmission = false;
-                    }, 400);
-                    break;
-                }
-                case 'FIRSTPASS_ERROR_MAX': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.firstPassError = true;
-                        this.firstPass.setErrors({ maxlength: true });
-                    }, 400);
-                    break;
-                }
-                case 'FIRSTPASS_ERROR_MIN': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.firstPassError = true;
-                        this.firstPass.setErrors({ minlength: true });
-                    }, 400);
-                    break;
-                }
-                case 'SECONDPASS_ERROR_MAX': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.secondPassError = true;
-                        this.secondPass.setErrors({ maxlength: true });
-                    }, 400);
-                    break;
-                }
-                case 'SECONDPASS_ERROR_MIN': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.secondPassError = true;
-                        this.secondPass.setErrors({ minlength: true });
-                    }, 400);
-                    break;
-                }
-                case 'PASS_MATCHING_ERROR': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.bothPassError = true;
-                        this.passGroup.setErrors({ matchingPasswords: true });
-                    }, 400);
-                    break;
-                }
-                case 'FIRSTPASS_WHITESPACE_ERROR': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.firstPassError = true;
-                        this.firstPass.setErrors({ whitespace: true });
-                    }, 400);
-                    break;
-                }
-                case 'SECONDPASS_WHITESPACE_ERROR': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.secondPassError = true;
-                        this.secondPass.setErrors({ whitespace: true });
-                    }, 400);
-                    break;
-                }
-                case 'TIMEOUT_ERROR': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.secondPass.setErrors({ timeout: true });
-                    }, 400);
-                }
-            }
-        });
-
-        this._subscription.add(passObs);
-        this._subscription.add(fp);
-        this._subscription.add(sp);
-        this._subscription.add(passgroup);
-        this._subscription.add(regEventMsg);
+    public onToggleChange(key: string, value: boolean) {
+        this.settingsService.addValueToStagedSettings(key as ToggleSettingsKeys, value);
     }
 
-    validate(fg: FormGroup) {
-        const error = true;
-        Object.keys(fg.controls).forEach((field) => {
-            const control = fg.get(field);
-            if (control instanceof FormControl) {
-                if (!control.touched || !control.dirty) {
-                    control.markAsTouched({ onlySelf: true });
-                    control.markAsDirty({ onlySelf: true });
-                }
-                const obj = this.helper(field, control);
-                control.setErrors(obj);
-            } else if (control instanceof FormGroup) {
-                this.validate(control);
-            }
-        });
-        return error;
-    }
-
-    saveChange(e: any) {
-        const html = e.target.textContent;
-        this.acc.updateAccountSettings();
-        this.acc.pendingChanges = false;
-    }
-
-    discardChange(e: any) {
-        //revert every slider to what it was before in child components
-        const data =
-            this.acc.accountInfo[
-                this.acc.convertViewToProperty('Notification')
-            ];
-        if (data === undefined) throw console.error(data);
-        const targets = this.acc.clickedOnTargets;
-        for (const target of targets) {
-            target.target.checked = data?.[target.prop]; //this works
-            //target.target.nextElementSibling.className = this.slider
-            //target.target.dispatchEvent(new Event('change'))
-        }
-
-        this.acc.resetNotificationSettingsToDefault();
-        this.acc.pendingChanges = false;
-    }
-
-    async onSubmit(e: any) {
-        //Pretty shit solution, change to rxjs subject later...
-        if (this.firstPassLoading || this.secondPassLoading) {
-            setTimeout(() => {
-                this.onSubmit(e);
-            }, 500);
-            return;
-        }
-
-        if (
-            this.invalidPassSubmit ||
-            this.invalidUserSubmit ||
-            this.currentSubmission ||
-            this.passError ||
-            this.firstPassError ||
-            this.secondPassError
-        ) {
-            return;
-        }
-        if (this.validate(this.inputForm)) {
-            //submit form
-
-            const res = await this.acc.resetPassword(this.inputForm);
-            //just in case
-        } else {
-            //incorrect form or something
-            //* Review Later about this */
-            this.hideErrorText = true;
-            this.passLoading = true;
-            setTimeout(() => {
-                this.hideErrorText = false;
-                this.currentSubmission = false;
-                this.passLoading = false;
-            }, 500);
+    async saveChange() {
+        const result = await this.accountOrchestrationService.save();
+        if (!result) {
+            /**
+             * TODO: Display some error --> maybe call revert
+             */
         }
     }
 
-    inputDefault(): void {
-        this.resetPassbtn = 'Reset Password';
-        this.passLoading = false;
-        this.secondPassLoading = false;
-        this.firstPassLoading = false;
-        this.currentSubmission = false;
-        this.hideErrorText = false;
+    discardChange(): void {
+        this.accountOrchestrationService.reset();
     }
 
-    updateBool(e: any) {
-        if (this.firstTime) this.firstTime = false;
-        this.first = !this.first;
-    }
-
-    helper(field: string, control: AbstractControl) {
-        const obj: Record<string, any> = {};
-        if (control.value.length === 0) {
-            obj['required'] = true;
-        }
-        if (/\s/.test(control.value)) {
-            obj['whitespace'] = true;
-        }
-        switch (field) {
-            case 'password': {
-                if (control.value.length < 8 && control.value.length > 0) {
-                    obj['minlength'] = true;
-                }
-                if (control.value.length > 32) {
-                    obj['maxlength'] = true;
-                }
-                break;
-            }
-            case 'firstPass': {
-                if (control.value.length < 8 && control.value.length > 0) {
-                    obj['minlength'] = true;
-                }
-                if (control.value.length > 32) {
-                    obj['maxlength'] = true;
-                }
-                break;
-            }
-            case 'secondPass': {
-                if (control.value.length < 8 && control.value.length > 0) {
-                    obj['minlength'] = true;
-                }
-                if (control.value.length > 32) {
-                    obj['maxlength'] = true;
-                }
-                break;
-            }
-        }
-        return obj;
-    }
-
-    matchingPasswords(): ValidatorFn {
-        return (control: AbstractControl): ValidationErrors | null => {
-            const password = control.get('firstPass')?.value;
-            const confirmPassword = control.get('secondPass')?.value;
-            //if (password.length < 8 || password.length > 32 || confirmPassword.length < 8 || confirmPassword > 32) { return null } //doesn't fit
-            return password === confirmPassword
-                ? null
-                : { matchingPasswords: true };
-        };
-    }
-
-    ngAfterViewInit(): void {}
-
-    showModals(e: any) {
+    showModals(): void {
         this.modal.nativeElement.showModal();
     }
 
-    closeModal(e: any) {
+    closeModal(): void {
         this.modal.nativeElement.close();
     }
 
-    checkIfPropIsChecked(specificSetting: string) {
-        //don't need general since it's specific to component
-        if (
-            this.identifier === 'Notification' &&
-            this.acc.tempSettingStore.notifications
-        ) {
-            return (
-                this.options[specificSetting] ||
-                this.acc.tempSettingStore.notifications[specificSetting]
-            );
-        } else {
-            return this.options[specificSetting];
-        }
+    checkIfPropIsChecked(specificSetting: string): boolean {
+        return !!this.settings?.[specificSetting as ToggleSettingsKeys];
     }
 
-    skipFoodProperty(s: string) {
-        if (s === 'food_opt_in_val') return false;
-        return true;
+    switchToHomePage(): void {
+        this.router.navigateByUrl(ROUTE_PATHS.HOME);
     }
 
-    get title() {
-        return this.text['title'];
+    getToggleTitle(key: string): string {
+        return NotificationTitleAndSubtext[key as ToggleSettingsKeys]?.title || 'Unknown title';
     }
-    get subtext() {
-        return this.text['subtext'];
+
+    getToggleDescription(key: string): string {
+        return NotificationTitleAndSubtext[key as ToggleSettingsKeys]?.description || '';
     }
-    get settingsList() {
-        return this.acc.accountInfo;
+
+    get titleTextMapping() {
+        return TabToTitleAndSubtext;
     }
-    get password() {
-        return this.inputForm.get('password') as FormControl;
+
+    get toggleTitleTextMapping() {
+        return NotificationTitleAndSubtext;
     }
+
+    get profileTabMetadata() {
+        return TabToTitleAndSubtext.Profile;
+    }
+
+    get passwordTabMetadata() {
+        return TabToTitleAndSubtext.Password;
+    }
+
+    get notificationsTabMetadata() {
+        return TabToTitleAndSubtext.Notification;
+    }
+
+    get currentTab() {
+        return this.settingsService.currentSettingsTab;
+    }
+
+    get isProfileTabActive() {
+        return this.currentTab === SettingTabTypes.PROFILE;
+    }
+
+    get isNotificationTabActive() {
+        return this.currentTab === SettingTabTypes.NOTIFICATIONS;
+    }
+
+    get isPasswordResetTabActive() {
+        return this.currentTab === SettingTabTypes.PASSWORD;
+    }
+
+    get settings(): Readonly<Partial<Record<ToggleSettingsKeys, boolean>>> {
+        return this.settingsService.currentSettings;
+    }
+
     get username() {
-        return this.acc.accountInfo.username;
-    }
-    get email() {
-        return this.acc.accountInfo.email;
-    }
-
-    get firstPass() {
-        return this.passGroup?.get('firstPass') as FormControl;
-    }
-    get secondPass() {
-        return this.passGroup?.get('secondPass') as FormControl;
-    }
-    get passGroup() {
-        return this.inputForm.get('passGroup') as FormGroup;
+        return this.accountService.accountDetails.username || '';
     }
 
     get pendingChanges() {
-        return this.acc.pendingChanges;
+        return this.settingsService.pendingChanges;
     }
 }

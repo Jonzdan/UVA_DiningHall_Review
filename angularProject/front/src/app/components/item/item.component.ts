@@ -1,15 +1,13 @@
 import {
     Component,
-    ElementRef,
     Input,
+    isDevMode,
     type OnInit,
     ViewChild,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
 import { StarsComponent } from '../stars';
-import { AccountService, AppReviewService, AppService } from '../../services';
-
-type objectPair = Record<string, any>;
+import { AccountService, FoodService } from '../../services';
+import type { DiningHalls, FoodItemOutput } from 'hoorank-shared';
 
 @Component({
     selector: 'app-item',
@@ -17,107 +15,102 @@ type objectPair = Record<string, any>;
     styleUrls: ['./item.component.css'],
 })
 export class ItemComponent implements OnInit {
-    @Input() short!: string;
+    @Input() diningHall!: DiningHalls;
     @Input() stationName!: string;
     @Input() indicator!: number;
+
+    // TODO: Look into later
     @ViewChild(StarsComponent) child!: StarsComponent;
     @ViewChild('front') mainCard!: any;
-    textContent = '';
-    numStars = 0;
-    flip = false;
-    starsReview!: number;
-    private _subscription = new Subscription();
-    public item!: any; //should probably leave out reviews, since they can get long
 
-    //load viewport items first, lazy load other components later
+    private reviewContent: string;
+    private _numStarsSelected: number;
+    public isDisplayingReviewLayout: boolean;
+    public avgStarRating: number;
+    public item!: FoodItemOutput;
+    public MAX_STAR_COUNT = 5;
+
     constructor(
-        private appReview: AppReviewService,
-        private elementRef: ElementRef,
-        private appService: AppService,
-        private as: AccountService,
-    ) {}
+        private foodService: FoodService,
+        private accountService: AccountService,
+    ) {
+        this.isDisplayingReviewLayout = false;
+        this._numStarsSelected = 0;
+        this.avgStarRating = 0;
+        this.reviewContent = '';
+    }
 
     ngOnInit(): void {
-        this.item = this.appService.getShopToItem(this.short)[this.stationName][
-            this.indicator
-        ];
-        this.starsReview = this.sumOfStars(this.item.itemReview.stars);
+        this.item = this.foodService.getShopItems(this.diningHall)
+            .get(this.stationName)
+            ?.at(
+                this.indicator
+            )!;
+
+        this.avgStarRating = this.item.reviewOptions?.starRating ?? 0;
     }
 
-    ngAfterViewInit(): void {}
-
-    openReviewBox(e: any): void {
-        //change to supported way
-        this.flip = !this.flip;
+    openReviewBox(): void {
+        this.isDisplayingReviewLayout = !this.isDisplayingReviewLayout;
     }
 
-    showReviews(e: any): void {}
-
-    updateStars(e: any): void {
-        if (e.target.id <= 0 || e.target.id > 5) return;
-        this.numStars = e.target.id;
+    /**
+     * Navigate to Reviews Tab
+     * @param event
+     */
+    showReviews(event: Event): void {
+        event.preventDefault();
     }
 
-    textArea(e: any): void {
-        this.textContent = e.target.value;
-    }
-
-    NaN(i: any) {
-        return isNaN(i);
-    }
-
-    private sumOfStars(starArr: any): number {
-        let count = 0;
-        for (let i = 0; i < starArr.length; i++) {
-            count += parseInt(starArr[i]);
-        }
-        return Number((count / starArr.length).toFixed(3));
-    }
-
-    //content should be an json object of 1: content 2: itemname 3: stationname: 4: stars 5:
-    async submitReview(e: any) {
-        //add stars
-        if (!this.as.signedIn) {
-            alert('Must be signed in to leave a review!');
+    updateStars(event: Event): void {
+        const target = event.target as HTMLElement;
+        if (typeof target.id !== 'number' || target.id <= 0 || target.id > 5) {
             return;
-        }
-        const content: objectPair = {
-            stationName: this.stationName,
-            itemName: this.item.itemName,
-            itemDesc: this.item.itemDesc,
-            Content: this.textContent,
-            'APP-STARS': this.numStars,
         };
-        if (
-            content['Content'] === null ||
-            content['Content'] === undefined ||
-            content['Content'].length < 50
-        ) {
-            //put pop-up showcasing limit
-            alert('Msg too short!'); //temporary
-            return;
-        }
-        if (content['APP-STARS'] > 5 || content['APP-STARS'] <= 0) {
-            alert('Invalid Star Range'); //temp
-            return;
-        }
-        const temp = await this.appReview.sendReview(this.short, content); //add spinner while loading
-        this._subscription.add(
-            temp.subscribe((res) => {
-                console.log(res);
-            }),
-        );
 
-        //
-        //console.log(responseBody)
-        //pop a little alert that says thx for submitting
+        this._numStarsSelected = target.id;
     }
 
-    ngOnDestroy(): void {
-        this._subscription.unsubscribe();
+    setReviewContent(event: Event): void {
+        this.reviewContent = (event.target as HTMLTextAreaElement).value;
     }
 
-    showOptions(e: any): void {
-        return;
+    isNaN(value: number) {
+        return isNaN(value);
+    }
+
+    // TODO: Add error display (top-level most likely)
+    async submitReview(): Promise<boolean> {
+        if (!this.accountService.accountDetails.isSignedIn) {
+            if (isDevMode()) {
+                alert('Must be signed in to leave a review!');
+            }
+            return false;
+        }
+
+        if (this.reviewContent.length < 50 || this.reviewContent.length > 500) {
+            return false;
+        }
+
+        try {
+            await this.foodService.sendReview(this.diningHall, {
+                name: this.item.name,
+                reviewOptions: {
+                    stars: this._numStarsSelected,
+                    review: this.reviewContent
+                }
+            });
+        } catch (error) {
+            if (isDevMode()) {
+                console.error(error);
+            }
+
+            return false;
+        }
+        return true;
+    }
+
+    get numStarsSelected() {
+        return this._numStarsSelected;
     }
 }

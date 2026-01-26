@@ -1,8 +1,14 @@
 import { Component, type OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription, debounceTime, tap } from 'rxjs';
-import { AccountService } from '../../services';
+import { AccountService, FormFieldErrors, FormService } from '../../services';
+import { ErrorStates, HideItems, LoadingStates, LoginFormValues, States } from './types';
+import { AuthFieldEnum, MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH, MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH, LoginFields, ErrorFormat, FormValidationErrorType } from 'hoorank-shared';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ROUTE_PATHS } from 'src/app/constants';
+
+const DEBOUNCE_TIME_MS = 400;
 
 @Component({
     selector: 'app-sign-in',
@@ -10,303 +16,287 @@ import { AccountService } from '../../services';
     styleUrls: ['./sign-in.component.css'],
 })
 export class SignInComponent implements OnInit {
-    firstTime = true;
-    first = false;
-    inputForm!: FormGroup;
-    userLoading = false;
-    passLoading = false;
-    goodMsg!: string;
-    hideErrorText = false;
-    hideUserErrorText = false;
-    invalidPassSubmit = false;
-    invalidUserSubmit = false;
-    private currentSubmission = false;
-    loginButtonText = 'LOGIN';
-    userError = false;
-    passError = false;
-    private _subscription: Subscription = new Subscription();
+    public preAnimation: boolean;
+    public firstAnimationPhase: boolean;
+    public loginButtonText = 'LOGIN';
+    private readonly _subscription: Subscription;
+    private readonly signInForm: FormGroup<LoginFormValues>;
+    private readonly loadingStates: LoadingStates;
+    private readonly errorStates: ErrorStates;
+    private readonly hideItems: HideItems;
+
     constructor(
-        private as: AccountService,
+        private accountService: AccountService,
+        private formService: FormService,
         private router: Router,
-    ) {}
+    ) {
+        this._subscription = new Subscription();
+        this.signInForm = new FormGroup<LoginFormValues>({
+            [AuthFieldEnum.user]: new FormControl('', []),
+            [AuthFieldEnum.password]: new FormControl('', [])
+        });
+        this.preAnimation = true;
+        this.firstAnimationPhase = false;
+
+        const states: States = {
+            [AuthFieldEnum.password]: false,
+            [AuthFieldEnum.user]: false,
+        };
+
+        this.loadingStates = structuredClone(states);
+        this.errorStates = {
+            ...structuredClone(states),
+            submit: false
+        };
+
+        this.hideItems = {
+            errorText: false,
+            userErrorText: false,
+        };
+    }
 
     ngOnInit(): void {
-        this.inputForm = new FormGroup({
-            user: new FormControl('', []),
-            password: new FormControl('', []),
-        });
-
-        const userObs = this.user?.valueChanges
+        const user = this.user.valueChanges
             .pipe(
                 tap(() => {
-                    this.userLoading = true;
-                    this.userError = false;
+                    this.loadingStates.user = true;
+                    this.errorStates.user = false;
                 }),
-                debounceTime(400),
+                debounceTime(DEBOUNCE_TIME_MS),
             )
-            .subscribe((res) => {
-                this.userLoading = false;
-                this.invalidUserSubmit = false;
-                const obj: Record<string, any> = this.helper('user', this.user);
-                this.user?.setErrors(obj);
-                if (
-                    obj?.['minlength'] ||
-                    obj?.['maxlength'] ||
-                    obj?.['required'] ||
-                    obj?.['whitespace']
-                ) {
-                    this.userError = true;
-                } else {
-                    this.userError = false;
-                }
+            .subscribe(() => {
+                this.loadingStates.user = false;
+                this.errorStates.submit = false;
+                const errors = this.formService.buildErrors(AuthFieldEnum.user, this.user);
+                this.user.setErrors(errors);
+                this.errorStates.user = !!(errors.USERNAME_TOO_LONG ||
+                    errors.USERNAME_TOO_SHORT ||
+                    errors.MISSING_FIELDS ||
+                    errors.WHITESPACE_PRESENT);
             });
-        const passObs = this.password?.valueChanges
+
+        const password = this.password.valueChanges
             .pipe(
                 tap(() => {
-                    this.passLoading = true;
-                    this.passError = false;
+                    this.loadingStates.password = true;
+                    this.errorStates.password = false;
                 }),
-                debounceTime(400),
+                debounceTime(DEBOUNCE_TIME_MS),
             )
-            .subscribe((res) => {
-                this.passLoading = false;
-                this.invalidPassSubmit = false;
-                const obj = this.helper('password', this.password);
-                this.password?.setErrors(obj);
-                if (
-                    obj?.['minlength'] ||
-                    obj?.['maxlength'] ||
-                    obj?.['required'] ||
-                    obj?.['whitespace']
-                ) {
-                    this.passError = true;
-                } else {
-                    this.passError = false;
-                }
+            .subscribe(() => {
+                this.loadingStates.password = false;
+                this.errorStates.submit = false;
+                const errors = this.formService.buildErrors(AuthFieldEnum.password, this.password);
+                this.password.setErrors(errors);
+                this.errorStates.password = !!(errors.PASSWORD_TOO_WEAK ||
+                    errors.MISSING_FIELDS ||
+                    errors.WHITESPACE_PRESENT);
             });
-
-        const loginMsg = this.as.eventLoginMsg.subscribe((res) => {
-            //* Good Enough For Now*
-            switch (res) {
-                case 'Submitting...': {
-                    this.hideErrorText = true;
-                    this.hideUserErrorText = true;
-                    this.loginButtonText = res;
-                    this.currentSubmission = true;
-                    this.passError = false;
-                    this.userError = false;
-                    this.passLoading = true;
-                    this.userLoading = true;
-                    break;
-                }
-                case 'Done!': {
-                    this.hideErrorText = true;
-                    this.hideUserErrorText = true;
-                    this.loginButtonText = res;
-                    setTimeout(() => {
-                        //prefetch maybe -- Def add transition later **IMPORTANT** --perhaps disable input fields
-                        this.router.navigateByUrl('/');
-                        this.loginButtonText = 'LOGIN';
-                        this.currentSubmission = false;
-                    }, 500);
-                    break;
-                }
-                case 'TIMEOUT_ERROR': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.invalidPassSubmit = true;
-                        this.invalidUserSubmit = true;
-                        this.userError = true;
-                        this.passError = true;
-                        this.password.setErrors({ timeout: true });
-                    }, 400);
-                    break;
-                }
-                case 'ERROR': {
-                    setTimeout(() => {
-                        //* come back to this later maybe : how to tell error? */
-                        this.invalidPassSubmit = true;
-                        this.invalidUserSubmit = true;
-                        this.inputDefault();
-                        this.userError = true;
-                        this.passError = true;
-                    }, 400);
-                    break;
-                }
-                case 'USER_WHITESPACE_ERROR': {
-                    //whitespace case -- add validator for whitespace
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.userError = true;
-                        this.user.setErrors({ whitespace: true });
-                    }, 400);
-                    break;
-                }
-                case 'PASS_WHITESPACE_ERROR': {
-                    //whitespace case -- add validator for whitespace
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.passError = true;
-                        this.password.setErrors({ whitespace: true });
-                    }, 400);
-                    break;
-                }
-                case 'USER_ERROR_MIN': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.userError = true;
-                        this.user.setErrors({ minlength: true });
-                    }, 400);
-                    break;
-                }
-                case 'USER_ERROR_MAX': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.userError = true;
-                        this.user.setErrors({ maxlength: true });
-                    }, 400);
-                    break;
-                }
-                case 'PASS_ERROR_MIN': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.passError = true;
-                        this.password.setErrors({ minlength: true });
-                    }, 400);
-                    break;
-                }
-                case 'PASS_ERROR_MAX': {
-                    setTimeout(() => {
-                        this.inputDefault();
-                        this.passError = true;
-                        this.password.setErrors({ maxlength: true });
-                    }, 400);
-                    break;
-                }
-            }
-        });
-        this._subscription.add(loginMsg);
-        this._subscription.add(userObs);
-        this._subscription.add(passObs);
+            
+        this._subscription.add(user);
+        this._subscription.add(password);
     }
 
-    validate(fg: FormGroup) {
-        const error = true;
-        Object.keys(fg.controls).forEach((field) => {
-            const control = fg.get(field);
-            if (control instanceof FormControl) {
-                if (!control.touched || !control.dirty) {
-                    control.markAsTouched({ onlySelf: true });
-                    control.markAsDirty({ onlySelf: true });
-                }
-                // Add Something upon Form Submit where fields are invalid...
-                const obj = this.helper(field, control);
-                control.setErrors(obj);
-            } else if (control instanceof FormGroup) {
-                this.validate(control);
-            }
+    private handleHttpError(error: HttpErrorResponse) {
+        (error.error as ErrorFormat<LoginFields, FormValidationErrorType>[]).forEach(({field, errors}) => {
+            /**
+             * Temporary error code location until Zod V4
+             */
+            this[field].setErrors(
+                errors.reduce((previous, field) => {
+                    return {
+                        ...previous,
+                        [field]: true
+                    }
+                }, {} satisfies Partial<Record<LoginFields, boolean>>)
+            );
+            this.errorStates[field] = true;
+            this.errorStates.submit = true;
         });
-        return error;
     }
 
-    async onSubmit(e: any) {
-        //Pretty shit solution, change to rxjs subject later...
-        if (this.userLoading || this.passLoading) {
+    async onSubmit(): Promise<void> {
+        if (this.isLoading()) {
             setTimeout(() => {
-                this.onSubmit(e);
+                this.onSubmit();
             }, 500);
             return;
         }
 
-        if (
-            this.invalidPassSubmit ||
-            this.invalidUserSubmit ||
-            this.currentSubmission ||
-            this.userError ||
-            this.passError
-        ) {
+        if (this.hasError()) {
             return;
         }
-        if (this.validate(this.inputForm)) {
-            //submit form
 
-            await this.as.pullAccount(this.inputForm);
-            //just in case
-        } else {
-            //incorrect form or something
-            //* Review Later about this */
-            this.hideErrorText = true;
-            this.hideUserErrorText = true;
-            this.userLoading = true;
-            this.passLoading = true;
+        const { valid, errors } = this.formService.validate(this.loginForm);
+        if (!valid) {
+            this.setAllLoadingStates(true);
+            this.hideItems.errorText = true;
+            this.hideItems.userErrorText = true;
             setTimeout(() => {
-                this.hideErrorText = false;
-                this.hideUserErrorText = false;
-                this.currentSubmission = false;
-                this.userLoading = false;
-                this.passLoading = false;
-            }, 500);
+                this.setAllLoadingStates(false);
+                this.hideItems.errorText = false;
+                this.hideItems.userErrorText = false;
+            }, DEBOUNCE_TIME_MS);
+
+            Object.entries(errors).forEach(([field, errors]) => {
+                this[field as LoginFields].setErrors(errors);
+            });
+            return;
         }
-    }
 
-    inputDefault(): void {
-        this.loginButtonText = 'LOGIN';
-        this.userLoading = false;
-        this.passLoading = false;
-        this.currentSubmission = false;
-        this.hideUserErrorText = false;
-        this.hideErrorText = false;
-    }
-
-    get password() {
-        return this.inputForm.get('password') as FormControl;
-    }
-
-    get user() {
-        return this.inputForm.get('user') as FormControl;
-    }
-
-    updateBool(e: any) {
-        if (this.firstTime) this.firstTime = false;
-        this.first = !this.first;
-    }
-
-    helper(field: string, control: AbstractControl) {
-        const obj: Record<string, any> = {};
-        if (control.value.length === 0) {
-            obj['required'] = true;
-        }
-        if (/\s/.test(control.value)) {
-            obj['whitespace'] = true;
-        }
-        switch (field) {
-            case 'user': {
-                if (control.value.length < 6 && control.value.length > 0) {
-                    obj['minlength'] = true;
-                }
-                if (control.value.length > 16) {
-                    obj['maxlength'] = true;
-                }
-                break;
+        try {
+            await this.accountService.getAccount({
+                user: this.signInForm.value.user!,
+                password: this.signInForm.value.password!,
+            });
+            this.router.navigateByUrl(ROUTE_PATHS.HOME);
+        } catch (error) {
+            if (!(error instanceof HttpErrorResponse)) {
+                return;
             }
-            case 'password': {
-                if (control.value.length < 8 && control.value.length > 0) {
-                    obj['minlength'] = true;
-                }
-                if (control.value.length > 32) {
-                    obj['maxlength'] = true;
-                }
-                break;
-            }
+
+            this.handleHttpError(error); 
         }
-        return obj;
     }
 
-    switchToHomePage(e: any) {
+    updateAnimationState(): void {
+        if (this.preAnimation) {
+            this.preAnimation = false;
+        }
+        this.firstAnimationPhase = !this.firstAnimationPhase;
+    }
+    
+    private isLoading(): boolean {
+        return (Object.values(this.loadingStates) as (LoadingStates[keyof LoadingStates])[]).some((value) => {
+            return value;
+        });
+    }
+
+    private hasError(): boolean {
+        const hasError = (object: ErrorStates): boolean => {
+            return (Object.values(object) as (ErrorStates[keyof ErrorStates])[]).some(value => {
+                if (typeof value === 'object' && value !== null) {
+                    return hasError(value); 
+                }
+                return value;
+            })
+        }
+        return hasError(this.errorStates);
+    }
+
+    private setAllLoadingStates(value: boolean): void {
+        (Object.keys(this.loadingStates) as (keyof LoadingStates)[]).forEach((key) => {
+            this.loadingStates[key] = value;
+        });
+    }
+
+    switchToHomePage() {
         this.router.navigateByUrl(``); //add animation later
+    }
+
+    private getFieldErrorsFromFormField(field: keyof States): FormFieldErrors {
+        switch (field) {
+            case "user":
+                return this.user.errors as FormFieldErrors;
+            case "password":
+                return this.password.errors as FormFieldErrors;
+        }
+    }
+
+    private capitalizeString(input: string) {
+        return input.length > 0 ? `${input.charAt(0).toUpperCase()}${input.slice(1)}` : '';
+    }
+
+    public errorMessage(field: keyof States) {
+        const errors = this.getFieldErrorsFromFormField(field);
+        if (errors.MISSING_FIELDS) {
+            return 'Required field';
+        }
+
+        if (errors.USERNAME_TOO_SHORT) {
+            return `Username length must be at least ${MIN_USERNAME_LENGTH} characters`;
+        }
+
+        if (errors.USERNAME_TOO_LONG) {
+            return `Username length must be less than ${MAX_USERNAME_LENGTH + 1} characters`;
+        }
+
+        if (errors.PASSWORD_TOO_WEAK) {
+            return `Password must be between ${MIN_PASSWORD_LENGTH} - ${MAX_PASSWORD_LENGTH} characters, inclusive`;
+        }
+
+        if (errors.WHITESPACE_PRESENT) {
+            return `${this.capitalizeString(field)} cannot contain spaces`;
+        }
+
+        if (this.errorStates.submit) {
+            return 'The username or password is incorrect';
+        }
+
+        return '';
+    }
+
+    get loginForm() {
+        return this.signInForm;
+    }
+
+    get fieldStateEnum() {
+        return AuthFieldEnum;
     }
 
     ngOnDestroy(): void {
         this._subscription.unsubscribe();
+    }
+
+    get password() {
+        return this.signInForm.controls.password;
+    }
+
+    get user() {
+        return this.signInForm.controls.user;
+    }
+
+    get isUserLoading() {
+        return this.loadingStates.user;
+    }
+
+    get isPasswordLoading() {
+        return this.loadingStates.password;
+    }
+
+    get hideUserErrorFlag() {
+        return this.hideItems.userErrorText;
+    }
+
+    get hidePassErrorFlag() {
+        return this.hideItems.errorText
+    }
+
+    get userErrorFlag() {
+        return this.errorStates.user;
+    }
+
+    get passwordErrorFlag() {
+        return this.errorStates.password;
+    }
+
+    get invalidSubmitFlag() {
+        return this.errorStates.submit;
+    }
+
+    get minPasswordLen() {
+        return MIN_PASSWORD_LENGTH;
+    }
+
+    get maxPasswordLen() {
+        return MAX_PASSWORD_LENGTH;
+    }
+
+    get minUsernameLen() {
+        return MIN_USERNAME_LENGTH;
+    }
+
+    get maxUsernameLen() {
+        return MAX_USERNAME_LENGTH;
     }
 }

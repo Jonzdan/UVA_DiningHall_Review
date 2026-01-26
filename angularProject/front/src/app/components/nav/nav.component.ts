@@ -1,126 +1,124 @@
-import { Component, HostListener, type OnInit } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { AccountService, NavSideBarService } from '../../services';
-import { Subscription, map } from 'rxjs';
+import { Component, HostListener, Input, Output, type OnInit, EventEmitter, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { NavigationEnd, Router, } from '@angular/router';
+import { AccountOrchestrationService, AccountService } from '../../services';
+import { Observable, Subscription, filter } from 'rxjs';
+import { NavStates } from './types';
+import { ROUTE_PATHS } from 'src/app/constants';
+import { DropDownComponent } from '../drop-down';
 
 @Component({
     selector: 'app-nav',
     templateUrl: './nav.component.html',
     styleUrls: ['./nav.component.css'],
 })
-export class NavComponent implements OnInit {
-    private _subscription = new Subscription();
+export class NavComponent implements OnInit, OnDestroy {
+    @Input() showIconMenu!: boolean;
+    private _subscription: Subscription;
+    private navState: NavStates;
+    @ViewChild(DropDownComponent, { read: ElementRef })
+    dropdownContainer!: ElementRef<HTMLElement>;
+    @Output() toggleMenu: EventEmitter<boolean>;
+
     constructor(
-        private navbar: NavSideBarService,
-        private as: AccountService,
+        private accountService: AccountService,
+        private accountOrchestrationService: AccountOrchestrationService,
         private router: Router,
-    ) {}
+    ) {
+        this._subscription = new Subscription();
+        this.toggleMenu = new EventEmitter();
+        this.navState = {
+            hideNav: false,
+            toggleDropDown: false,
+            iconMetadata: {
+                showMenu: this.showIconMenu,
+                showIcon: false,
+            }
+        };
+    }
 
     @HostListener('document:click', ['$event'])
     onClick(event: any) {
-        if (!this.navbar.dropDown) {
+        if (!this.navState.toggleDropDown) {
             return;
         }
-        let e = event.target;
-        let i = 0;
-        while (e?.id != 'dropdown_container' && i < 5) {
-            e = e?.parentNode;
-            i++;
-        }
-        if (
-            event.target?.nodeName !== 'circle' &&
-            e?.nodeName !== 'LI' &&
-            e?.id != 'dropdown_container' &&
-            this.dropDown
-        ) {
-            this.navbar.dropDown = false;
-        }
+        
+        // this.navState.toggleDropDown = !this.dropdownContainer.nativeElement.contains(event.target);
     }
 
     @HostListener('window:resize', [])
     updateMenu() {
-        this.navbar.updateNavBarToIcon(window.innerWidth);
+        this.updateNavBarIcon();
+    }
+
+    private updateNavBarIcon() {
+        this.navState.iconMetadata.showIcon = window.innerWidth <= 480;
     }
 
     ngOnInit(): void {
-        const routerSub = this.router.events
+        const routerObservable = this.router.events
             .pipe(
-                map((event: any) => {
-                    if (!(event instanceof NavigationEnd)) {
-                        return;
-                    }
-                    switch (event.url) {
-                        case '/login': {
-                            this.navbar.hideNavbar(true, event);
-                            break;
-                        }
-                        case '/register': {
-                            this.navbar.hideNavbar(true, event);
-                            break;
-                        }
-                        case '/settings': {
-                            this.navbar.hideNavbar(true, event);
-                            break;
-                        }
-                        default: {
-                            this.navbar.hideNavbar(false, event);
-                        }
-                    }
-                    this.navbar.navigateSoCloseSideBar();
-                }),
+                filter((event): event is NavigationEnd => event instanceof NavigationEnd)
             )
-            .subscribe((res) => {});
+            .subscribe((event => {
+                this.navState.hideNav = [`/${ROUTE_PATHS.LOGIN}`, `/${ROUTE_PATHS.REGISTER}`, `/${ROUTE_PATHS.SETTINGS}`].some((value) => event.url.includes(value));
+                this.navState.iconMetadata.showMenu = false;
+            }));
 
-        this._subscription.add(routerSub);
-        this.navbar.updateNavBarToIcon(window.innerWidth);
-    }
-
-    ngAfterViewInit(): void {}
-
-    openSideBar(e: any) {
-        this.navbar.flipSideBar(e);
-    }
-
-    get appearanceColor() {
-        return this.navbar.appearanceColor;
-    }
-    set appearanceColor(str: string) {
-        this.navbar.appearanceColor = str;
-    }
-    get showIconMenu() {
-        return this.navbar.showIconMenu;
-    }
-    get hideNavBar() {
-        return this.navbar.hideNavBar;
-    }
-    get navBarToIcon() {
-        return this.navbar.navBarToIcon;
-    }
-    get dropDown() {
-        return this.navbar.dropDown;
-    }
-
-    showAccountOptions(e: any) {
-        this.navbar.dropDown = !this.navbar.dropDown;
-        /* if (!this.as.signedIn) { //not available currently bypass
-      return
-    } */
-        //else show options *dropdown*
-    }
-
-    signOut(e: any) {
-        if (!this.as.signedIn) return;
-        this.as.signOut();
+        this._subscription.add(routerObservable);
+        this.updateNavBarIcon();
     }
 
     ngOnDestroy(): void {
         this._subscription.unsubscribe();
     }
 
-    get accountText() {
-        return this.as.accountText;
+    openSideBar(): void {
+        this.navState.iconMetadata.showMenu = true;
+        this.toggleMenu.next(true);
     }
-    get signedIn() {
-        return this.as.signedIn;
+
+    closeSideBar() {
+        this.navState.iconMetadata.showMenu = false;
+        this.toggleMenu.next(false);
+        console.log(this.navState)
+    }
+
+    async signOut() {
+        if (!this.accountService.isSignedIn) {
+            return;
+        }
+        await this.accountService.logout();
+    }
+
+    toggleDropDown(value: boolean): void {
+        this.navState.toggleDropDown = value;
+    }
+
+    get isSignedIn$() {
+        return this.accountService.isSignedIn$;
+    }
+
+    get isDropDownToggled() {
+        return this.navState.toggleDropDown;
+    }
+
+    get isNavBarIcon() {
+        return this.navState.iconMetadata.showIcon;
+    }
+
+    get isNavBarHidden() {
+        return this.navState.hideNav;
+    }
+
+    get showMenu() {
+        return this.navState.iconMetadata.showMenu;
+    }
+
+    get accountText(): string {
+        return this.accountService.accountDetails.displayText;
+    }
+
+    get signedIn(): boolean {
+        return this.accountService.accountDetails.isSignedIn;
     }
 }

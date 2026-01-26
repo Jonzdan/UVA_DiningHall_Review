@@ -1,6 +1,10 @@
-import { Component } from '@angular/core';
-import { AccountService, NavSideBarService } from '../../services';
+import { Component, OnDestroy } from '@angular/core';
+import { AccountOrchestrationService, AccountService, SettingsService } from '../../services';
 import { Router } from '@angular/router';
+import { type CurrentSelectedSettingTab, SettingTabTypes } from 'src/app/services/settings/types';
+import { ROUTE_PATHS } from 'src/app/constants';
+import { EMPTY, filter, firstValueFrom, lastValueFrom, Subscription, switchMap, take, tap, timeout } from 'rxjs';
+
 
 @Component({
     selector: 'app-settings',
@@ -8,85 +12,76 @@ import { Router } from '@angular/router';
     styleUrls: ['./settings.component.css'],
 })
 export class SettingsComponent {
-    private saveChanges = 'Save Changes';
-    private discardChanges = 'Discard Changes';
-    private _currentSelected = 'Profile';
-    private notificationString =
-        'Select the kinds of notifications you get about your activities and recommendations';
-    checked = false;
+    public isLoaded: boolean;
 
     constructor(
-        private navbar: NavSideBarService,
-        private acc: AccountService,
+        private accountService: AccountService,
+        private accountOrchestrationService: AccountOrchestrationService,
+        private settingsService: SettingsService,
         private router: Router,
-    ) {}
-
-    ngOnInit(): void {
-        this.acc.pullAccountDetails(); //wont get called since authConfirm request hasn't finished yet
+    ) {
+        this.isLoaded = false;
     }
 
-    get settingsList() {
-        return this.acc.accountInfo;
-    }
-    get currentSelected() {
-        return this.acc.currentSelected;
-    }
+    async ngOnInit(): Promise<void> {
+        this.accountService.isSignedIn$.pipe(
+            tap(isSignedIn => {
+                if (isSignedIn === false) {
+                    this.router.navigateByUrl(ROUTE_PATHS.NOT_FOUND);
+                    return;
+                }
 
-    convertPropertyToView(s: string) {
-        return this.acc.convertPropertyToView(s);
-    }
-
-    convertSideBarViewToProp(s: string) {
-        s.trim();
-        switch (s) {
-            case 'Notifications':
-                return 'Notification';
-            case 'Password':
-                return 'Password';
-            case 'Profile': {
-                return 'Profile';
+                return this.accountOrchestrationService.triggerInitialization();
+            })
+        ).subscribe({
+            next: () => this.isLoaded = true,
+            error: () => {
+                alert("Failed to fetch settings tab");
+                this.navigateToHome();
             }
-            case 'Logout': {
-                return s;
-            }
-            default:
-                return '';
-        }
+        });
     }
 
-    returnToHome(e: any) {
-        // By Logout
-        this.acc.resetSettingsToDefault();
-        this.router.navigateByUrl('/');
+    navigateToHome() {
+        this.router.navigateByUrl(ROUTE_PATHS.HOME);
     }
 
-    whichTitleSubstring(s: string) {
-        switch (s) {
+    async logout() {
+        await this.accountService.logout();
+        this.navigateToHome();
+    }
+
+    whichTitleSubstring(tabType: CurrentSelectedSettingTab) {
+        switch (tabType) {
             case 'Notification': {
                 return 'Select the kinds of notifications you get about your activities and recommendations';
             }
             case 'Password': {
                 return 'View Password Details and Options';
             }
-            case 'Profile': {
+            case 'Profile':
+            default:
                 return 'View Profile Details and Security';
-            }
-            default: //add more obvs
-                return;
         }
     }
 
-    ngOnDestroy(): void {}
-
-    switchContent(e: any) {
-        this.acc.currentSelected = this.convertSideBarViewToProp(
-            e.target.textContent,
-        );
+    switchContent(tabType: CurrentSelectedSettingTab) {
+        this.settingsService.currentSettingsTab = tabType;
     }
 
-    onCheckedChange(e: any) {}
+    get tabs() {
+        return SettingTabTypes;
+    }
 
     get pendingChanges() {
-        return this.acc.pendingChanges;
+        return this.settingsService.pendingChanges;
+    }
+
+    get currentSettings() {
+        return this.settingsService.currentSettings;
+    }
+
+    get currentSelected(): CurrentSelectedSettingTab {
+        return this.settingsService.currentSettingsTab;
     }
 }

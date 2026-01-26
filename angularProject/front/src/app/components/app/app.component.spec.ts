@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
-import { AppService } from '../../services/app';
+import { AppService } from '../../services/food';
 
 describe('AppComponent', () => {
     let fixture: AppComponent;

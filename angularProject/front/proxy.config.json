@@ -21,7 +21,7 @@
         "secure": false,
         "logLevel": "debug"
     },
-    "/authConfirm/*": {
+    "/auth/refresh/*": {
         "target": "http://localhost:4000",
         "secure": false,
         "logLevel": "debug"

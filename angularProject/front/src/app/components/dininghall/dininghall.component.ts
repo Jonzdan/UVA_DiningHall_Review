@@ -1,167 +1,99 @@
 import {
-    type AfterViewInit,
+    ChangeDetectorRef,
     Component,
-    ElementRef,
     HostListener,
     Input,
     type OnInit,
 } from '@angular/core';
-import { BehaviorSubject, Subscription, debounceTime } from 'rxjs';
-import { AppService, SwitchDininghallService } from '../../services';
+import { FoodService, SwitchDininghallService, type ShopItems } from '../../services';
+import { type DiningHalls } from 'hoorank-shared';
+import { filter, firstValueFrom, Subscription, takeUntil, timeout } from 'rxjs';
 
 @Component({
     selector: 'app-dininghall',
     templateUrl: './dininghall.component.html',
-    styleUrls: ['./dininghall.component.css'],
+    styleUrls: ['./dininghall.component.css']
 })
-export class DininghallComponent implements OnInit, AfterViewInit {
-    @Input() text!: string;
-    @Input() show!: boolean;
-    @Input() short!: string;
-    showTitleText = false;
-    headers: any;
-    private animationListener = new BehaviorSubject<any>('a0');
-    private sub: Subscription = new Subscription();
-    b1 = true;
-    b2 = false;
-    b3 = false;
-    b4 = false;
-    emptyDisplay = false;
-    skeletonLoader = false;
-    subclosed = false;
-    @HostListener('window:resize', []) //might be unnecessary
+export class DininghallComponent implements OnInit {
+    @Input()
+    public displayHallName!: string;
+    @Input()
+    public displayDiningHall!: DiningHalls;
+
+    private _showTitleText: boolean;
+    private _isLoading: boolean;
+    private _shopItems: ShopItems;
+    private _displayItems: boolean;
+    private _subscription: Subscription;
+
+    @HostListener('window:resize', [])
     clarifyTab() {
-        if (window.innerWidth <= 418) {
-            this.showTitleText = true;
-        } else {
-            this.showTitleText = false;
-        }
+        this._showTitleText = window.innerWidth <= 418;
     }
 
     constructor(
-        private elementRef: ElementRef,
-        private appService: AppService,
-        private sds: SwitchDininghallService,
-    ) {}
+        private foodService: FoodService,
+        private hallSelector: SwitchDininghallService,
+    ) {
+        this._showTitleText = false;
+        this._isLoading = true;
+        this._shopItems = new Map();
+        this._displayItems = true;
+        this._subscription = new Subscription();
+    }
 
-    ngOnInit(): void {
-        //thi
-        this.headers = this.appService.getHeaders(this.short);
-        if (window.innerWidth <= 418) {
-            this.showTitleText = true;
-        } else {
-            this.showTitleText = false;
+    async ngOnInit(): Promise<void> {
+        try {
+            await firstValueFrom(this.foodService.isDataLoaded$
+                .pipe(
+                    filter(({ result, target }) => {
+                        return result && target === this.displayDiningHall
+                    }),
+                    timeout(2000)
+                )
+            );
+        } catch (error) {
+            this._showTitleText = false;
+            this._isLoading = false;
+            this._displayItems = false;
         }
-        let shortname: string;
-        this.sds.observable.asObservable().subscribe((res) => {
-            shortname = res;
-            this.animationListener
-                .asObservable()
-                .pipe(debounceTime(100))
-                .subscribe((res) => {
-                    //test that only 1 is calling this
-                    if (this.short != shortname || this.subclosed) {
-                        //try to figure out a way to maybe unsubscribe instead of doing this.
-                        if (!this.animationListener.closed) {
-                            this.animationListener.next('a0');
-                        }
-                        this.b1 = true;
-                        this.b2 = false;
-                        this.b3 = false;
-                        this.b4 = false;
-                        return;
-                    }
-                    switch (this.animationListener.value) {
-                        case 'a0': {
-                            setTimeout(() => {
-                                if (this.subclosed) return;
-                                this.animationListener.next('a1');
-                                this.b2 = true;
-                            }, 200);
-                            break;
-                        }
-                        case 'a1': {
-                            setTimeout(() => {
-                                if (this.subclosed) return;
-                                this.animationListener.next('a2');
-                                this.b3 = true;
-                            }, 300);
-                            break;
-                        }
 
-                        case 'a2': {
-                            setTimeout(() => {
-                                if (this.subclosed) return;
-                                this.animationListener.next('a3');
-                                this.b4 = true;
-                            }, 250);
-                            break;
-                        }
-                        case 'a3': {
-                            setTimeout(() => {
-                                if (this.subclosed) return;
-                                this.animationListener.next('a0');
-                                this.b3 = false;
-                                this.b2 = false;
-                                this.b1 = false;
-                                setTimeout(() => {
-                                    this.b1 = true;
-                                    this.b4 = false;
-                                }, 400);
-                            }, 1400);
-                            break;
-                        }
-                    }
-                });
-        });
-        const dataloadedState = this.appService.dataLoaded.subscribe((res) => {
-            if (res) {
-                this.skeletonLoader = false;
-                const items = this.appService.getData(this.short);
-                if (!items || items?.length === 0) {
-                    this.emptyDisplay = true;
+        this._shopItems = this.foodService.getShopItems(this.displayDiningHall);
+        this.clarifyTab();
+
+        this._subscription.add(
+            this.hallSelector.currentDiningHall.subscribe((value) => {
+                if (value !== this.displayDiningHall) {
+                    this._isLoading = false;
+                    this._displayItems = false;
+                    return;
                 }
-                //dataloadedState.unsubscribe();
-            } else {
-                this.skeletonLoader = true;
-            }
-        });
-        this.sub.add(dataloadedState);
-    }
 
-    get animationState() {
-        return this.animationListener.value;
-    }
-
-    getProperBooleanForAnimation(i: number): boolean {
-        switch (i) {
-            case 0: {
-                return this.b1;
-            }
-            case 1: {
-                return this.b2;
-            }
-            case 2: {
-                return this.b3;
-            }
-            case 3: {
-                return this.b4;
-            }
-        }
-        throw new Error();
-    }
-
-    ngAfterViewInit(): void {
-        //this.elementRef.nativeElement.querySelector("div > h2").addEventListener('click', this.changeStyling.bind(this))
+                this._isLoading = !this.foodService.isDataLoaded(this.displayDiningHall);
+                this._displayItems = !this._isLoading;
+                this._showTitleText = true;
+            })
+        );
     }
 
     ngOnDestroy(): void {
-        this.subclosed = true;
-        this.animationListener.unsubscribe();
-        this.sds.observable.unsubscribe();
-        this.sub.unsubscribe();
-        this.sds.reinstantiate();
+        this.hallSelector.initialize();
+        this._subscription.unsubscribe();
     }
 
-    //create interface that simulates runk/ohill/newcomb dining data api fetch content
+    get displayItems(): boolean {
+        return this._displayItems;
+    }
+
+    get displayLoading(): boolean {
+        return this._isLoading;
+    }
+
+    get displayTitleText(): boolean {
+        return this._showTitleText;
+    }
+
+    get displayShopItems(): Readonly<ShopItems> {
+        return this._shopItems;
+    }
 }
