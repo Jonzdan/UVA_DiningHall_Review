@@ -1,4 +1,4 @@
-<div class="bg-gradient-to-bl from-[#232D48] to-[#5e79c4] w-[100vw] h-[100vh] fixed overflow-hidden">
+<div class="bg-gradient-to-bl from-[#232D48] to-[#5e79c4] w-full h-[100dvh] fixed overflow-hidden">
     <div class="h-full w-full m-auto flex relative overflow-y-auto">
         <div class="bg-white rounded-3xl xl:w-[35vw] lg:w-[45vw] md:w-[55vw] sm:w-[65w] w-[80vw] sm:h-[80vh] h-[90vh] relative flex flex-col align-middle justify-center m-auto z-30 min-w-[320px] min-h-[500px] shadow-black/20 shadow-lg">
             <div class="sm:fixed absolute z-50 top-[-135px] left-[-185px] text-transparent w-[440.5px] h-[291.1px]">
@@ -17,7 +17,7 @@
             <div class="lg:mt-8 md:mt-6 my-4 min-h-max flex-col justify-end flex flex-grow w-full text-center">
                <h2 class="font-bold text-4xl text-gray-800 text-center " appTextShadow> Register </h2> <!-- worry about scrollbar showing when screen is stretched -->
             </div>
-            <form  [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle overflow-auto py-0 flex-grow-[3] w-full">
+            <form  [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="lg:px-16 md:px-12 px-6 h-full flex flex-col relative align-middle  py-0 flex-grow-[3] w-full">
                 <div class="flex flex-col w-full align-middle flex-grow justify-center">
                     <label for="email" class="text-left font-[450] lg:text-base text-sm mb-0 align-middle text-gray-800 block lg:pt-2 pt-1 indent-2"> Email Address </label>
                     <div class="border-b-2 mt-0 align-middle text-gray-800 rounded-sm border-gray-300 outline-none py-1 flex flex-row" [ngClass]="{'border-red-800': emailErrorFlag , 'border-gray-300': !emailErrorFlag}">

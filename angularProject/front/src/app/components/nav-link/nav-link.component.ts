@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AccountService } from 'src/app/services';
 
-// TODO: potential integration into rest of structure
 @Component({
   selector: 'app-nav-link',
   templateUrl: './nav-link.component.html',
@@ -13,8 +14,9 @@ export class NavLinkComponent {
     @Input() iconSvg?: string;
     @Input() mobileOnly = false;
     @Input() desktopOnly = false;
-
+    
     constructor(private accountService: AccountService) {}
+
     get isSignedIn() {
         return this.accountService.accountDetails.isSignedIn;
     }

@@ -9,7 +9,7 @@
   (backdropClick)="close()"
   [cdkConnectedOverlayPositions]="overlayPositions">
   
-  <ul class="z-50 max-h-[300px] min-w-[200px] w-[30vw] bg-neutral-50 text-black rounded-md shadow-lg flex flex-col overflow-auto">
+  <ul class="z-50 max-h-[300px] min-w-[100px] w-fit bg-neutral-50 text-black rounded-md shadow-lg m-2 flex flex-col justify-center">
     <ng-content select="[dropdown-content]"></ng-content>
   </ul>
 </ng-template>

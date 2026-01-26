@@ -21,7 +21,6 @@ export class NavComponent implements OnInit, OnDestroy {
 
     constructor(
         private accountService: AccountService,
-        private accountOrchestrationService: AccountOrchestrationService,
         private router: Router,
     ) {
         this._subscription = new Subscription();
@@ -34,15 +33,6 @@ export class NavComponent implements OnInit, OnDestroy {
                 showIcon: false,
             }
         };
-    }
-
-    @HostListener('document:click', ['$event'])
-    onClick(event: any) {
-        if (!this.navState.toggleDropDown) {
-            return;
-        }
-        
-        // this.navState.toggleDropDown = !this.dropdownContainer.nativeElement.contains(event.target);
     }
 
     @HostListener('window:resize', [])
@@ -80,7 +70,6 @@ export class NavComponent implements OnInit, OnDestroy {
     closeSideBar() {
         this.navState.iconMetadata.showMenu = false;
         this.toggleMenu.next(false);
-        console.log(this.navState)
     }
 
     async signOut() {

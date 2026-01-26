@@ -1,4 +1,4 @@
-<div class="w-full relative overflow-visible">
+<div class="w-full relative">
     <div class="relative items-center text-center w-full bg-neutral-100 flex-shrink-0 flex justify-evenly xl:text-2xl lg:text-lg sm:text-sm md:text-base text-xs p-0 outline-none z-10 border-b border-b-neutral-300/60">
         <div *ngFor="let diningHall of diningHalls">
             <app-button class="rounded-t-md w-full  hover:cursor-pointer" [name]="getButtonName(diningHall)" (click)="changeData(diningHall)" [selected]="diningHall == activeDiningHall" ></app-button>
