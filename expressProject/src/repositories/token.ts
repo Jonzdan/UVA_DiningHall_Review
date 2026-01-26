@@ -59,12 +59,13 @@ export async function updateTokens({
         {
             ...(userId && { userID: userId }),
             ...(oldCsrfToken && { csrf: oldCsrfToken }),
+            ...(sessionId && { session: sessionId }),
         },
         {
             ...(sessionId && { session: sessionId }),
             ...(newCsrfToken && { csrf: newCsrfToken }),
             ...(userId && { userID: userId }),
-            ...(expiresAt && { expiresAt: expiresAt }),
+            ...(expiresAt && { expiresAt }),
         },
         {
             new: upsert,

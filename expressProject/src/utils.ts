@@ -64,7 +64,6 @@ export function setTokenExpiry(): Date {
 }
 
 export const sanitizeHtml: RequestHandler = (req, _res, next) => {
-    console.log(req.body);
     req.body = sanitizeInput<unknown>(req.body);
     req.params = sanitizeInput(req.params);
     req.query = sanitizeInput(req.query);

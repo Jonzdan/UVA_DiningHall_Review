@@ -15,11 +15,24 @@ import {
     CSRF_TOKEN,
     CSRF_TOKEN_HEADER,
     SESSION_ID,
+    SESSION_REFRESH_WINDOW,
     TOKEN_AGE,
 } from "src/constants.js";
 import { findToken } from "src/repositories/token.js";
-import { type AuthCookies, confirmAuthService } from "src/services/index.js";
+import { type AuthCookies, confirmAuthService, refreshSession } from "src/services/index.js";
 import { findHeader } from "src/validations/utils.js";
+
+async function resolveUserIdFromSession(req: IUserRequest): Promise<string | undefined> {    
+    const token = await findToken({
+        sessionId: req.signedCookies.SESSION_ID,
+    });
+
+    if (!token?.length || !token[0]?.userID) {
+        return undefined;
+    }
+
+    return token[0].userID.toString();
+}
 
 export async function blockLoggedInUsers(
     req: IUserRequest,
@@ -30,12 +43,9 @@ export async function blockLoggedInUsers(
         next();
         return;
     }
-    const response = await findToken({
-        csrfToken: req.cookies.CSRF_TOKEN,
-        sessionId: req.signedCookies.SESSION_ID,
-    });
-    if (response?.length !== 1 || response[0]?.userID) {
-        res.status(HttpStatusCode.NoContent).end();
+    
+    if (await resolveUserIdFromSession(req)) {
+        res.status(HttpStatusCode.Forbidden).end();
         return;
     }
 
@@ -53,16 +63,13 @@ export async function blockLoggedOutUsers(
     }
 
     if (!req.userId) {
-        const response = await findToken({
-            csrfToken: req.cookies.CSRF_TOKEN,
-            sessionId: req.signedCookies.SESSION_ID,
-        });
-        if (!response?.length || !response[0]?.userID) {
+        const userId = await resolveUserIdFromSession(req);
+        if (!userId) {
             res.status(HttpStatusCode.Unauthorized).end();
             return;
         }
 
-        req.userId = response[0].userID.toString();
+        req.userId = userId;
     }
     next();
 }
@@ -73,20 +80,32 @@ export async function csrf(
     next: NextFunction,
 ): Promise<void> {
     const csrfToken = findHeader(req.headers, CSRF_TOKEN_HEADER);
-    if (csrfToken && csrfToken === req.cookies.CSRF_TOKEN) {
-        const result = await findToken({ csrfToken });
-
-        if (!result?.length) {
-            res.status(HttpStatusCode.BadRequest).end();
-            return;
-        } else {
-            req.userId = result[0]?.userID?.toString();
-            next();
-            return;
-        }
-    } else {
-        res.status(HttpStatusCode.BadRequest).end();
+    if (!csrfToken || csrfToken !== req.cookies.CSRF_TOKEN) {
+        res.status(HttpStatusCode.Forbidden).end();
+        return;
     }
+    
+    const sessionId = req.signedCookies.SESSION_ID;
+    const tokens = await findToken({
+        csrfToken,
+        ...(
+            sessionId && { sessionId }
+        )
+    });
+
+    if (!tokens?.length) {
+        res.status(HttpStatusCode.Forbidden).end();
+        return;
+    }
+
+    if (sessionId) {
+        const { expiresAt, userID } = tokens[0]!;
+        const remainingTTL = expiresAt.getTime () - Date.now();
+        if (remainingTTL <= SESSION_REFRESH_WINDOW && remainingTTL > 0) {
+            await refreshSession(userID, csrfToken, sessionId);
+        }
+    }
+    next();
 }
 
 export async function refreshAuth(
@@ -122,7 +141,7 @@ export async function refreshAuth(
 export function setCSRFCookie(res: Response, csrfToken: string): void {
     res.cookie(CSRF_TOKEN, csrfToken, {
         maxAge: TOKEN_AGE,
-        sameSite: "strict",
+        sameSite: "lax",
     });
 }
 
@@ -130,7 +149,7 @@ export function setSessionCookie(res: Response, sessionId: string): void {
     res.cookie(SESSION_ID, sessionId, {
         httpOnly: true,
         maxAge: TOKEN_AGE,
-        sameSite: "strict",
+        sameSite: "lax",
         secure: process.env["STAGE"] === "dev" ? false : true,
         signed: true,
     });
@@ -176,7 +195,7 @@ function buildErrorFormat<TField extends string, TError extends string>(
     validFields: Record<TField, TField>,
     errorCodes?: Record<TError, TError>,
 ): ErrorFormat<TField, TError>[] {
-    const errors: Partial<Record<TField, TError[]>> = {};
+    const errors: Partial<Record<TField, Set<TError>>> = {};
     const issues = error.issues;
     for (const issue of issues) {
         /**
@@ -189,14 +208,15 @@ function buildErrorFormat<TField extends string, TError extends string>(
         }
 
         const currentErrorCode = issue.message as TError;
-        (errors[field] ??= []).push(
+        (errors[field] ??= new Set()).add(
             errorCodes?.[currentErrorCode] ?? currentErrorCode,
         );
     }
 
     return (Object.keys(errors) as TField[]).map((field) => {
         return {
-            errors: errors[field],
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            errors: Array.from(errors[field]!),
             field,
         } as ErrorFormat<TField, TError>;
     });

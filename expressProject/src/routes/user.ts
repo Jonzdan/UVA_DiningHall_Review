@@ -19,6 +19,7 @@ import {
     findUserById,
     findUserWithBasicAuth,
     resetAuthTokens,
+    toPublicUserDTO,
     updateSession,
     updateUser,
 } from "../services/controller/index.js";
@@ -35,10 +36,10 @@ import {
 } from "./utils.js";
 
 export const userRouter = Router();
-userRouter.use(csrf);
 
 userRouter.post(
     SUBROUTES.USER.REGISTER,
+    csrf,
     validateAuthBody(signupSchema),
     blockLoggedInUsers,
     async (req, res) => {
@@ -61,6 +62,7 @@ userRouter.post(
 
 userRouter.post(
     SUBROUTES.USER.LOGIN,
+    csrf,
     validateAuthBody(loginSchema),
     blockLoggedInUsers,
     async (req, res) => {
@@ -91,6 +93,7 @@ userRouter.post(
 
 userRouter.post(
     SUBROUTES.USER.LOGOUT,
+    csrf,
     blockLoggedOutUsers,
     async (req: IUserRequest, res) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -116,29 +119,23 @@ userRouter.get(
     SUBROUTES.USER.SETTINGS,
     blockLoggedOutUsers,
     async (req: IUserRequest, res) => {
-        if (!req.userId) {
-            return res.status(HttpStatusCode.Unauthorized).end();
-        }
-
-        const user = await findUserById(req.userId);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const user = await findUserById(req.userId!);
         if (!user) {
             return res.status(HttpStatusCode.Unauthorized).end();
         } else {
-            return res.status(HttpStatusCode.Ok).json(user);
+            return res.status(HttpStatusCode.Ok).json(toPublicUserDTO(user));
         }
     },
 );
 
 userRouter.put(
     SUBROUTES.USER.SETTINGS,
+    csrf,
     validateBody(updateUserApiSchema, UpdateUserFields),
     blockLoggedOutUsers,
     mongoSanitizerMiddleware,
     async (req: IUserRequest<object, object, UpdateUserApi>, res: Response) => {
-        if (!req.userId) {
-            return res.status(HttpStatusCode.Unauthorized).end();
-        }
-
         const { email } = req.body;
         if (email) {
             /**

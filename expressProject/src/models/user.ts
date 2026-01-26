@@ -72,3 +72,5 @@ export const UserModel: Model<UserSchemaType> = model<Schema<UserSchemaType>>(
     "User",
     UserSchema,
 );
+
+export type PrivateUserFields = "_id" | "password";

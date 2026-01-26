@@ -34,6 +34,7 @@ export async function addFoodItem(
     }
 }
 
+// TODO: seems food data changes on fetch? E.g. data is partial on 1st, then full on 2nd? Or different on 2nd?
 export async function getFoodData(
     parser: DiningHallDataParserTime,
     res: Response,

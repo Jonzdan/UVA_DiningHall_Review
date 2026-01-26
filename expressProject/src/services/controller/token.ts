@@ -13,6 +13,7 @@ import {
 import { setTokenExpiry } from "../../utils.js";
 import { generateCSRF, hashToken } from "../../validations/index.js";
 
+// TODO: add public DTO
 export async function findAuthTokens(
     csrfToken?: string,
     sessionId?: string,
@@ -70,6 +71,22 @@ export async function updateSession(
         userId,
     });
     return { newCsrfToken, sessionId };
+}
+
+export async function refreshSession(
+    userId: Types.ObjectId | undefined | null,
+    currentCsrfToken: string,
+    currentSessionToken: string,
+): Promise<void> {
+    await updateTokens({
+        metadata: {
+            expiresAt: setTokenExpiry(),
+            upsert: true,
+        },
+        oldCsrfToken: currentCsrfToken,
+        sessionId: currentSessionToken,
+        userId,
+    });
 }
 
 function convertTokenToJSObject({

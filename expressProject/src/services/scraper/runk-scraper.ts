@@ -12,6 +12,7 @@ export class RunkDataParser
         return await super.getData(
             DiningHallsEnum.Runk,
             this.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
+            true
         );
     }
 

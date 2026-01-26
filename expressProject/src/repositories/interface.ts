@@ -52,5 +52,5 @@ export interface UpdateTokensParams {
     readonly newCsrfToken?: string;
     readonly oldCsrfToken?: string;
     readonly sessionId?: string;
-    readonly userId?: Types.ObjectId | undefined;
+    readonly userId?: Types.ObjectId | undefined | null;
 }
