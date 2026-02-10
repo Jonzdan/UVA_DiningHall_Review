@@ -1,7 +1,14 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/src/*"]
+    },
     // File Layout
     "rootDir": "./src",
     "outDir": "./dist",

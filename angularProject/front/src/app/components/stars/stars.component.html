@@ -1,0 +1,18 @@
+<div class="flex flex-row w-max align-middle self-center m-auto ">
+    <div
+        *ngFor="let star of starsList; let i=index"
+        (click)="updateActualStarCount(i+1)"
+        (mouseenter)="updateHoveredStarCount(i+1)"
+        (mouseleave)="updateHoveredStarCount(0)"
+    >
+        <span
+            title="⭐"
+            [id]="star"
+            class="relative m-auto min-w-[15px] min-h-[15px] text-transparent before:absolute before:content-[attr(title)] before:text-transparent star-border"
+            [ngClass]="{' before:active-star-fill before:scale-105': i < getActualStarCount() || i < hoveredStarCount, 'before:inactive-star-fill ' : i >= getActualStarCount() && i >= hoveredStarCount}"
+        >
+            ⭐
+        </span>
+    </div>
+    <button type="button" (click)="clearStarCount()"> Clear </button>
+</div>

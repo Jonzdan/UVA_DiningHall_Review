@@ -1,70 +1,34 @@
-import { DiningHallsEnum, RunkModel } from "../../models/index.js";
-import {
-    RunkDataParser,
-    axios,
-    csrf,
-    findCurrentFoodData,
-    getCurHour,
-    updateFoodSettings,
-    validateBody,
-} from "../../services/index.js";
-import { HttpStatusCode } from "axios";
 import { Router } from "express";
-import { StationFoodItemSchemaInput } from "hoorank-shared";
+import {
+    DiningHallsEnum,
+    StationFoodItemFields,
+    StationFoodItemSchemaInput,
+    SUBROUTES,
+} from "hoorank-shared";
+
+import { axios, RunkDataParser } from "../../services/index.js";
 import { mongoSanitizerMiddleware } from "../../utils.js";
+import { csrf, validateBody } from "../utils.js";
+import { addFoodItem, getFoodData } from "./utils.js";
+import { HttpStatusCode } from "axios";
 
 const url = "https://virginia.campusdish.com/en/locationsandmenus/runk/";
 export const runkRouter = Router();
-const parser = new RunkDataParser(axios, RunkModel, url);
+const parser = new RunkDataParser(axios, url);
 
-runkRouter.get("/", async (_req, res) => {
-    try {
-        const initialData = await findCurrentFoodData(
-            DiningHallsEnum.Runk,
-            parser.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
-        );
-
-        if (!initialData?.length) {
-            const data = await parser.getData();
-
-            if (!data) {
-                res.status(HttpStatusCode.ServiceUnavailable).end();
-                return;
-            }
-
-            res.status(HttpStatusCode.Ok).json(data).end();
-        } else {
-            res.status(HttpStatusCode.NotModified).json(initialData);
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(HttpStatusCode.InternalServerError).json({
-            msg: err instanceof Error ? err.message : "",
-        });
-    }
+runkRouter.get(SUBROUTES.API.RUNK, async (_req, res) => {
+    const data = await parser.getData();
+    res.status(HttpStatusCode.Ok).json(data);
+    return;
+    await getFoodData(parser, res, DiningHallsEnum.Runk);
 });
 
 runkRouter.post(
-    "/",
+    SUBROUTES.API.RUNK,
     csrf,
     mongoSanitizerMiddleware,
-    validateBody(StationFoodItemSchemaInput),
+    validateBody(StationFoodItemSchemaInput, StationFoodItemFields),
     async (req, res) => {
-        try {
-            await updateFoodSettings(
-                DiningHallsEnum.Runk,
-                req.body,
-                parser.getDiningHallTimeFrame(
-                    new Date().getDay(),
-                    getCurHour(),
-                ),
-            );
-            res.status(HttpStatusCode.NoContent).end();
-        } catch (err) {
-            console.error(err);
-            res.status(HttpStatusCode.InternalServerError).json({
-                msg: err instanceof Error ? err.message : "",
-            });
-        }
+        await addFoodItem(parser, res, req.body);
     },
 );

@@ -1,5 +1,0 @@
-<div class="flex flex-row w-max align-middle self-center m-auto ">
-    <div *ngFor="let star of idList; let i=index" (click)="updateStars(i+1)" (mouseenter)="updateStarsTemp(i+1)" (mouseleave)="updateStarsTemp(0)" >
-        <span title="⭐" [id]="star" class="relative m-auto min-w-[15px] min-h-[15px] text-transparent before:absolute before:content-[attr(title)] before:text-transparent star-border" [ngClass]="{' before:active-star-fill before:scale-105': i < permRating || i < tempRating, 'before:inactive-star-fill ' : i >= permRating && i >= tempRating}"> ⭐ </span>
-    </div>  
-</div>

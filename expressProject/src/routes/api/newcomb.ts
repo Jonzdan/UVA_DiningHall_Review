@@ -1,75 +1,31 @@
-import { DiningHallsEnum, NewcombModel } from "../../models/index.js";
-import {
-    NewcombDataParser,
-    axios,
-    csrf,
-    findCurrentFoodData,
-    getCurHour,
-    updateFoodSettings,
-    validateBody,
-} from "../../services/index.js";
-import { HttpStatusCode } from "axios";
 import { Router } from "express";
-import { StationFoodItemSchemaInput } from "hoorank-shared";
+import {
+    DiningHallsEnum,
+    StationFoodItemFields,
+    StationFoodItemSchemaInput,
+    SUBROUTES,
+} from "hoorank-shared";
+
+import { axios, NewcombDataParser } from "../../services/index.js";
 import { mongoSanitizerMiddleware } from "../../utils.js";
+import { csrf, validateBody } from "../utils.js";
+import { addFoodItem, getFoodData } from "./utils.js";
 
 const url =
     "https://virginia.campusdish.com/LocationsAndMenus/FreshFoodCompany";
 export const newcombRouter = Router();
-const parser = new NewcombDataParser(axios, NewcombModel, url);
+const parser = new NewcombDataParser(axios, url);
 
-newcombRouter.get("/", async (_req, res) => {
-    try {
-        const timeFrame = parser.getDiningHallTimeFrame(
-            new Date().getDay(),
-            getCurHour(),
-        );
-        const initialData = await findCurrentFoodData(
-            DiningHallsEnum.Newcomb,
-            timeFrame,
-        );
-
-        if (!initialData?.length) {
-            const data = await parser.getData();
-
-            if (!data) {
-                res.status(HttpStatusCode.ServiceUnavailable).end();
-                return;
-            }
-
-            res.status(HttpStatusCode.Ok).json(data).end();
-        } else {
-            res.status(HttpStatusCode.NotModified).json(initialData);
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(HttpStatusCode.InternalServerError).json({
-            msg: err instanceof Error ? err.message : "",
-        });
-    }
+newcombRouter.get(SUBROUTES.API.NEWCOMB, async (_req, res) => {
+    await getFoodData(parser, res, DiningHallsEnum.Newcomb);
 });
 
 newcombRouter.post(
-    "/",
+    SUBROUTES.API.NEWCOMB,
     csrf,
     mongoSanitizerMiddleware,
-    validateBody(StationFoodItemSchemaInput),
+    validateBody(StationFoodItemSchemaInput, StationFoodItemFields),
     async (req, res) => {
-        try {
-            await updateFoodSettings(
-                DiningHallsEnum.Newcomb,
-                req.body,
-                parser.getDiningHallTimeFrame(
-                    new Date().getDay(),
-                    getCurHour(),
-                ),
-            );
-            res.status(HttpStatusCode.NoContent).end();
-        } catch (err) {
-            console.error(err);
-            res.status(HttpStatusCode.InternalServerError).json({
-                msg: err instanceof Error ? err.message : "",
-            });
-        }
+        await addFoodItem(parser, res, req.body);
     },
 );

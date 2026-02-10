@@ -1,66 +1,77 @@
+import {
+    AboutUsComponent,
+    AppButtonComponent,
+    AppComponent,
+    DininghallComponent,
+    HomeComponent,
+    ItemComponent,
+    NavComponent,
+    PageNotFoundComponent,
+    RegisterComponent,
+    ReviewsComponent,
+    SettingsComponent,
+    SettingsTabComponent,
+    SignInComponent,
+    StarsComponent,
+    StationNameComponent,
+    SwitchComponent,
+    ToggleComponent,
+} from './components';
 import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { DininghallComponent } from './dininghall/dininghall.component';
-import { ItemComponent } from './item/item.component';
-import { NavComponent } from './nav/nav.component';
-import { SwitchComponent } from './switch/switch.component';
-import { StationNameComponent } from './station-name/station-name.component';
-import { AppButtonComponent } from './app-button/app-button.component';
-import { StarsComponent } from './stars/stars.component';
 import { CommonModule } from '@angular/common';
-import { HomeComponent } from './home/home.component';
-import { ReviewsComponent } from './reviews/reviews.component';
-import { RegisterComponent } from './register/register.component';
-import { SignInComponent } from './sign-in/sign-in.component';
-import { AboutUsComponent } from './about-us/about-us.component';
-import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
-import { TextShadowDirective } from './text-shadow.directive';
+import { NoAutocompleteBgDirective, TextShadowDirective } from './directives';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NoAutocompleteBgDirective } from './no-autocomplete-bg.directive';
-import { SettingsComponent } from './settings/settings.component';
-import { SettingsTabComponent } from './settings-tab/settings-tab.component';
-import { ToggleComponent } from './toggle/toggle.component'
-
+import { FooterComponent } from './components/footer/footer.component';
+import { NavLinkComponent } from './components/nav-link/nav-link.component';
+import { DropDownComponent } from './components/drop-down/drop-down.component';
+import { SideCarComponent } from './components/side-car/side-car.component';
+import { SettingsTabProfileComponent } from './components/settings-tab-profile/settings-tab-profile.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    DininghallComponent,
-    ItemComponent,
-    NavComponent,
-    SwitchComponent,
-    StationNameComponent,
-    AppButtonComponent,
-    StarsComponent,
-    HomeComponent,
-    ReviewsComponent,
-    RegisterComponent,
-    SignInComponent,
-    AboutUsComponent,
-    PageNotFoundComponent,
-    TextShadowDirective,
-    NoAutocompleteBgDirective,
-    SettingsComponent,
-    SettingsTabComponent,
-    ToggleComponent,
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-    CommonModule,
-    ReactiveFormsModule,
-    HttpClientXsrfModule.withOptions({
-      cookieName: 'CSRF_TOKEN',
-      headerName: 'H_CSRF_TOKEN'
-    }),
-    FormsModule
-    
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+    declarations: [
+        AppComponent,
+        DininghallComponent,
+        ItemComponent,
+        NavComponent,
+        SwitchComponent,
+        StationNameComponent,
+        AppButtonComponent,
+        StarsComponent,
+        HomeComponent,
+        ReviewsComponent,
+        RegisterComponent,
+        SignInComponent,
+        AboutUsComponent,
+        PageNotFoundComponent,
+        TextShadowDirective,
+        NoAutocompleteBgDirective,
+        SettingsComponent,
+        SettingsTabComponent,
+        ToggleComponent,
+        FooterComponent,
+        NavLinkComponent,
+        SideCarComponent,
+        SettingsTabProfileComponent,
+        ResetPasswordComponent,
+    ],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        DropDownComponent,
+        HttpClientModule,
+        CommonModule,
+        ReactiveFormsModule,
+        HttpClientXsrfModule.withOptions({
+            cookieName: 'CSRF_TOKEN',
+            headerName: 'H_CSRF_TOKEN',
+        }),
+        FormsModule,
+    ],
+    providers: [],
+    bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

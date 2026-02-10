@@ -1,35 +1,15 @@
-import { CSRF_TOKEN, SESSION_ID } from "./services/index.js";
-import ExpressMongoSanitize from "express-mongo-sanitize";
-import { NewcombModel } from "./models/newcomb.js";
-import { OhillModel } from "./models/ohill.js";
-import { type Response } from "express";
-import { RunkModel } from "./models/runk.js";
-import type { SchemaTypes } from "./models/types.js";
+import type { RequestHandler } from "express";
 import type { UpdateUserPrefixes } from "hoorank-shared";
+
+import ExpressMongoSanitize from "express-mongo-sanitize";
 import mongoose from "mongoose";
+import sanitize from "sanitize-html";
 
-// 1000 ms * 60s * 30m
-const TOKEN_AGE = 1_800_000;
-
-export function flattenForUpdate<T extends object, K extends keyof T & string>(
-    prefix: UpdateUserPrefixes,
-    obj: T,
-): Record<`${typeof prefix}.${K}`, T[K]> {
-    return (Object.keys(obj) as K[]).reduce(
-        (acc, key) => {
-            acc[`${prefix}.${key}`] = obj[key];
-            return acc;
-        },
-        {} as Record<`${typeof prefix}.${K}`, T[K]>,
-    );
-}
+import { TOKEN_AGE } from "./constants.js";
+import { DiningHallModel, type DiningHallSchemaType } from "./models/index.js";
 
 export async function connectToMongo(
-    models: mongoose.Model<SchemaTypes>[] = [
-        OhillModel,
-        RunkModel,
-        NewcombModel,
-    ],
+    models: mongoose.Model<DiningHallSchemaType>[] = [DiningHallModel],
 ): Promise<void> {
     try {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -58,6 +38,19 @@ export async function connectToMongo(
     }
 }
 
+export function flattenForUpdate<T extends object, K extends keyof T & string>(
+    prefix: UpdateUserPrefixes,
+    obj: T,
+): Record<`${typeof prefix}.${K}`, T[K]> {
+    return (Object.keys(obj) as K[]).reduce(
+        (acc, key) => {
+            acc[`${prefix}.${key}`] = obj[key];
+            return acc;
+        },
+        {} as Record<`${typeof prefix}.${K}`, T[K]>,
+    );
+}
+
 export const mongoSanitizerMiddleware = ExpressMongoSanitize({
     replaceWith: "_",
 });
@@ -70,19 +63,36 @@ export function setTokenExpiry(): Date {
     return new Date(Date.now() + TOKEN_AGE);
 }
 
-export function setSessionCookie(res: Response, sessionId: string): void {
-    res.cookie(SESSION_ID, sessionId, {
-        sameSite: "strict",
-        httpOnly: true,
-        maxAge: TOKEN_AGE,
-        signed: true,
-        secure: process.env["STAGE"] === "dev" ? false : true,
-    });
-}
+export const sanitizeHtml: RequestHandler = (req, _res, next) => {
+    req.body = sanitizeInput<unknown>(req.body);
+    req.params = sanitizeInput(req.params);
+    req.query = sanitizeInput(req.query);
+    req.cookies = sanitizeInput<unknown>(req.cookies);
 
-export function setCSRFCookie(res: Response, csrfToken: string): void {
-    res.cookie(CSRF_TOKEN, csrfToken, {
-        sameSite: "strict",
-        maxAge: TOKEN_AGE,
-    });
+    next();
+};
+
+type SanitizeOutput<T> = T extends string
+    ? string
+    : T extends (infer U)[]
+      ? SanitizeOutput<U>[]
+      : T extends object
+        ? { [K in keyof T]: SanitizeOutput<T[K]> }
+        : T;
+
+export function sanitizeInput<T>(input: T): SanitizeOutput<T> {
+    if (typeof input === "string") {
+        return sanitize(input) as SanitizeOutput<T>;
+    }
+    if (Array.isArray(input)) {
+        return input.map(sanitizeInput) as SanitizeOutput<T>;
+    }
+    if (input !== null && typeof input === "object") {
+        const sanitizedObj = {} as { [K in keyof T]: SanitizeOutput<T[K]> };
+        for (const key in input) {
+            sanitizedObj[key as keyof T] = sanitizeInput(input[key]);
+        }
+        return sanitizedObj as SanitizeOutput<T>;
+    }
+    return input as SanitizeOutput<T>;
 }

@@ -1,7 +1,3 @@
-import type { NewcombDiningHallSchemaType } from "./newcomb.js";
-import type { OhillDiningHallSchemaType } from "./ohill.js";
-import type { RunkDiningHallSchemaType } from "./runk.js";
-
 export const OhillTimeFrameEnum = [
     "Brunch (8am-2:15pm)",
     "Breakfast (7am-11am)",
@@ -24,7 +20,7 @@ export const RunkTimeFrameEnum = [
 
 export type RunkTimeFrame = (typeof RunkTimeFrameEnum)[number];
 
-export const NewcombDiningHallTimeFrameEnum = [
+export const NewcombHallTimeFrameEnum = [
     "Closed",
     "Unavailable",
     "Brunch (10am-2pm)",
@@ -34,26 +30,19 @@ export const NewcombDiningHallTimeFrameEnum = [
     "Dinner (5pm-8pm)",
 ] as const;
 
+export const GlobalTimeFrames = [
+    ...OhillTimeFrameEnum,
+    ...RunkTimeFrameEnum,
+    ...NewcombHallTimeFrameEnum,
+] as const;
+
 export type NewcombDiningHallTimeFrame =
-    (typeof NewcombDiningHallTimeFrameEnum)[number];
-
-export const DiningHallsEnum = {
-    Runk: "Runk",
-    Ohill: "Ohill",
-    Newcomb: "Newcomb",
-} as const;
-
-export type DiningHalls =
-    (typeof DiningHallsEnum)[keyof typeof DiningHallsEnum];
-export type SchemaTypes =
-    | OhillDiningHallSchemaType
-    | NewcombDiningHallSchemaType
-    | RunkDiningHallSchemaType;
-export type TimeFrameTypes =
-    | OhillTimeFrame
-    | NewcombDiningHallTimeFrame
-    | RunkTimeFrame;
+    (typeof NewcombHallTimeFrameEnum)[number];
 export type TimeFrameEnumTypes =
-    | typeof NewcombDiningHallTimeFrameEnum
-    | typeof RunkTimeFrameEnum
-    | typeof OhillTimeFrameEnum;
+    | typeof NewcombHallTimeFrameEnum
+    | typeof OhillTimeFrameEnum
+    | typeof RunkTimeFrameEnum;
+export type TimeFrameTypes =
+    | NewcombDiningHallTimeFrame
+    | OhillTimeFrame
+    | RunkTimeFrame;

@@ -1,0 +1,80 @@
+<div>
+  <div
+    *ngIf="!displayItems; else visibleItems"
+    class="fixed inset-0 flex flex-col items-center justify-center
+           text-center bg-slate-100 text-neutral-800 px-4"
+  >
+    <h2 class="text-3xl font-semibold tracking-tight">
+      Nothing Found
+    </h2>
+    <p class="mt-2 text-sm text-neutral-600">
+      Please try again at a later time.
+    </p>
+  </div>
+
+  <ng-template #visibleItems>
+    <div
+        *ngIf="displayLoading; else visibleData"
+        class="w-full min-h-[85dvh] bg-slate-50 flex flex-col"
+    >
+        <div class="py-4 flex justify-center" *ngIf="displayTitleText">
+            <div class="h-8 w-48 rounded-full bg-neutral-200 animate-pulse"></div>
+        </div>
+
+        <div class="flex flex-col gap-4 px-4 pb-6 flex-1">
+            <div class="w-full max-w-2xl mx-auto">
+                <div class="h-9 w-full rounded-full bg-neutral-200 animate-pulse"></div>
+            </div>
+
+            <ng-container *ngFor="let section of [1,2,3,4]">
+                <div
+                    class="grid gap-4
+                            xl:grid-cols-fluid lg:grid-cols-fluid-1
+                            sm:grid-cols-fluid-2 grid-cols-fluid-3"
+                >
+                    
+                    <div
+                        *ngFor="let card of [1,2,3,4]"
+                        class="mx-auto w-full max-w-[320px] min-h-[240px]
+                            rounded shadow-lg shadow-black/20
+                            bg-gradient-to-r from-neutral-200 to-neutral-200
+                            animate-pulse flex flex-col p-3 gap-3"
+                    >
+                        <div class="h-6 w-3/4 rounded-full bg-neutral-300"></div>
+                        <div class="h-[120px] w-full rounded bg-neutral-300"></div>
+                        <div class="flex justify-center gap-1 opacity-30">
+                            <span *ngFor="let star of [1,2,3,4,5]">⭐</span>
+                        </div>
+                        <div class="h-5 w-24 rounded bg-neutral-300 mx-auto"></div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+    <ng-template #visibleData>
+      <div [id]="displayDiningHall" class="w-full pb-6">
+
+        <h2
+          *ngIf="displayTitleText"
+          class="text-center font-bold tracking-tight
+                 lg:text-4xl md:text-2xl sm:text-xl text-lg
+                 py-4 px-3 bg-neutral-200 text-[#2b3758]"
+        >
+          {{ displayHallName }}
+        </h2>
+
+        <div class="space-y-2 px-4">
+          <div *ngFor="let stationName of displayShopItems | keyvalue">
+            <app-station-name
+              [stationName]="stationName.key"
+              [diningHall]="displayDiningHall">
+            </app-station-name>
+          </div>
+        </div>
+
+      </div>
+    </ng-template>
+
+  </ng-template>
+</div>

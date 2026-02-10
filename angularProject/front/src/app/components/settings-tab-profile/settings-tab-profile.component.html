@@ -1,0 +1,47 @@
+<div class="bg-neutral-300 m-0 rounded-lg relative flex items-center justify-center flex-col">
+    <div class="bg-[#232D48] rounded-t-lg h-[10vh] flex flex-grow w-full"> 
+        <div class="flex items-center m-5 text-neutral-200">
+            <img src="path_to_profile_image.jpg" alt="Profile Picture" class="w-16 h-16 rounded-full">
+            <div class="ml-4">
+                <h2 class="text-lg font-semibold"> {{username}} </h2>
+                <p class="text-neutral-300">Food Reviewer</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-neutral-200 flex m-5 flex-grow h-fit">
+        <div class="container mx-auto">
+            <div class="max-w-full w-fit mx-auto bg-white shadow-md rounded-md overflow-hidden">
+                <div class="p-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="text-lg font-medium">About me</h3>
+                            <p class="text-gray-500">I am a passionate food critic who loves exploring different cuisines and sharing my experiences with others. Follow me for the latest restaurant reviews and culinary adventures!</p>
+                            <div class="mt-4">
+                                <h3 class="text-lg font-medium">Favorite Campus Dining Halls</h3>
+                                <ol *ngFor="let hallId of diningHalls | keyvalue" class="list-disc list-inside text-gray-500">
+                                    <li>{{ hallId }} Dining Hall</li>
+                                </ol>
+                            </div>
+                        </div>
+                    <div>
+                        <h3 class="text-lg font-medium">Contact</h3>
+                        <div class="mt-4">
+                            <h3 class="text-lg font-medium">Favorite Foods</h3>
+                            <ul class="list-disc list-inside text-gray-500">
+                            <li><a href="https://twitter.com/johndoe" target="_blank" class="text-blue-500">Twitter</a></li>
+                            <li><a href="https://linkedin.com/in/johndoe" target="_blank" class="text-blue-500">LinkedIn</a></li>
+                            <li><a href="https://github.com/johndoe" target="_blank" class="text-blue-500">GitHub</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<h2 class="font-semibold text-sm text-start font-sans tracking-tight w-full border-t-2 pt-3"> ACCOUNT REMOVAL </h2>
+<h3 class="font-medium tracking-tight text-neutral-500/80 overflow-hidden my-0 text-sm text-start font-sans"> Disabling your account means you can recover it at any time after taking this action </h3>
+<div class="flex flex-row pt-3 pb-1">
+    <button class="font-medium text-center border border-red-400 ml-0 mr-2 bg-red-500 p-1 rounded-md transition-[background-color]"> Disable Account </button> 
+    <button class="font-medium inline-block text-center border border-red-600 p-1 ml-2 mr-0 rounded-md hover:bg-red-700/30 shadow-black transition-[background-color]"> Delete Account </button> <!-- No clue why this shifts text when opacity is 100 -->
+</div>

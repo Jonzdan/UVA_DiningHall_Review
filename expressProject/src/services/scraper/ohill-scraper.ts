@@ -1,18 +1,16 @@
-import { type DiningHallTime, getCurHour } from "./util.js";
-import { OhillModel, type OhillTimeFrame } from "../../models/index.js";
-import type { Axios } from "axios";
+import { DiningHallsEnum, type StationFoodItemOutputs } from "hoorank-shared";
+
+import { type OhillTimeFrame } from "../../models/index.js";
 import { DiningHallDataParser } from "./base-scraper.js";
-import type { StationFoodItemOutputs } from "hoorank-shared";
+import { type DiningHallTime, getCurHour } from "./util.js";
 
-export class OhillDataParser implements DiningHallTime {
-    private readonly parser: DiningHallDataParser;
-
-    constructor(axios: Axios, model: typeof OhillModel, url: string) {
-        this.parser = new DiningHallDataParser(axios, model, url);
-    }
-
-    async getData(): Promise<StationFoodItemOutputs | undefined> {
-        return await this.parser.getData(
+export class OhillDataParser
+    extends DiningHallDataParser
+    implements DiningHallTime
+{
+    override async getData(): Promise<StationFoodItemOutputs | undefined> {
+        return await super.getData(
+            DiningHallsEnum.Ohill,
             this.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
         );
     }

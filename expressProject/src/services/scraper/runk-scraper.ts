@@ -1,19 +1,18 @@
-import { type DiningHallTime, getCurHour } from "./util.js";
-import { RunkModel, type RunkTimeFrame } from "../../models/index.js";
-import type { Axios } from "axios";
+import { DiningHallsEnum, type StationFoodItemOutputs } from "hoorank-shared";
+
+import { type RunkTimeFrame } from "../../models/index.js";
 import { DiningHallDataParser } from "./base-scraper.js";
-import type { StationFoodItemOutputs } from "hoorank-shared";
+import { type DiningHallTime, getCurHour } from "./util.js";
 
-export class RunkDataParser implements DiningHallTime {
-    private readonly parser: DiningHallDataParser;
-
-    constructor(axios: Axios, model: typeof RunkModel, url: string) {
-        this.parser = new DiningHallDataParser(axios, model, url);
-    }
-
-    async getData(): Promise<StationFoodItemOutputs | undefined> {
-        return await this.parser.getData(
+export class RunkDataParser
+    extends DiningHallDataParser
+    implements DiningHallTime
+{
+    override async getData(): Promise<StationFoodItemOutputs | undefined> {
+        return await super.getData(
+            DiningHallsEnum.Runk,
             this.getDiningHallTimeFrame(new Date().getDay(), getCurHour()),
+            true
         );
     }
 

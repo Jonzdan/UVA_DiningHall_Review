@@ -1,0 +1,47 @@
+<div *ngIf="isLoaded" class="w-full h-fit bg-neutral-100 flex-row flex flex-grow top-0 relative">
+    <div id="expandable-sidebar" class="bg-[#232D48] w-fit min-h-screen flex flex-col items-center justify-center shadow-gray-400 shadow-sm px-5 font-semibold tracking-tighter text-base relative"> 
+        <div class="flex flex-col text-base text-neutral-50 my-2 items-start justify-start w-full"> <!-- logo -->
+            <h2 class=" text xl:first-letter:text-5xl xl:text-4xl lg:first-letter:text-4xl lg:text-3xl first-letter:text-2xl text-lg md:first-letter:text-3xl md:text-2xl text-start self-center tracking-tight first-letter:text-amber-400 hover:cursor-pointer " appTextShadow (click)="navigateToHome()"> HOO<span class="italic"></span><span class="xl:text-5xl lg:text-4xl md:text-3xl sm:text-2xl text-xl">F</span>OOD </h2>
+        </div>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent(tabs.PROFILE)">
+            <button type="text" class="indent-1 p-1">Profile</button>
+        </div>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent(tabs.PASSWORD)">
+            <button type="text" class="indent-1 p-1">Password</button>
+        </div>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="switchContent(tabs.NOTIFICATIONS)">
+            <button class="indent-1 p-1">Notifications</button>
+        </div>
+        <div class="flex flex-row text-base text-neutral-50 hover:bg-opacity-70 rounded-md hover:bg-[#435485] items-start justify-start w-full" (click)="logout()">
+            <button class="indent-1 p-1">Logout</button>
+        </div>
+        <div class=" mt-auto">
+            <svg class="scale-[.4] lg:scale-[.5] lg:hover:scale-[.55] hover:scale-[.45] m-0 hover:cursor-pointer rounded-full shadow-lg shadow-black/20 "  
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg" 
+                    xmlns:xlink="http://www.w3.org/1999/xlink" 
+                    width="50" 
+                    height="50"
+                    fill="white">
+                    
+                    <defs>
+                        <clipPath id="circular-border">
+                        <circle cx="25" cy="25" r="23.33" />
+                        </clipPath>
+                        <clipPath id="avoid-antialiasing-bugs">
+                        <rect width="100%" height="41.5" />
+                        </clipPath>
+                    </defs>
+                    
+                    <circle cx="25" cy="25" r="23.33" fill="black" clip-path="url(#avoid-antialiasing-bugs)" />
+                    <circle cx="25" cy="19.17" r="9.58" />
+                    <circle cx="25" cy="45.83" r="17.1" clip-path="url(#circular-border)" />
+            </svg>
+        </div>
+    </div>
+    <div id="options" class="flex flex-grow flex-col mx-4 py-3 overflow-y-scroll">
+        <h2 class="font-semibold text-2xl tracking-tight font-sans ">  {{currentSelected}} Settings </h2> <!-- {{}} Settings -->
+        <h3 class="pb-4 pt-1 border-b-2 indent-0 "> {{whichTitleSubstring(currentSelected)}} </h3> <!-- subtext -->
+        <app-settings-tab class="w-full h-screen" ></app-settings-tab>
+    </div>
+</div>
